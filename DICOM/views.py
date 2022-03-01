@@ -1718,7 +1718,6 @@ def window_load(request):
     request.session['unet_contour_'+WindowNo]=[]
     return JsonResponse({}, status=200)   
 
-
 @csrf_exempt
 def SaveCoordinate(request):
     PID = str(request.POST.get('PID'))
