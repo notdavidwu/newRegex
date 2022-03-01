@@ -1,0 +1,3 @@
+LoadFile "C:/Users/User/anaconda3/envs/django/python38.dll"
+LoadModule wsgi_module "C:/Users/User/anaconda3/envs/django/lib/site-packages/mod_wsgi/server/mod_wsgi.cp38-win_amd64.pyd"
+WSGIPythonHome "C:/Users/User/anaconda3/envs/django"

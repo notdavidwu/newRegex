@@ -1,0 +1,562 @@
+
+{% load static%}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="zh-Hant" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+    <title>DICOM</title>
+    </head>
+
+<style>
+        /* width */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    body{background:url("{% static 'image/texture.png' %}");-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow: hidden}
+    @media (min-width: 0px) {
+        #Report td{color: whitesmoke;font-size: 16pt}
+        #Report tr{padding: 0;margin: 0}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;min-width:150px;width: 15%;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;text-align: center}
+        input[name='confirmPID']{display: none}
+        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
+        input[name='confirmPID']:checked ~label{background-color: #e78632;}
+
+        input[name='timePID']{display: none}/*radio  消失*/
+        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;height: 50px;padding-left: 12px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px}/*點擊顏色變長*/
+        input[name='timePID']:checked ~label{background-color: #ffdf7e}
+        #timetable{position: absolute;margin-top:105px;width:85%;left:max( calc(15% ) , 150px );height:50%;overflow-y: scroll;overflow-x: hidden}
+
+        #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
+        #title{margin-top:55px;height:50px;width: 89%;left:max( calc(15% ) , 150px );position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title table{width: calc(100% - 100px)}
+        .header{font-size: 16pt;color: white;padding: 0;text-align: center}
+        .edate{font-size:12pt;float: left;width: 20%;padding-left: 20px;height: auto}
+        .type2{font-size:12pt;float: left;width: 20%;margin-left: 20px;height: auto}
+        .note{font-size:12pt;float: left;width: 20%;padding-left: 20px;height: auto;word-break:break-all;}
+        .phase{font-size:12pt;float: left;width: 12%;margin-left:  20px;height: 30px;padding-top: 0;}
+        .IntervalNo{float: left;margin-top: 0;top:0;margin-left:  1%;width: 6%;height: 30px;padding-top: 0;}
+        .report2{display: none}
+        .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
+        #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");bottom:0px;height: calc(50% - 105px);width:calc( 100% - 149px);position: absolute;left:max( calc(14.9% ) , 149px );font-size: 12pt;padding:20px}/*Report 放的框框*/
+        textarea {resize: none}
+        .ChartNo{display: none}
+        .OrderNo{display: none}
+        .eventID{display: none}
+        p{height: 100%;align-items: center;vertical-align: center}
+        #Disease{position: absolute;top: 55px;height: 100px;;min-width:150px;width: 15%;background-color: #11171a}
+        #Disease select{width:92%;height: 40px;margin: 5px;font-size: 11pt}
+    }
+    @media (min-width: 1200px) {
+        #Report td{color: whitesmoke;font-size: 16pt}
+        #Report tr{padding: 0;margin: 0}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;width: 200px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 200px;text-align: center}
+        input[name='confirmPID']{display: none}
+        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: 200px;height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px}
+        input[name='confirmPID']:checked ~label{background-color: #e78632;}
+
+        input[name='timePID']{display: none}/*radio  消失*/
+        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;height: 50px;padding-left: 12px;margin-bottom: -10px;margin-top: -10px;margin-left: -15px}/*點擊顏色變長*/
+        input[name='timePID']:checked ~label{background-color: #ffdf7e}
+        #timetable{position: absolute;margin-top:105px;width: 54.5% ;left: 200px;position: absolute;height:88.8%;overflow-y: scroll;overflow-x: hidden}
+        #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
+        #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title table{width: 100%}
+        .header{font-size: 16pt;color: white;padding: 0;text-align: center}
+        .edate{float: left;width: 20%;padding-left: 20px;height: auto}
+        .type2{float: left;width: 25%;padding-left: 20px;height: auto}
+        .note{float: left;width: 25%;padding-left: 20px;height: auto;font-size: 12pt;}
+        .phase{float: left;width: 12%;margin-left:  20px;height: auto;padding-top: 0}
+        .IntervalNo{float: left;margin-top: 0;top:0;margin-left: 5px;width: 5%;padding-top: 0}
+        .report2{display: none}
+        .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
+        #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
+        textarea {resize: none}
+        .ChartNo{display: none}
+        .OrderNo{display: none}
+        .eventID{display: none}
+        p{height: 100%;align-items: center;vertical-align: center}
+        #Disease{position: absolute;top: 55px;height: 100px;width: 200px;background-color: #11171a}
+        #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
+
+    }
+
+</style>
+
+
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+<script>
+    function GetTime(){
+        text=$('input[name=confirmPID]:checked').next().html()
+        /*alert(text)*/
+        $('#time').css('visibility','hidden')
+        var IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
+        $.ajax({
+                type: 'post',
+                url: '{% url "confirm:confirmpat2" %}', // this is the mapping between the url and view
+                data:{
+                    'ID':text,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+
+                    $('#time').children('tbody').children('tr').remove()
+                    var HeavyDisease=[30001,30002]
+                    for(var i=0;i<response.ChartNo.length;i++){
+
+                        if(response.MedType[i]==30001 || response.MedType[i]==30002){
+                            $('#time').append('<tr><td>' +
+                            '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
+                            '<label for=timePID'+i+'>'+
+                                '<p  class="eventID">'+response.eventID[i]+'</p>'+
+                                '<p  class="ChartNo">'+response.ChartNo[i]+'</p>'+
+                                '<p  class="OrderNo">'+response.OrderNo[i]+'</p>'+
+                                '<p  class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</p>'+
+                                '<p  class="type2">'+response.TypeName[i].replaceAll(' ','') +'</p>'+
+                                '<p class="note">'+response.ReportText[i]+'</p>'+
+                                '<p  class="report2">'+response.ReportText[i] +'</p>'+
+                            '</label>' +
+                            '</td></tr>')
+                            $('#timePID'+i).parents('td').css('background-color', '#33333a')
+                            $('#timePID'+i+', [for="timePID'+i+'"]').prop('disabled', true)
+                            $('#timePID'+i).next('label').css('color', 'red')
+                            if($('#timePID'+i).next('label').height()> $('#timePID'+i).next('label').children('.note').height()&& $('#timePID'+i).next('label').height()>$('#timePID'+i).next('label').children('.type2').height()){
+                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').height()+22)
+                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').height()+22)
+                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
+                            }else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
+                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
+                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
+                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
+                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+                            }else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.type2').height()){
+                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.type2').height()+22)
+                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.type2').height()+22)
+                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
+                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+                            }
+                        }else{
+                            $('#time').append('<tr><td height="auto">' +
+                            '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
+                            '<label for=timePID'+i+'>'+
+                                '<p  class="eventID">'+response.eventID[i]+'</p>'+
+                                '<p  class="ChartNo">'+response.ChartNo[i]+'</p>'+
+                                '<p  class="OrderNo">'+response.OrderNo[i]+'</p>'+
+                                '<p class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</p>'+
+                                '<p class="type2">'+response.TypeName[i].replaceAll(' ','') +'</p>'+
+                                '<p class="note"></p>'+
+                                '<p class="report2">'+response.ReportText[i] +'</p>'+
+                                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
+                                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+                            '</label>' +
+                            '</td></tr>')
+
+                            $.ajax({
+                                type: 'post',
+                                url: '{% url "confirm:searchNote" %}', // this is the mapping between the url and view
+                                data:{
+                                    'IND':i,
+                                    'eventID':response.eventID[i],
+                                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                                },
+                                success:function (response){
+                                    str=''
+                                    for(var j=0;j<response.Disease.length;j++) {
+                                        str += '<span style="font-weight: bold">'+response.Disease[j]+'</span>'+': '+response.Event[j] + '<br>'
+                                    }
+
+                                    $('#timePID'+response.IND).next('label').children('.note').html(str)
+                                    if(50> $('#timePID'+response.IND).next('label').children('.note').height()&& 50>$('#timePID'+response.IND).next('label').children('.type2').height()){
+                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').height()+10)
+                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').height()+12)
+                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
+                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+5)
+                                    }else if($('#timePID'+response.IND).next('label').children('.note').height()>$('#timePID'+response.IND).next('label').children('.type2').height()){
+                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+8)
+                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+10)
+                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+5)
+                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
+                                    }else if($('#timePID'+response.IND).next('label').children('.note').height()<$('#timePID'+response.IND).next('label').children('.type2').height()){
+                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+8)
+                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+10)
+                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+5)
+                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
+                                    }
+                                }
+                            })
+
+                            $.ajax({
+                                type: 'post',
+                                url: '{% url "confirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+                                data:{
+                                    'IND':i,
+                                    'DiseaseNo':$('#ChangeDisease').val(),
+                                    'eventID':response.eventID[i],
+                                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                                },
+                                success:function (response){
+                                    //alert(response.EventID)
+                                    $('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
+                                    $('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
+                                }
+                            })
+                        }
+                        //alert($('#timePID'+i).next('label').children('.phase').height())
+
+                        //$('#timePID'+i).next('label').children('.phase').children('option[value='+response.EventID[i]+']').attr('selected','selected')
+                        //$('#timePID'+i).next('label').children('.IntervalNo').children('option[value='+response.IntervalNo[i]+']').attr('selected','selected')
+
+                        //alert(ind)
+
+
+                    }
+                    
+                },
+                complete:function(){
+                    $('#time').css('visibility','visible')
+                }
+        })
+
+    }
+    function GetReport() {
+        reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
+        $('#text').text(reporttext)
+    }
+    function UpdatePhase(){
+        target=$(event.target)
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:updatePhase" %}', // this is the mapping between the url and view
+            data:{
+                'Disease':$('#Disease').children('select').val(),
+                'Event':target.val(),
+                'eventID':target.prevAll('.eventID').html(),
+                'IntervalNo':target.next('.IntervalNo').val(),
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+
+            success:function (response){
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "confirm:searchNote" %}', // this is the mapping between the url and view
+                    data:{
+                        'IND':0,
+                        'eventID':target.prevAll('.eventID').html(),
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                    },
+                    success:function (response){
+                        target.parents('label').css('height',0)
+                        str=''
+                        for(var j=0;j<response.Disease.length;j++) {
+                            str += '<span style="font-weight: bold">'+response.Disease[j]+'</span>'+': '+response.Event[j] + '<br>'
+                        }
+                        target.prevAll('.note').html(str)
+
+                        if(50> target.prevAll('.note').height()&& 50>target.prevAll('.type2').height()){
+                            target.parents('label').prev().parents('td').css('height',50)
+                            target.parents('label').css('height',50)
+                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
+                        }else if(target.prevAll('.note').height()>target.prevAll('.type2').height()){
+                            target.parents('label').prev().parents('td').css('height',target.prevAll('.note').height()+8)
+                            target.parents('label').css('height',target.prevAll('.note').height()+10)
+                            target.nextAll('.Ignore').css('height',target.prevAll('.note').height()+5)
+                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
+                        }else if(target.prevAll('.note').height()<target.prevAll('.type2').height()){
+                            target.parents('label').prev().parents('td').css('height',target.prevAll('.type2').height()+8)
+                            target.parents('label').css('height',target.prevAll('.type2').height()+10)
+                            target.nextAll('.Ignore').css('height',target.prevAll('.type2').height()+5)
+                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
+                        }
+                    }
+                })
+
+
+
+            }
+        })
+
+    }
+    function UpdateInterval(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:updateInterval" %}', // this is the mapping between the url and view
+            data:{
+                'Disease':$('#Disease').children('select').val(),
+                'eventID':$(event.target).prevAll('.eventID').html(),
+                'IntervalNo':$(event.target).val(),
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+
+            }
+        })
+    }
+    function ignore(){
+        target = $(event.target);
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:ignore" %}', // this is the mapping between the url and view
+            data:{
+                'diseaseNo':$('#ChangeDisease').val(),
+                'eventID':$(event.target).prevAll('.eventID').text(),
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                Ignore=response.Ignore
+                if(Ignore==1){
+
+                    target.parents('label').parents('td').css('background-color','#556245')
+                    target.prevAll().css('text-decoration','line-through')
+                    target.html('Ignored')
+                }else if(Ignore==0){
+                    target.parents('label').parents('td').css('background-color','#33333a')
+                    target.prevAll().css('text-decoration','none')
+                    target.html('Adopted')
+                }
+            }
+        })
+
+    }
+    $(document).ready(function (e) {
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:Disease" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(var i=0;i<response.DiseaseNo.length;i++){
+                    $('#Disease').children('#ChangeDisease').append('' +
+                        '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
+                        '')
+                }
+            },
+            complete:function (){
+                var disease = $('#ChangeDisease').val()
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "confirm:confirmpat" %}', // this is the mapping between the url and view
+                    data:{
+                        'Disease':disease,
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                    },
+                    success:function (response){
+                        for(var i=0;i<response.examID.length;i++){
+                                $('#Report').append('' +
+                                    '<tr><td>' +
+                                        '<input type="radio" onclick="GetTime()" name="confirmPID" id='+i+'>' +
+                                        '<label for='+i+'>'+
+                                            response.examID[i]+
+                                        '</label>' +
+                                    '</td></tr>')
+                        }
+                    }
+                })
+            }
+        })
+
+
+        selection ='<option value="0">請選擇階段</option>'
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:Phase" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(var i=0;i<response.PhaseID.length;i++) {
+                    selection += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
+                }
+            }
+        })
+        $('#ChangeDisease').on('change',function (){
+            $.ajax({
+                type: 'post',
+                url: '{% url "confirm:confirmpat" %}', // this is the mapping between the url and view
+                data:{
+                    'Disease':$('#ChangeDisease').val(),
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    $('#Report').empty()
+                    for(var i=0;i<response.examID.length;i++){
+                        $('#Report').append('' +
+                            '<tr><td>' +
+                                '<input type="radio" onclick="GetTime()" name="confirmPID" id='+i+'>' +
+                                '<label for='+i+'>'+
+                                    response.examID[i]+
+                                '</label>' +
+                            '</td></tr>')
+                    }
+                    //$('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
+                    //$('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
+                }
+            })
+        })
+        $('#ChangeDisease').on('change',function (){
+            num=($('.note').length)
+            for(var i = 0; i < num; i++){
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "confirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+                    data:{
+                        'IND':i,
+                        'DiseaseNo':$('#ChangeDisease').val(),
+                        'OrderNo':$('#timePID'+i).next('label').children('.OrderNo').html(),
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                    },
+                    success:function (response){
+                        //alert(response.EventID)
+                        $('#timePID'+response.IND).next('label').children('.phase').val(response.EventID)
+                        $('#timePID'+response.IND).next('label').children('.IntervalNo').val(response.IntervalID)
+                        //$('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
+                        //$('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
+                    }
+                })
+            }
+        })
+        $( window ).resize(function() {
+            for(var i=0;i<$('.ChartNo').length;i++){
+                if(50> $('#timePID'+i).next('label').children('.note').height()&& 50>$('#timePID'+i).next('label').children('.type2').height()){
+                    $('#timePID'+i).next('label').prev().parents('td').css('height',50)
+                    $('#timePID'+i).next('label').css('height',52)
+                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
+                }else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
+                    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+8)
+                    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+12)
+                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
+                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+                }else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.type2').height()){
+                    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.type2').height()+8)
+                    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.type2').height()+12)
+                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
+                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.type2').height())/2)
+                }
+            }
+        })
+    })
+
+//-------------------------------定位功能------------------------------------
+</script>
+<body >
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >相關連結</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
+            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
+            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
+
+
+</body>
+
+<div id="Disease" >
+    <select class="form-select" aria-label="Default select example" id="ChangeDisease"></select>
+    <select class="form-select" aria-label="Default select example" id="filter">
+        <option value="1">全部名單</option>
+        <option value="1">過濾Ignore</option>
+    </select>
+</div>
+
+<div id="patient">
+    <table class="table table-striped" id="Report"></table>
+</div>
+
+
+<div id="title">
+<table  class="thead-dark">
+    <thead>
+    <th class="header">日期</th>
+    <th class="header">檢查項目</th>
+    <th class="header">註記</th>
+    <th class="header">確認階段</th>
+    </thead>
+</table>
+</div>
+
+
+<div id="timetable">
+    <table class="table  table-striped" id="time">
+        <tbody></tbody>
+    </table>
+</div>
+
+<textarea id="text" readonly>
+
+</textarea>
+</html>
+
+
+{% endblock %}

@@ -1,0 +1,14 @@
+{% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">癌症研究</a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item"  href="{% url 'confirm:confirm' %}">確認病患階段</a>
+                    <a class="dropdown-item"  href="{% url 'pool:pool' %}">研究主題</a>
+                </div>
+            </li>
+
+{% endif %}
+<style>
+.dropdown-item{text-align: left;padding-left: 30px}
+</style>

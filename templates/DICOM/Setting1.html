@@ -1,0 +1,595 @@
+{% extends 'DICOM/DICOM.html' %}
+{% load static%}
+{% block content %}
+<style>
+
+    .Topform #setting{
+        background:url("{% static 'image/texture.png' %}");
+        background-color: #CCCCCC;
+        position: fixed;
+        height: 95%;
+        width: 310px;
+        padding-top: 10px;
+        border-radius: 5px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
+        color: #0d0d0d;
+        font-weight:bold;
+        box-shadow: 0px 5px 5px 5px rgba(0, 0, 0, 0.2);
+    }
+    .RT_Setting{
+        background:url("{% static 'image/texture.png' %}");
+        background-color: #CCCCCC;
+        position: fixed;
+        height: 95%;
+        width: 200px;
+        left: 330px;
+        padding-top: 10px;
+        padding-left: 10px;
+        border-radius: 5px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
+        color: #0d0d0d;
+        font-weight:bold;
+        box-shadow: 0px 5px 5px 5px rgba(0, 0, 0, 0.2);
+        overflow-y: auto;
+    }
+    #UseSUVmax{
+        background-color: #AAAAAA;
+        position: fixed;
+        right: 0px;
+        border-radius: 5px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
+        color: #0d0d0d;
+        font-weight:bold;
+        padding: 0.5%;
+        height: 95%;
+        width: 12%;
+    }
+
+    #UseSUVmax input[type='checkbox']{display: none}
+    #UseSUVmax label{transition: all .3s linear;background-color: #CCCCCC;position: fixed;width: 11%;height: 88%;border-radius: 5px;text-align: center;justify-items: center;padding-top: 55px;}
+    #UseSUVmax label{ -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #trigger:hover + label{background-color: #999999;}
+    #trigger:checked + label{background-color: #555555;-webkit-box-shadow: 0 0px 10px 0 rgba(95,186,233,0.4);box-shadow: 0 0px 0px 5px rgba(95,186,233,0.4);color: white;}
+    #triggerLabel p{display: inline}
+
+
+</style>
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+<script>
+    $(document).ready(function (e) {
+        $('#viewPlane').on('change',function(){
+            var plane = $('#viewPlane option:selected').text()
+            var height=$("[name='group1']:checked").next("label").children('.slider').height()
+            if (plane == 'Axial'){
+                variable=height*$("[name='group1']:checked").next("label").children('div').children('div').children('.z').text()
+            }else if(plane == 'Coronal'){
+                variable=height*$("[name='group1']:checked").next("label").children('div').children('div').children('.y').text()
+            }else if(plane == 'Sagittal'){
+                variable=height*$("[name='group1']:checked").next("label").children('div').children('div').children('.x').text()
+            }
+            $("[name='group1']:checked").next("label").children('.slider').scrollTop(variable)
+        })
+    });
+    function dicomwindow() {
+        height=$("[name='group1']:checked").next("label").children('.slider').height();
+        b=$("[name='group1']:checked").next("label").children('.slider').scrollTop()
+        //count=Math.round(b/height)
+        win_num=$('#select').val();
+        var CTWC = $('#CTWindow option:selected').val().split(',')[0]
+        var CTWW = $('#CTWindow option:selected').val().split(',')[1]
+        var PETWC = document.getElementById("PETWC").value;
+        var PETWW = document.getElementById("PETWW").value;
+        var plane = $('#viewPlane option:selected').text();
+        var mode = $('#Mode option:selected').text();
+        var CT_window = $('#CTWindow option:selected').val()
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.CTWC').text(CTWC);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.CTWW').text(CTWW);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.PETWC').text(PETWC);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.PETWW').text(PETWW);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.plane').text(plane);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.mode').text(mode);
+        $("[name='group1']:checked").next("label").children('div').children('div').children('.CT_window').text(CT_window);
+        x=$("[name='group1']:checked").next('label').children('div').children('div').children('.x').text()
+        y=$("[name='group1']:checked").next('label').children('div').children('div').children('.y').text()
+        z=$("[name='group1']:checked").next('label').children('div').children('div').children('.z').text()
+        $('#CTWindow_menu').val(CT_window).prop('selected',true);
+        $('#Mode_menu').val(mode).prop('selected',true);
+        $('#Plane_menu').val(plane).prop('selected',true);
+        xyz=checkPlaneXYZ(plane,x,y,z)
+        //alert(xyz['x']+' '+xyz['y']+' '+xyz['z'])
+        //ajax(2, xyz['x'], xyz['y'], count2,true, true)
+        //alert($("[name='group1']:checked").next("label").children('div').children('div').children('.x').text())
+        //alert( $("[name='group1']:checked").next("label").children('div').children('div').children('p').text())
+        var WindowNo = $("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
+        //alert(xyz['z'])
+        if(WindowNo=='1'){
+            urlname="{% url 'DICOM:DICOM_show1' %}"
+        }else if(WindowNo=='2'){
+            urlname="{% url 'DICOM:DICOM_show2' %}"
+        }else if(WindowNo=='3') {
+            urlname="{% url 'DICOM:DICOM_show3' %}"
+        }else if(WindowNo=='4'){
+            urlname="{% url 'DICOM:DICOM_show4' %}"
+        }
+        $.ajax({
+            type: 'post',
+            url: urlname, // this is the mapping between the url and view
+            data: {
+                'variable': xyz['z'], // ! here is the magic, your variable gets transmitted to the server
+                'CTWC':CTWC,
+                'CTWW':CTWW,
+                'PETWC':PETWC,
+                'PETWW':PETWW,
+                'plane':plane,
+                'mode':mode,
+                'x':xyz['x'],
+                'y':xyz['y'],
+                'z':xyz['z'],
+                'height':$("[name='group1']:checked").next("label").children('div').children('div').children('img').height(),
+                'width':$("[name='group1']:checked").next("label").children('div').children('div').children('img').width(),
+                'ActualCoordinates':true,
+                'drawActualCoordinates':true,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function(response) {
+                $("[name='group1']:checked").next("label").children('div').children('div').children('img').attr('src',response.dicom_url);
+                $("[name='group1']:checked").next("label").children('.slider').children('div').css('height',response.z*100+'%');
+                $("[name='group1']:checked").next("label").children('div').children('div').children('.variable').text(parseInt(xyz['z'])+1+'/'+response.z)
+                //$('#test').css('height',response.z*100+'%')
+                R= response.ratio;
+                ratio = $("[name='group1']:checked").parents().height()/$("[name='group1']:checked").parents().width()
+                $("[name='group1']:checked").next("label").children('div').children('div').children('.ratio').text(R);
+
+                if(ratio>1){
+                    if(plane!="Axial"){
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width',Math.round($("[name='group1']:checked").parents().width()-25));
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',
+                            Math.round($("[name='group1']:checked").next("label").children('div').children('div').children('.img').width()*R)
+                        )
+                        if($("[name='group1']:checked").parents().height()<$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height()){
+                            var ratio=$("[name='group1']:checked").parents().height() / ($("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',
+                                Math.round(($("[name='group1']:checked").next("label").children('div').children('div').children('.img').height()) * ratio)
+                            )
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width',
+                                Math.round(($("[name='group1']:checked").next("label").children('div').children('div').children('.img').width()) * ratio)
+                            )
+                        }
+
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                            ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())/2);
+                    }else{
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height', 'auto');
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width', Math.floor($("[name='group1']:checked").parents().width())-25 + 'px');
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                            ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').width())/2);
+                    }
+                }else{
+                    if(plane!="Axial"){
+
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width',Math.round($("[name='group1']:checked").parents().width()-25));
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',
+                            Math.round($("[name='group1']:checked").next("label").children('div').children('div').children('.img').width()*R)
+                        )
+                        if($("[name='group1']:checked").parents().height()<$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height()){
+                            var ratio=$("[name='group1']:checked").parents().height() / ($("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',
+                                Math.round(($("[name='group1']:checked").next("label").children('div').children('div').children('.img').height()) * ratio)
+                            )
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width',
+                                Math.round(($("[name='group1']:checked").next("label").children('div').children('div').children('.img').width()) * ratio)
+                            )
+                        }
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                            ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())/2);
+
+                    }else{
+
+                        if(win_num==4){
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',Math.floor($("[name='group1']:checked").parents().height())+'px');
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width','auto');
+
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                            ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())/2);
+
+                        }else if(win_num==1){
+
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height',Math.floor($("[name='group1']:checked").parents().height())+'px');
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width','100%');
+                        }else{
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('height','auto');
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('width',Math.floor($('#frame1').width()-25)+'px');
+                            $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                                ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())/2)
+                        }
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',
+                                ($("[name='group1']:checked").parents().height()-$("[name='group1']:checked").next("label").children('div').children('div').children('.img').height())/2)
+
+                    }
+
+                }
+
+            },
+        });
+
+    }(jQuery);
+
+    function selection(){
+
+        if($('#select').val()==1){
+            $('input[name="2"]').prop('disabled',true)
+            $('input[name="3"]').prop('disabled',true)
+            $('input[name="4"]').prop('disabled',true)
+        }else if($('#select').val()==2){
+            $('input[name="2"]').prop('disabled',false)
+            $('input[name="3"]').prop('disabled',true)
+            $('input[name="4"]').prop('disabled',true)
+        }else if($('#select').val()==4){
+            $('input[name="2"]').prop('disabled',false)
+            $('input[name="3"]').prop('disabled',false)
+            $('input[name="4"]').prop('disabled',false)
+        }
+        win_num=$('#select').val();
+        //alert($('#frame1 .plane').text())
+        //alert(win_num);
+        if(win_num==1){
+            $('#frame1').css('background','none');
+            $('#connect').css('display','none');
+            $('#frame2').css('display','none')
+            $('#frame3').css('display','none')
+            $('#frame4').css('display','none')
+            $('#frame1').css('display','flex');
+            //alert($('#CT-PET').width())
+            $('#frame1').css('width',$('#CT-PET').width());
+            $('#frame1').css('height',$('#CT-PET').height());
+            $('#frame1').css('text-align','center');
+            $('#frame1').css('margin-top','0px');
+            $('#frame1').css('padding','0px');
+            $('#frame1').css('border','none');
+            $('.main').css('margin','auto');
+            $('.main').css('height','100%');
+            $('#frame1').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $('.slider').css('height',$('#frame1').height())
+            for(var i=1;i<=1;i++){
+                R = $('#frame'+i).children('label').children('.main').children('div').children('.ratio').text()
+                //alert(($('#frame'+i).height()/$('#frame'+i).width()))
+                if(($('#frame'+i).height()/$('#frame'+i).width())>1) {
+                    if($('#frame'+i).children('label').children('.main').children('div').children('.plane').text()!="Axial"){
+
+
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        if($('#frame' + i).height()<$('#frame' + i).children('label').children('div').children('div').children('.img').height()) {
+                            var ratio=$('#frame'+i).height() / ($('#frame'+i).children('label').children('div').children('div').children('.img').height())
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('height',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').height() * ratio)
+                            )
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('width',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').width()* ratio)
+                            )
+                        }
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+                    }else{
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', Math.floor($('#frame'+i).width())-25 + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+
+                    }
+                }else{
+                    if (plane1 != 'Axial') {
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        $('#frame'+i).children("label").children('div').children('div').children('.img').css('margin-top','0px');
+                    } else {
+
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', Math.floor($('#frame'+i).height()) + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top', '0px');
+                    }
+                }
+            }
+        }else if(win_num==2){
+            $('#Imagecheckbox').prop('checked',true)
+            $('#frame1').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $('#frame2').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="2"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $("[name='group1']:checked").parents('div').css('background-image',
+                'repeating-linear-gradient(to bottom, #FFFFFF 0,#FFFFFF 1%,transparent 1%, transparent 99%),' +
+                'repeating-linear-gradient(to right, #FFFFFF 0,#FFFFFF 1%,#33333a 1%,#33333a 99%)'
+            )
+            $("[name='group1']:not(':checked')").parents('div').css('background','none');
+            var plane = $('#viewPlane option:selected').text();
+            $('#connect').css('display','inline');
+            $('#frame3').css('display','none');
+            $('#frame4').css('display','none');
+
+            $('#frame1').css('display','flex');
+            $('#frame1').css('flex','0% 50% 33%');
+            $('#frame1').css('width','50%');
+            $('#frame1').css('height','100%');
+            $('#frame1').css('text-align','center');
+
+            //$('#frame1').css('background-color','#333333');
+            $('#frame1').css('border-right', '1px white solid');
+            $('#frame1').css('border-bottom', 'none');
+
+            $('#frame2').css('display','flex');
+            $('#frame2').css('width','25%');
+            $('#frame2').css('flex','0% 0% 33%');
+            $('#frame2').css('width','50%');
+            $('#frame2').css('height','100%');
+            $('.main').css('height','100%')
+
+            $('#frame2').css('text-align','center');
+            $('#frame2').css('justify-content','center');
+            $('#frame2').css('border-left', '1px white solid');
+            $('#frame2').css('border-bottom', 'none');
+            $('#frame1').css('margin','0');
+            $('.slider').css('height',$('#frame1').height())
+            for(var i=1;i<=2;i++){
+                R = $('#frame'+i).children('label').children('.main').children('div').children('.ratio').text()
+                if(($('#frame'+i).height()/$('#frame'+i).width())>1) {
+                    if($('#frame'+i).children('label').children('.main').children('div').children('.plane').text()!="Axial"){
+
+
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        if($('#frame' + i).height()<$('#frame' + i).children('label').children('div').children('div').children('.img').height()) {
+                            var ratio=$('#frame'+i).height() / ($('#frame'+i).children('label').children('div').children('div').children('.img').height())
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('height',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').height() * ratio)
+                            )
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('width',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').width()* ratio)
+                            )
+                        }
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+                    }else{
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', Math.floor($('#frame'+i).width())-25 + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+
+                    }
+                }else{
+                    if (plane1 != 'Axial') {
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        $('#frame'+i).children("label").children('div').children('div').children('.img').css('margin-top','0px');
+                    } else {
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', Math.floor($('#frame'+i).height()) + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin', '0px');
+                    }
+                }
+            }
+        }else if(win_num==4){
+            $('#Imagecheckbox').prop('checked',true)
+            $('#frame1').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $('#frame2').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="2"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $('#frame3').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="3"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $('#frame4').children('label').children('div').children('div').children('.StudyID').text(
+                $('input[name="4"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
+            )
+            $("[name='group1']:checked").parents('div').css('background-image',
+                'repeating-linear-gradient(to bottom, #FFFFFF 0,#FFFFFF 1%,transparent 1%, transparent 99%),' +
+                'repeating-linear-gradient(to right, #FFFFFF 0,#FFFFFF 1%,#33333a 1%,#33333a 99%)'
+            )
+            $("[name='group1']:not(':checked')").parents('div').css('background','none');
+            width = ($(window).width()*0.6)/2+'px'
+            $('#connect').css('display','inline');
+            $('#CT-PET').css('flex-wrap','wrap');
+            $('#CT-PET').css('display','flex');
+            $('#frame1').css('display','flex');
+
+            $('#frame1').css('width',width);
+            $('#frame1').css('height','50%');
+
+
+            //$('#frame1').css('background-color','#333333');
+            $('#frame1').css('border-right', '1px white solid')
+            $('#frame1').css('border-bottom', '1px white solid')
+
+            $('#frame2').css('display','flex');
+
+            $('#frame2').css('height','50%');
+            $('#frame2').css('width',width);
+            //$('#frame2').css('background-color','#DDDDDD');
+            $('#frame2').css('text-align','center');
+            $('#frame2').css('justify-content','center');
+            $('#frame2').css('border-left', '1px white solid')
+            $('#frame2').css('border-bottom', '1px white solid')
+
+            $('#frame3').css('display','flex');
+
+            $('#frame3').css('height','50%');
+            $('#frame3').css('width',width);
+            //$('#frame3').css('background-color','#777777');
+            $('#frame3').css('text-align','center');
+            $('#frame3').css('justify-content','center');
+            $('#frame3').css('border-right', '1px white solid')
+            $('#frame3').css('border-top', '1px white solid')
+
+            $('#frame4').css('display','flex');
+
+            $('#frame4').css('height','50%');
+            $('#frame4').css('width',width);
+            //$('#frame4').css('background-color','#aaaaaa');
+            $('#frame4').css('text-align','center');
+            $('#frame4').css('justify-content','center');
+            $('#frame4').css('border-left', '1px white solid')
+            $('#frame4').css('border-top', '1px white solid')
+            $('.main').css('vertical-align','middle');
+            $('.main').css('width','auto');
+            $('.main').css('height','auto');
+            $('.main').css('margin','auto');
+            ratio1 = $('#frame1').height()/$('#frame1').width()
+            ratio2 = $('#frame2').height()/$('#frame2').width()
+            ratio3 = $('#frame3').height()/$('#frame3').width()
+            ratio4 = $('#frame4').height()/$('#frame4').width()
+            plane1=$('#frame1').children('label').children('.main').children('div').children('.plane').text()
+            plane2=$('#frame2').children('label').children('.main').children('div').children('.plane').text()
+            plane3=$('#frame3').children('label').children('.main').children('div').children('.plane').text()
+            plane4=$('#frame4').children('label').children('.main').children('div').children('.plane').text()
+            R1 = $('#frame1').children('label').children('.main').children('div').children('.ratio').text()
+            R2 = $('#frame2').children('label').children('.main').children('div').children('.ratio').text()
+            R3 = $('#frame3').children('label').children('.main').children('div').children('.ratio').text()
+            R4 = $('#frame4').children('label').children('.main').children('div').children('.ratio').text()
+            $('.slider').css('height',$('#frame1').height())
+            for(var i=1;i<=4;i++){
+                R = $('#frame'+i).children('label').children('.main').children('div').children('.ratio').text()
+                if(($('#frame'+i).height()/$('#frame'+i).width())>1) {
+                    if($('#frame'+i).children('label').children('.main').children('div').children('.plane').text()!="Axial"){
+
+
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        if($('#frame' + i).height()<$('#frame' + i).children('label').children('div').children('div').children('.img').height()) {
+                            var ratio=$('#frame'+i).height() / ($('#frame'+i).children('label').children('div').children('div').children('.img').height())
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('height',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').height() * ratio)
+                            )
+                            $('#frame' + i).children('label').children('div').children('div').children('.img').css('width',
+                                Math.floor($('#frame' + i).children('label').children('div').children('div').children('.img').width()* ratio)
+                            )
+                        }
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+                    }else{
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', Math.floor($('#frame'+i).width())-25 + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin-top',
+                            ($('#frame'+i).height()-$('#frame'+i).children('label').children('div').children('div').children('.img').height())/2);
+
+                    }
+                }else{
+                    if (plane1 != 'Axial') {
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width',Math.round($('#frame'+i).width()-25));
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height',
+                            Math.round($('#frame'+i).children('label').children('div').children('div').children('.img').width()*R)
+                        )
+                        $('#frame'+i).children("label").children('div').children('div').children('.img').css('margin-top','0px');
+                    } else {
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('height', Math.floor($('#frame'+i).height()) + 'px');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('width', 'auto');
+                        $('#frame'+i).children('label').children('div').children('div').children('.img').css('margin', '0px');
+                    }
+                }
+            }
+
+            $('#frame1').css('width',Math.round($('#frame1').width())+'px');
+            $('#frame2').css('width',Math.round($('#frame2').width())+'px');
+            $('#frame3').css('width',Math.round($('#frame3').width())+'px');
+            $('#frame4').css('width',Math.round($('#frame4').width())+'px');
+        }
+    }
+$(document).ready(function () {
+    $('#trigger').click(function (){
+        var judgment=$('#trigger').is(':checked')
+        if(judgment==true){
+            $(this).next('#triggerLabel').children('p').html('啟用<br>LocalMax<br>功能')
+            $(this).next('#triggerLabel').children('p').css('color','white')
+        }else if(judgment==false){
+            $(this).next('#triggerLabel').children('p').html('關閉<br>LocalMax<br>功能')
+            $(this).next('#triggerLabel').children('p').css('color','black')
+        }
+    })
+    $('#Reset_trigger').click(function (){
+
+    })
+});
+</script>
+<div id="setting">
+<div class="settingItem input-group">
+    <span class="input-group-text" style="width: 151px">window個數設定</span>
+
+        <select id="select" onclick="selection()" class="form-select form-select-sm" aria-label=".form-select-sm example">
+            <option value="1">one window</option>
+            <option value="2">two windows</option>
+            <option value="4">four windows</option>
+        </select>
+
+</div>
+<div class="settingItem input-group">
+    <span class="input-group-text" style="width: 151px">Anatomical plane</span>
+
+        <select onclick="dicomwindow()" id="viewPlane" class="form-select form-select-sm" aria-label=".form-select-sm example">
+            <option value="Axial">Axial</option>
+            <option value="Coronal">Coronal</option>
+            <option value="Sagittal">Sagittal</option>
+        </select>
+
+</div>
+<div class="settingItem input-group">
+    <span class="input-group-text" style="width: 151px">Mode</span>
+
+        <select onclick="dicomwindow()" id="Mode" class="form-select form-select-sm" aria-label=".form-select-sm example">
+            <option value="CT">CT</option>
+            <option value="PET">PET</option>
+            <option value="Fusion">Fusion</option>
+        </select>
+
+</div>
+<div class="settingItem input-group">
+    <span class="input-group-text" style="width: 100px">CT</span>
+    <span class="input-group-text">window</span>
+    <select onchange="dicomwindow()" id="CTWindow"  class="form-select " aria-label="Default select example" >
+        <option value="45,250">Abdomen</option>
+        <option value="255,35" >Crane</option>
+        <option value="45,300">Pelvis</option>
+        <option value="45,440">Mediastinum</option>
+        <option value="500,4000">Bone</option>
+        <option value="-500,2000">Lung</option>
+    </select>
+</div>
+<div class="settingItem input-group">
+    <span class="input-group-text" style="width: 100px">PET</span>
+    <span class="input-group-text">WC</span>
+    <input aria-label="First name" class="form-control" id="PETWC" type="text" value=2.5 oninput="dicomwindow()" onkeyup="value=value.replace(/[^\d\.]/g,'')">
+    <span class="input-group-text">WW</span>
+    <input aria-label="Last name" class="form-control" id="PETWW" type="text" value=5 oninput="dicomwindow()" onkeyup="value=value.replace(/[^0\d]/g,'')">
+</div>
+</div>
+<div class="RT_Setting">
+
+</div>
+
+<div id="UseSUVmax">
+    <input type="checkbox" id="trigger" checked>
+    <label for="trigger" id="triggerLabel" >
+        <p>啟用<br>LocalMax<br>功能</p>
+    </label>
+</div>
+<style>
+    .input-group {margin: 0px;border-radius: 5px 5px 5px 5px}
+    .input-group span{height: 34px;margin: 0px;border-radius: 5px 5px 5px 5px}
+    .input-group input{height: 34px;margin: 0px;border-radius: 5px 5px 5px 5px}
+    .input-group select{height: 34px;margin: 0px;border-radius: 5px 5px 5px 5px}
+</style>
+{% endblock %}
+
+

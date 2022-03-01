@@ -1,0 +1,846 @@
+﻿
+{% load static%}
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+
+</head>
+<style>
+
+    #Leftblock{margin-top: 2.9%;width: 10%;height:94.1%;background-color: #f5c2c7;position: absolute;overflow-y: auto}
+    input[name='Category']{display: none}/*radio  消失*/
+    input[name='Category'] +label{width: 100%;height: 50px;padding-left: 50px;margin-bottom: -12px;}
+    input[name='Category']:checked ~label{background-color: #ffdf7e;}
+    .CategoryNo{display: none}
+    .CategoryName{font-family:DFKai-sb;font-size: 25px;position: absolute;margin-right: 3%}
+
+    /*   Leftblock   */
+
+
+    #Midblock{margin-top: 2.9%;margin-left:10%;width: 17%;height:94.1%;background-color: slategrey;position: absolute;overflow-y: auto}
+    input[name='Leading']{display: none}/*radio  消失*/
+    input[name='Leading'] +label{width: 100%;height: 50px;padding-left: 50px;margin-bottom: -12px;}
+    input[name='Leading']:checked ~label{background-color: #ffdf7e;}
+    .LeadingID{display: none}
+    .rules{display: none}
+    .Purpose{font-family:DFKai-sb;font-size: 25px;position: absolute;role:"button";}
+
+    /*   Midblock   */
+
+
+    #uprightblock{margin-top: 2.9%;margin-left:27%;width: 73%;height:6%;background-color: #9fcdff;position: absolute;}
+    #Acceptbutton{margin-left: 60%;position: absolute;width: 7%;margin-top: 0.8%;display: none}
+    #Spellbutton{margin-left: 70%;position: absolute;width: 7%;margin-top: 1%;height: 40px;font-family:DFKai-sb;font-size: 20px;display: none}
+    #Sortbutton{margin-left: 80%;position: absolute;width: 7%;margin-top: 1%;height: 40px;font-family:DFKai-sb;font-size: 20px;background-color: ;display: none}
+    .dropdown3{margin-left: 50%;position: absolute;width: 9%;margin-top: 1%;height: 40px;font-family:DFKai-sb;font-size: 20px;display: none}
+    #warning{display: none}
+    .buttonright{margin-left: 40%;position: absolute;margin-top: 0.8%;display: none}
+    .buttonleft{margin-left: 35%;position: absolute;margin-top: 0.8%;display: none}
+    /*   uprightblock   */
+
+    #Rightblock{margin-top: 6%;margin-left:27%;width: 73%;height:88%;background-color: powderblue;position: absolute;overflow-y: auto}
+    input[name='Item2']{display: none}/*radio  消失*/
+    input[name='Item2'] +label{width:154%;height: 45px;padding-left: 50px;position: absolute;}
+    input[name='Item2']:checked ~label{background-color: #ffdf7e;}
+    #Item td{height: 60px;width: 10%}
+
+    .Tokenc1{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: -50px;height: 50px;}
+    .Tokenc2{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 11%;height: 50px;}
+    .Tokenc3{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 20%;height: 50px;}
+    .Tokenc4{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 30%;height: 50px;}
+    .Tokenc5{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 40%;height: 50px;}
+    .Tokenc6{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 50%;height: 50px;}
+    .Tokenc7{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 60%;height: 50px;}
+    .Tokenc8{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 70%;height: 50px;}
+    .Sumer{font-family:DFKai-sb;font-size: 20px;position: absolute;role:"button";margin-left: 80%;height: 50px;}
+    .Tokenc1ID{display:none}
+    .Tokenc2ID{display:none}
+    .Tokenc3ID{display:none}
+    .Tokenc4ID{display:none}
+    .Tokenc5ID{display:none}
+    .Tokenc6ID{display:none}
+    .Tokenc7ID{display:none}
+    .Tokenc8ID{display:none}
+
+    .dad{display: none}
+
+    .loader {
+      border: 8px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 8px solid #00A600;
+      width: 40px;
+      height: 40px;
+      margin-left: 45%;
+      margin-top: 30%;
+      -webkit-animation: spin 2s linear infinite; /* Safari */
+      animation: spin 2s linear infinite;
+    }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /*   Rightblock   */
+
+    /*
+
+     ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+         font-size: 20px;
+
+    }
+    ul.drop-down-menu {
+        border: #ccc 1px solid;
+        display: inline-block;
+        font-family: 'Open Sans', Arial, sans-serif;
+        font-size: 13px;
+        font-family:DFKai-sb;
+    }
+    ul.drop-down-menu li {
+        position: relative;
+        white-space: nowrap;
+        border-right: #ccc 1px solid;
+    }
+    ul.drop-down-menu > li:last-child {
+        border-right: none;
+    }
+    ul.drop-down-menu > li {
+        float: left;
+    }
+     ul.drop-down-menu a {
+        background-color: #fff;
+        color: #333;
+        display: block;
+        padding: 0 30px;
+        text-decoration: none;
+        line-height: 40px;
+         font-size: 20px;
+        font-family:DFKai-sb;
+
+    }
+    ul.drop-down-menu a:hover {
+        background-color: coral;
+        color: #fff;
+    }
+    ul.drop-down-menu li:hover > a {
+        background-color: coral;
+        color: #fff;
+    }
+    ul.drop-down-menu ul {
+        border: #ccc 1px solid;
+        position: absolute;
+        z-index: 99;
+        left: -1px;
+        top: 100%;
+       min-width: 18px;
+    }*//*
+    ul.drop-down-menu ul li {
+        border-bottom: #ccc 1px solid;
+    }
+    ul.drop-down-menu ul li:last-child {
+        border-bottom: none;
+    }
+    ul.drop-down-menu ul ul {
+        z-index: 999;
+        top: 10px;
+        left: 90%;
+    }
+     ul.drop-down-menu ul {
+        display: none;
+    }
+    ul.drop-down-menu li:hover > ul {
+        display: block;
+    }
+    */
+
+    /*   多層下拉   */
+
+    .buttonright {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px 15px;
+    border: 5px solid #786565;
+    border-radius: 16px;
+    background: #c5a6a6;
+    background: -webkit-gradient(linear, left top, left bottom, from(#c5a6a6), to(#786565));
+    background: -moz-linear-gradient(top, #c5a6a6, #786565);
+    background: linear-gradient(to bottom, #c5a6a6, #786565);
+    -webkit-box-shadow: #cdadad -80px -80px 0px 0px;
+    -moz-box-shadow: #cdadad -80px -80px 0px 0px;
+    box-shadow: #cdadad -80px -80px 0px 0px;
+    text-shadow: #564848 -10px -10px 0px;
+    font: normal normal bold 18px impact;
+    color: #ffffff;
+    text-decoration: none;
+}
+    .buttonright:hover,
+    .buttonright:focus {
+    border: 5px solid #ab9090;
+    background: #ecc7c7;
+    background: -webkit-gradient(linear, left top, left bottom, from(#ecc7c7), to(#907979));
+    background: -moz-linear-gradient(top, #ecc7c7, #907979);
+    background: linear-gradient(to bottom, #ecc7c7, #907979);
+    color: #ffffff;
+    text-decoration: none;
+}
+    .buttonright:active {
+    background: #786565;
+    background: -webkit-gradient(linear, left top, left bottom, from(#786565), to(#786565));
+    background: -moz-linear-gradient(top, #786565, #786565);
+    background: linear-gradient(to bottom, #786565, #786565);
+}
+    .buttonright:before{
+    content:  "\0000a0";
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    line-height: 24px;
+    margin: 0 4px -6px -4px;
+    position: relative;
+    top: -1px;
+    left: 5px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAoklEQVRIie2VQQqDMBREn7FICx7VMwjxOqUX8hzdxrrwi6FYUDsfNw6EhEDe/ExCAtsVgGgt7Fi3WRH4WJOb3IBnZjCbSFX9MJHu5FQTqa64JCYBpvsdgQSUtuDIuAfeQG1zrfWxMEcvdS5vimkAUsGynX/0ABqWiAam6DsBe/WQFUUDcAdeGTgp4ZU3/IplFe4Wy/eXKa18VmtgF3husgs+AqA6WrZQRtpdAAAAAElFTkSuQmCC") no-repeat left center transparent;
+    background-size: 100% 100%;
+}
+
+
+    /*   向右button   */
+
+    .buttonleft {
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px 15px;
+    border: 5px solid #786565;
+    border-radius: 16px;
+    background: #c5a6a6;
+    background: -webkit-gradient(linear, left top, left bottom, from(#c5a6a6), to(#786565));
+    background: -moz-linear-gradient(top, #c5a6a6, #786565);
+    background: linear-gradient(to bottom, #c5a6a6, #786565);
+    -webkit-box-shadow: #cdadad -80px -80px 0px 0px;
+    -moz-box-shadow: #cdadad -80px -80px 0px 0px;
+    box-shadow: #cdadad -80px -80px 0px 0px;
+    text-shadow: #564848 -10px -10px 0px;
+    font: normal normal bold 18px impact;
+    color: #ffffff;
+    text-decoration: none;
+}
+    .buttonleft:hover,
+    .buttonleft:focus {
+    border: 5px solid #ab9090;
+    background: #ecc7c7;
+    background: -webkit-gradient(linear, left top, left bottom, from(#ecc7c7), to(#907979));
+    background: -moz-linear-gradient(top, #ecc7c7, #907979);
+    background: linear-gradient(to bottom, #ecc7c7, #907979);
+    color: #ffffff;
+    text-decoration: none;
+}
+    .buttonleft:active {
+    background: #786565;
+    background: -webkit-gradient(linear, left top, left bottom, from(#786565), to(#786565));
+    background: -moz-linear-gradient(top, #786565, #786565);
+    background: linear-gradient(to bottom, #786565, #786565);
+}
+    .buttonleft:before{
+    content:  "\0000a0";
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    line-height: 24px;
+    margin: 0 4px -6px -4px;
+    position: relative;
+    top: -1px;
+    left: 5px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAACXBIWXMAAA7EAAAOxAGVKw4bAAAApElEQVRIie2VQQqDMBBFn7GUnjrFK5TeokgvV9pVtIuMMJVWjPx05cBgGPD9+AgR1lcAOutQ8N7q6oDRWh7i4SNwAw414UcFeHLu4b0Kzg/4qRZ81/IVLtHSkLWcgejmD+AKvIDWZmnrer5zaQdLGrZLWK7GnpGsabpfnsCFrEhWkYrH04ckF3JHeEyXQqp8ya6rKOTvunqEv8x5SOLz3pKHFMHffy1wWXSbn70AAAAASUVORK5CYII=") no-repeat left center transparent;
+    background-size: 100% 100%;
+}
+    .loader{display: none;position: absolute}
+    .buttonright{margin-left: 40%;position: absolute;margin-top: 0.8%;display: none}
+    .buttonleft{margin-left: 35%;position: absolute;margin-top: 0.8%;display: none}
+    /*   向左button   */
+
+</style>
+
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+
+
+<script>
+    function myrefresh() {
+        window.location.reload();
+    }
+    function Bridge1(){                                 //Category --> Leading
+        CHECKED = $('input[name="Category"]:checked')
+        for (var i = 0; i < CHECKED.length; i++) {
+        var CategoryNo = (CHECKED.eq(i).next('label').children('.CategoryNo').text())
+            //alert (CategoryNo)
+            Leading(CategoryNo)
+        }
+    }
+    function Bridge2(status){
+        $('.loader').css('display','inline')//Leading --> Pool
+        CHECKED = $('input[name="Leading"]:checked')
+        for (var i = 0; i < CHECKED.length; i++) {
+        var LeadingID = (CHECKED.eq(i).next('label').children('.LeadingID').text())
+            //alert (LeadingID)
+            //alert(status)
+            $('#warning').text(1)
+            Item2(LeadingID,status)
+            Switch()
+        }
+    }
+    function Bridge3(){                                 //Pool 歸類 到資料庫
+        CHECKED = $('input[name="Leading"]:checked')
+        TokenID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+        //alert(TokenID)
+        for (var i = 0; i < CHECKED.length; i++) {
+        var LeadingID = (CHECKED.eq(i).next('label').children('.LeadingID').text())
+            var yessir = confirm(LeadingID+',請按取消，功能尚未完善');
+        if(yessir){
+            Sort(LeadingID,TokenID)
+        }else {
+            alert('取消執行')
+        }
+
+        }
+    }
+    function Bridge4(){                                 //Leading --> Pool
+        CHECKED = $('input[name="Leading"]:checked')
+        for (var i = 0; i < CHECKED.length; i++) {
+        var LeadingID = (CHECKED.eq(i).next('label').children('.LeadingID').text())
+            FinishSort(LeadingID)
+        }
+    }
+    function Switch() {             //典籍lEADING
+        //$('#Acceptbutton').css('display','inline')                    ////////無敵下拉選單
+        $('.dropdown3').css('display','inline')
+    }
+    $(document).ready(function (e) {
+        $.ajax({
+            type: 'post',
+            url: '{% url "Classify:WordCategory" %}', // this is the mapping between the url and view
+            data: {
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function (response) {
+                jump = 0
+                //alert(response.CategoryNo.length)
+                //$('#Word').children('tr').remove()
+                for (var i = 0; i < response.CategoryNo.length; i++) {
+                    //alert(response.Token[i])
+                    $('#Category').append('<tr><td>' +
+                        '<input type="radio" onclick="Bridge1()" name="Category" id=Category' + i + '>' +
+                        '<label for=Category' + i + '>' +
+                        '<p  class="CategoryNo">' + response.CategoryNo[i] + '</p>' +
+                        '<p  class="CategoryName">' + response.CategoryName[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+            }
+        }),
+            $('.dropdown3').on('change', function () {  /*有變動就執行此函數*/
+                var text = $(this).val()
+                if (text == '已歸類') {
+                    $('#Sortbutton').css('display','none')
+                    status='2'
+                    Bridge2(status)
+
+                } else if (text == '全部') {
+                    $('#Sortbutton').css('display','inline')
+                    status='3'
+                    Bridge2(status)
+                } else if (text == '未歸類') {
+                    $('#Sortbutton').css('display','inline')
+                    status='1'
+                    Bridge2(status)
+                }
+
+            }),
+            $('#Item').on('click', function () {  /*有變動就執行此函數*/
+                jump=0;
+                CHECKED = $('input[name="Item2"]:checked').parents('td')
+
+        for(var k=0;k<8;k++)
+        {
+            CHECKED.css('font-weight', '')
+            CHECKED.css('color', '')
+            CHECKED=CHECKED.next()
+        }
+            $('#Spellbutton').css('display','inline')
+        $('#Sortbutton').css('display','inline')
+
+        $('.buttonright').css('display','inline')
+        $('.buttonleft').css('display','inline')
+            })
+    })
+    function FinishSort(LeadingID){
+        $.ajax({
+            type: 'post',
+            url: '{% url "Classify:FinishSort" %}', // this is the mapping between the url and view
+            data:{
+                'LeadingID':LeadingID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+                $('#Item').children('tr').remove()
+                for (var i = 0; i < response.child.length; i++) {
+                    $('#Item').append('<tr><td>' +
+                        '<input type="radio" onclick="" name="Item2" id=Item2' + i + '>' +
+                        '<label for=Item2' + i + '>' +
+                        '<p  class="child">' + response.child[i] + '</p>' +
+                        '<p  class="dad">' + response.dad[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+            }
+        })
+    }
+    function Leading(CategoryNo){
+      $.ajax({
+            type: 'post',
+            url: '{% url "Classify:Leading" %}', // this is the mapping between the url and view
+            data:{
+                'CategoryNo':CategoryNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+
+                $('#Leading').children('tr').remove()
+                for (var i = 0; i < response.LeadingID.length; i++) {
+                    //alert(response.Token[i])
+                    //alert(response.LeadingID.length)
+                    status=1
+                    $('#Leading').append('<tr><td>' +
+                        '<input type="radio" onclick="Bridge2(status)" name="Leading" id=Leading' + i + '>' +
+                        '<label for=Leading' + i + '>' +
+                        '<p  class="LeadingID">' + response.LeadingID[i] + '</p>' +
+                        '<p  class="Purpose">' + response.Purpose[i] + '</p>' +
+                        '<p  class="rules">' + response.rules[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+            }
+        })
+    }
+    function Sort(LeadingID,TokenID){
+         $.ajax({
+            type: 'post',
+            url: '{% url "Classify:Sort" %}', // this is the mapping between the url and view
+            data:{
+                'LeadingID':LeadingID,
+                'TokenID':TokenID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+             success:function (response) {
+                for (var i = 0; i < response.child.length; i++) {
+                    alert(response.child[i]+' 已歸類至 '+response.dad[i])
+                }
+             }
+         })
+    }
+    function Spell() {
+        //CHECKED = $('input[name="Item2"]:checked').next('label').parents('td')
+        var q=1;
+        circle='';
+        ans='';
+        CHECKED = $('input[name="Item2"]:checked').parents('td')
+        ans=CHECKED.text()
+        circle=CHECKED
+        a='0';
+        while(a=='0'){
+            circle=circle.next('td')
+            if(circle.text()=='null') {
+                break;
+                a=1;
+            }
+            ans=ans+circle.text()
+            q+=1;
+        }
+        alert('選取個數共'+q+'個字')
+        //alert(q)
+        var j=0;
+        str='';
+        str2='';
+        for (var i = 1; i <= q; i++) {
+            //if ($('input[name="Item2"]:checked').next('label').children('.Tokenc'+[i]+'').text()=='null'){
+               // j=j+1;
+            //}else{
+                //str+=$('input[name="Item2"]:checked').next('label').children('.Tokenc'+[i]+'').text()+','
+                str2+='Token'+[i]+'ID,'
+            //}
+        }
+        //alert(str)
+        //alert(str2)
+        var yes = confirm(ans+',請按取消，功能尚未完善');
+        if (yes) {
+            Token1ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token2ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token3ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token4ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token5ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token6ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token7ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+            Token8ID = ($('input[name="Item2"]:checked').parents('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').next('td').text())
+
+            MultipleWords(Token1ID,Token2ID,Token3ID,Token4ID,Token5ID,Token6ID,Token7ID,Token8ID)
+        } else {
+            alert('取消執行')
+        }
+    }
+    function MultipleWords(Token1ID,Token2ID,Token3ID,Token4ID,Token5ID,Token6ID,Token7ID,Token8ID){
+            $.ajax({
+            type: 'post',
+            url: '{% url "Classify:MultipleWords" %}', // this is the mapping between the url and view
+            data:{
+                'Token1ID':Token1ID,
+                'Token2ID':Token2ID,
+                'Token3ID':Token3ID,
+                'Token4ID':Token4ID,
+                'Token5ID':Token5ID,
+                'Token6ID':Token6ID,
+                'Token7ID':Token7ID,
+                'Token8ID':Token8ID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+                if(response.state[0]==1) {
+                    alert("修改成功!馬上重新整理");
+                    myrefresh();
+                }
+                else{
+                    alert("無法修改");
+                    myrefresh();
+                }
+
+            }
+        })
+
+
+    }
+    function insert() {
+        var q=1;
+        circle='';
+        ans='';
+        CHECKED = $('input[name="Item2"]:checked').parents('td')
+        ans=CHECKED.text()
+        circle=CHECKED
+        a='0';
+        while(a=='0'){
+            circle=circle.next('td')
+            if(circle.text()=='null') {
+                break;
+                a=1;
+            }
+            ans=ans+circle.text()
+            q+=1;
+        }
+        alert(ans)
+        alert(q)
+
+    }
+
+    function Item2(LeadingID,status){
+      $.ajax({
+            type: 'post',
+            url: '{% url "Classify:Item2" %}', // this is the mapping between the url and view
+            data:{
+                'LeadingID':LeadingID,
+                'status':status,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+                //alert(response.Token7ID.length)
+                $('#Item').children('tr').remove()
+                $('.loader').css('display','none')
+                for (var i = 0; i < response.Token1.length; i++) {
+
+                    $('#Item').append('<tr><td>' +
+                        '<input type="radio" onclick="" name="Item2" id=Item2' + i + '>' +
+                        '<label for=Item2' + i + '>' +
+                        '<p  class="Tokenc1">' + response.Token1[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc2">' + response.Token2[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc3">' + response.Token3[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc4">' + response.Token4[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc5">' + response.Token5[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc6">' + response.Token6[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc7">' + response.Token7[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc8">' + response.Token8[i] + '</p>' +'</td><td>'+
+                        '<p  class="Sumer">' + response.Sum[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc1ID">' + response.Token1ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc2ID">' + response.Token2ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc3ID">' + response.Token3ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc4ID">' + response.Token4ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc5ID">' + response.Token5ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc6ID">' + response.Token6ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc7ID">' + response.Token7ID[i] + '</p>' +'</td><td>'+
+                        '<p  class="Tokenc8ID">' + response.Token8ID[i] + '</p>' +'</td><td>'+
+                        //'<button class="btn btn-primary Ignore" id="Spellbutton" onclick="Spell()">合併</button>'+
+                        //'<button class="btn btn-primary Ignore" id="Acceptbutton" onclick="">歸類</button>'+
+                        //'<button class="btn btn-primary Ignore" id="Definitionbutton" onclick="">spell</button>'+
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                    if(response.Token1[i]==null){
+
+                        var string1="12313"
+                        $('.Tokenc1').eq(i).css('display','none')
+                        //document.getElementsByTagName('.Tokenc2').innerHTML = string1
+                    }
+                    if(response.Token2[i]==null){
+                        $('.Tokenc2').eq(i).css('display','none')
+                        //document.getElementsByTagName('.Tokenc2').innerHTML = string1
+                    }if(response.Token3[i]==null){
+                        $('.Tokenc3').eq(i).css('display','none')
+                        //$('#Item').eq(i).children('tr').next('td').css('display','none')
+                    }if(response.Token4[i]==null){
+                        $('.Tokenc4').eq(i).css('display','none')
+                    }if(response.Token5[i]==null){
+                        $('.Tokenc5').eq(i).css('display','none')
+                        $('#Definitionbutton').css('display','inline')
+                    }if(response.Token6[i]==null){
+                        $('.Tokenc6').eq(i).css('display','none')
+                    }if(response.Token7[i]==null){
+                        $('.Tokenc7').eq(i).css('display','none')
+                    }if(response.Token8[i]==null){
+                        $('.Tokenc8').eq(i).css('display','none')
+                    }/*if(response.Token3[i]=='EndLine'){
+                        $('.Tokenc3').eq(i).css('display','none')
+                        $('.Tokenc4').eq(i).css('display','none')
+                        $('.Tokenc5').eq(i).css('display','none')
+                        $('.Tokenc6').eq(i).css('display','none')
+                        $('.Tokenc7').eq(i).css('display','none')
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token4[i]=='EndLine'){
+                        $('.Tokenc4').eq(i).css('display','none')
+                        $('.Tokenc5').eq(i).css('display','none')
+                        $('.Tokenc6').eq(i).css('display','none')
+                        $('.Tokenc7').eq(i).css('display','none')
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token5[i]=='EndLine'){
+                        $('.Tokenc5').eq(i).css('display','none')
+                        $('.Tokenc6').eq(i).css('display','none')
+                        $('.Tokenc7').eq(i).css('display','none')
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token6[i]=='EndLine'){
+                        $('.Tokenc6').eq(i).css('display','none')
+                        $('.Tokenc7').eq(i).css('display','none')
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token7[i]=='EndLine'){
+                        $('.Tokenc7').eq(i).css('display','none')
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token8[i]=='EndLine'){
+                        $('.Tokenc8').eq(i).css('display','none')
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }if(response.Token9[i]=='EndLine'){
+                        $('.Tokenc9').eq(i).css('display','none')
+                    }*/
+                }
+            }
+        })
+    }
+    function GoRight() {
+        jump=jump+1;
+        if(jump==8){
+            jump=jump-1
+        }
+        CHECKED = $('input[name="Item2"]:checked').parents('td')
+
+        for(var k=0;k<jump;k++)
+        {
+            CHECKED.css('font-weight', '')
+            CHECKED.css('color', '')
+            CHECKED=CHECKED.next()
+            CHECKED.css('color', '#F00')
+            CHECKED.css('font-weight', 'bold')
+        }
+    }
+    function GoLeft() {
+
+        CHECKED = $('input[name="Item2"]:checked').parents('td')
+
+        for(var k=0;k<jump;k++)
+        {
+            CHECKED = CHECKED.next()
+            if(k==jump-2) {
+                CHECKED.css('font-weight', 'bold')
+                CHECKED.css('color', '#F00')
+                CHECKED.next().css('color', '')
+                CHECKED.next().css('font-weight', '')
+            }
+        }
+        jump=jump-1;
+        if(jump==0){
+            jump=jump+1
+        }
+    }
+
+
+
+
+</script>
+<body onload="test()">
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >Link</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
+            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
+            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
+
+</body>
+        <!--DIV-->
+    <div id ="Leftblock">
+        <!--<label class="label">123456</label>-->
+        <table class="table  table-striped" id="Category">
+        </table>
+    </div>
+    <div id ="Midblock">
+        <!--<label class="label">123456</label>-->
+        <table class="table  table-striped" id="Leading">
+        </table>
+    </div>
+    <div id ="uprightblock">
+        <select class="dropdown3" style="font-size:20px;font-family:DFKai-sb;">
+            <optgroup label="請選擇">
+            <option>未歸類</option>
+            <option>已歸類</option>
+            <option>全部</option>
+            </optgroup>
+        </select>
+        <button type="button" class="btn-light" id="Spellbutton" onclick="Spell()"> 合併 &raquo; </button>
+        <button type="button" class="btn-light" id="Sortbutton" onclick="Bridge3()"> 歸類 &raquo; </button>
+    <ul class="drop-down-menu" id="Acceptbutton">
+
+        <li><a href="#">歸類</a>
+            <ul>
+                <li ><a href="#">菌種</a>
+                    <ul>
+                        <li onclick="insert()"><a href="#">INSERT</a>
+                        </li>
+                        <li onclick=""><a href="#">TEST COLOR</a>
+                        </li>
+                        <li><a href="#">痰液</a>
+                        </li>
+                        <li><a href="#">預設</a>
+                        </li>
+                    </ul>
+
+                </li>
+                <li><a href="#">檢體</a>
+                    <ul>
+                        <li><a href="#">血液</a>
+                        </li>
+                        <li><a href="#">尿液</a>
+                        </li>
+                        <li><a href="#">痰液</a>
+                        </li>
+                        </li>
+                        <li><a href="#">預設</a>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#">藥品</a>
+                    <ul>
+                        <li><a href="#">血液</a>
+                        </li>
+                        <li><a href="#">尿液</a>
+                        </li>
+                        <li><a href="#">痰液</a>
+                        </li>
+                        </li>
+                        <li><a href="#">預設</a>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#">...</a>
+                </li>
+            </ul>
+        </li>
+
+    </ul>
+        <a class="buttonright" href="#" onclick="GoRight()"></a>
+        <a class="buttonleft" href="#" onclick="GoLeft()"></a>
+
+
+    </div>
+    <div id ="Rightblock">
+        <div class="loader"></div>
+        <!--<label class="label">123456</label>-->
+        <table class="table  table-striped" id="Item">
+        </table>
+    </div>
+<p id="warning"></p>
+</html>

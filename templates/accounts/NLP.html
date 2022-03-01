@@ -1,0 +1,14 @@
+{% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">自然語言分析</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="{% url 'LabNLP:LabNLP' %}">字詞生成</a>
+                    <a class="dropdown-item" href="{% url 'Classify:Classify' %}">詞語歸類</a>
+
+                    <!--<a class="dropdown-item" href="#">something</a>
+                    <a class="dropdown-item" href="#">something</a>
+                    <a class="dropdown-item" href="#">something</a>-->
+                </div>
+            </li>
+{% endif %}

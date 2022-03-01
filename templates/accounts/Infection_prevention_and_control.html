@@ -1,0 +1,14 @@
+﻿{% if user.is_authenticated %}
+            <li class="nav-item dropdown ">
+                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">感染管控</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+
+                    <a class="dropdown-item" href="{% url 'tube:tube' %}">管路確認</a>
+                    <a class="dropdown-item" href="{% url 'tube2:tube2' %}">管路歸類</a>
+                    <a class="dropdown-item" href="{% url 'Search:Search' %}">查詢</a>
+                    <a class="dropdown-item" href="{% url 'categorize:categorize' %}">歸類</a>
+                    
+                </div>
+            </li>
+{% endif %}

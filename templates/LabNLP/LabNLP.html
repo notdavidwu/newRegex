@@ -1,0 +1,807 @@
+﻿
+{% load static%}
+
+
+<!DOCTYPE html>
+<html lang="zh-Hant" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
+
+</head>
+<style>
+    #block{margin-top:2.9%;background-color: #b8daff;position: absolute;zIndex:9999;width: 60%;height: 7%;}
+    
+    #aks{margin-top: 10px}
+    #aks{margin-left:1%;background-color: #0dcaf0;font-family:DFKai-sb;font-size: 20px;position: absolute;}/*淺藍區塊的選項_二字*/
+    #aks2{display: none}
+    #aks2{margin-top: 10px}
+    #aks2{margin-left:1%;background-color: #0dcaf0;font-family:DFKai-sb;font-size: 20px;position: absolute;}/*淺藍區塊的選項_三字*/
+
+    .btn-light{margin-top: 1%;margin-left:88%;width: 10%;height:40px;font-family:DFKai-sb}
+    .dropdown2{margin-top: 1%;margin-left: -21%;position: absolute;width: 10%;height: 50%;position: absolute;}
+    #text{margin-top: -5%;width: 15%;margin-left: 35%;height: 25%}
+    #text_box{margin-top: -3.5%;width: 12%;margin-left: 53%;height: 60%;position: absolute;resize: none;}
+    #selectbutton{margin-top: -3.5%;width: 7%;margin-left: 66%;height: 60%;position: absolute;display: none}
+
+    /*淺藍block*/
+
+    #googleblock{margin-left:60%;background-color: #5c636a;position: absolute;width: 40%;height: 91%;margin-top: 2.9% }
+
+
+    /*Googleblock*/
+    #title{width: 60%;}
+    #title{height:7%;position: absolute;font-weight: bolder;padding-top: 10px}
+    #title table{width: 100%;}
+    #title table thead th{width: 25%}
+    #title{margin-top:6%;position: absolute;background-color: #005cbf;font-weight: bolder;padding-top: 10px}
+    .header{font-size: 20pt;color: white;padding: 0;text-align: center}
+
+    /*深藍表頭*/
+    #title2{width: 60%;}
+    #title2{height:10%;position: absolute;font-weight: bolder;padding-top: 10px}
+    #title2 table{width: 100%;}
+    #title2 table thead th{width: 25%}
+    #title2{margin-top:6%;position: absolute;background-color: #005cbf;font-weight: bolder;padding-top: 10px;display: none}
+    .header2{font-size: 20pt;color: white;padding: 0;text-align: center;margin-right: -5%}
+
+    /*深藍表頭  三字的*/
+
+    #WordTable{margin-top:9.5%;height:78%;position: absolute;width:60%;background-color: #e5e5e5;overflow-y: auto}
+    #Word td{background-color:#8fd19e;font-family:DFKai-sb;font-size: 32px;margin-left: 20%;width: 50%}
+    #Word tr{width: 20px;height:50px;}
+
+    input[name='Word4']{display: none}/*radio  消失*/
+    input[name='Word4'] +label{width: 100%;height: 50px;padding-left: 50px;margin-bottom: -12px;left:50px}
+    input[name='Word4']:checked ~label{background-color: #ffdf7e;}
+    .Token54{margin-left:30px;font-size: 32px;position: absolute;}
+    .Token64{margin-left:30%;font-size: 32px;position: absolute;}
+    .Token74{margin-left:55%;font-size: 32px;position: absolute;}
+    .SUM4{margin-left :90%;font-size: 26px;margin-right :50px}
+    .Token54ID{display: none}
+    .Token64ID{display: none}
+    .Token74ID{display: none}
+    /*Three Word*/
+
+
+    input[name='Word5']{display: none}/*radio  消失*/
+    input[name='Word5'] +label{width: 100%;height: 50px;padding-left: 50px;margin-bottom: -12px;left:50px}
+    input[name='Word5']:checked ~label{background-color: #ffdf7e;}
+    .Token57{margin-left:30px;font-size: 32px;position: absolute;}
+    .Token67{margin-left:40%;font-size: 32px;position: absolute;}
+    .SUM7{margin-left :90%;font-size: 26px;margin-right :50px}
+    .Token57ID{display: none}
+    .Token67ID{display: none}
+    /*Two Word*/
+
+    #info{display: none}
+    #info-2{display: none}
+    #block2{margin-top:3.5%;margin-left:50%;background-color: #b8daff;position: absolute;width: 50%;height: 7.4%}
+   .label2{margin-left:35%;margin-top: 10px;position: absolute;font-weight: bolder;font-family: 微軟正黑體;font-size: 20pt;}
+    /*右邊block*/
+
+     ul { /* 取消ul預設的內縮及樣式 */
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    ul.drop-down-menu {
+        border: #ccc 1px solid;
+        display: inline-block;
+        font-family: 'Open Sans', Arial, sans-serif;
+        font-size: 13px;
+    }
+
+    ul.drop-down-menu li {
+        position: relative;
+        white-space: nowrap;
+        border-right: #ccc 1px solid;
+    }
+
+    ul.drop-down-menu > li:last-child {
+        border-right: none;
+    }
+
+    ul.drop-down-menu > li {
+        float: left; /* 只有第一層是靠左對齊*/
+    }
+
+     ul.drop-down-menu a {
+        background-color: #fff;
+        color: #333;
+        display: block;
+        padding: 0 30px;
+        text-decoration: none;
+        line-height: 40px;
+
+    }
+    ul.drop-down-menu a:hover { /* 滑鼠滑入按鈕變色*/
+        background-color: #ef5c28;
+        color: #fff;
+    }
+    ul.drop-down-menu li:hover > a { /* 滑鼠移入次選單上層按鈕保持變色*/
+        background-color: #ef5c28;
+        color: #fff;
+    }
+    ul.drop-down-menu ul { /*隱藏次選單*/
+        display: none;
+    }
+
+    ul.drop-down-menu li:hover > ul { /* 滑鼠滑入展開次選單*/
+        display: block;
+    }
+      ul.drop-down-menu ul { /*隱藏次選單*/
+        left: 99999px;
+        opacity: 0;
+        -webkit-transition: opacity 0.3s;
+        transition: opacity 0.3s;
+    }
+ul.drop-down-menu ul {
+        border: #ccc 1px solid;
+        position: absolute;
+        z-index: 99;
+        left: -1px;
+        top: 100%;
+       min-width: 180px;
+    }
+
+    ul.drop-down-menu ul li {
+        border-bottom: #ccc 1px solid;
+    }
+
+    ul.drop-down-menu ul li:last-child {
+        border-bottom: none;
+    }
+
+    ul.drop-down-menu ul ul { /*第三層以後的選單出現位置與第二層不同*/
+        z-index: 999;
+        top: 10px;
+        left: 90%;
+    }
+    ul.drop-down-menu li:hover > ul { /* 滑鼠滑入展開次選單*/
+        opacity: 1;
+        -webkit-transition: opacity 0.3s;
+        transition: opacity 0.3s;
+        left: -1px;
+        border-right: 5px;
+    }
+
+    ul.drop-down-menu li:hover > ul ul { /* 滑鼠滑入之後、次選單之後的選單依舊隱藏*/
+        left: 99999px;
+    }
+
+    ul.drop-down-menu ul li:hover > ul { /* 第二層之後的選單展開位置*/
+        left: 90%;
+    }
+        #selecter{margin-top: -92px;margin-left: 66%;position: absolute;z-index:99999999;position: relative;}
+        #selecter2{margin-top: -92px;margin-left: 66%;position: absolute;z-index:99999999;position: relative;}
+</style>
+
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+
+
+<script>
+$j=0;
+
+    function select(find){
+        //a=$('#aks2').checked().val();
+        //a=$('input[name="rr"]:checked').$(event.target).html();/*抓取其內容*/\
+        //alert(find)
+        if($('#info').text()==6) {
+            var Type1 = ''
+            var Type2 = ''
+            var Type3 = ''
+            var a = $('#info-2').text()
+            if (a == '中文') {
+                Type1 = 'C'
+                Type2 = 'C'
+                Type3 = 'C'
+            } else if (a == '英文') {
+                Type1 = 'E'
+                Type2 = 'S'
+                Type3 = 'E'
+            } else if (a == '符英符') {
+                Type1 = 'S'
+                Type2 = 'E'
+                Type3 = 'S'
+            } else if (a == '數符數') {
+                Type1 = 'N'
+                Type2 = 'S'
+                Type3 = 'N'
+            } else if (a == '符號') {
+                Type1 = 'S'
+                Type2 = 'S'
+                Type3 = 'S'
+            } else if (a == '符中符') {
+                Type1 = 'S'
+                Type2 = 'C'
+                Type3 = 'S'
+            }
+            ;
+            $.ajax({
+                type: 'post',
+                url: '{% url "LabNLP:Select" %}', // this is the mapping between the url and view
+                data: {
+                    'Type1': Type1,
+                    'Type2': Type2,
+                    'Type3': Type3,
+                    'text': $('#text_box').val(),
+                    'find': find,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                        $('#Word').children('tr').remove()
+                        for (var i = 0; i < response.SUM.length; i++) {
+                            //alert(response.Token[i])
+                            $('#Word').append('<tr><td>' +
+                                '<input type="radio" onclick="GOOGLE()" name="Word4" id=Word4' + i + '>' +
+                                '<label for=Word4' + i + '>' +
+                                '<p  class="Token54ID">' + response.Token5ID[i] + '</p>' +
+                                '<p  class="Token64ID">' + response.Token6ID[i] + '</p>' +
+                                '<p  class="Token74ID">' + response.Token7ID[i] + '</p>' +
+                                '<p  class="Token54">' + response.Token5[i] + '</p>' +
+                                '<p  class="Token64">' + response.Token6[i] + '</p>' +
+                                '<p  class="Token74">' + response.Token7[i] + '</p>' +
+                                '<p  class="SUM4">' + response.SUM[i] + '</p>' +
+                                '</label>' +
+                                '</td></tr>'
+                            )
+                        }
+                }
+            })
+        }else if($('#info').text()==10)
+        {
+            var Type1 = ''
+            var Type2 = ''
+            var Type3 = ''
+            var a = $('#info-2').text()
+            if (a == '中文') {
+                Type1 = 'C'
+                Type2 = 'C'
+            } else if (a == '中符') {
+                Type1 = 'C'
+                Type2 = 'S'
+            } else if (a == '英符') {
+                Type1 = 'E'
+                Type2 = 'S'
+            } else if (a == '符號') {
+                Type1 = 'S'
+                Type2 = 'S'
+            }
+
+            ;
+            $.ajax({
+                type: 'post',
+                url: '{% url "LabNLP:Select2" %}', // this is the mapping between the url and view
+                data: {
+                    'Type1': Type1,
+                    'Type2': Type2,
+                    'text': $('#text_box').val(),
+                    'find': find,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                $('#Word').children('tr').remove()
+                for (var i = 0; i < response.SUM.length; i++) {
+                    //alert(response.Token[i])
+                    $('#Word').append('<tr><td>' +
+                        '<input type="radio" onclick="GOOGLE()" name="Word5" id=Word5' + i + '>' +
+                        '<label for=Word5' + i + '>' +
+                        '<p  class="Token57ID">' + response.Token5ID[i] + '</p>' +
+                        '<p  class="Token67ID">' + response.Token6ID[i] + '</p>' +
+                        '<p  class="Token57">' + response.Token5[i] + '</p>' +
+                        '<p  class="Token67">' + response.Token6[i] + '</p>' +
+                        '<p  class="SUM7">' + response.SUM[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+                }
+            })
+        }
+    }
+    function myrefresh() {
+        window.location.reload();
+        document.getElementById("text_box").value = '';
+    }
+    function ShowChecked(){
+        if($('#info').text()==1){                                       //中文
+            a2 = $('input[name="Word"]:checked').next('label').children('.Token5')
+            if (a2.length==0){
+                alert('未選取')
+            }else {
+                //alert('已選擇了' + a2.length + '項')
+                CHECKED = $('input[name="Word"]:checked')
+                var str = ''
+                for (var i = 0; i < CHECKED.length; i++) {
+                    str += CHECKED.eq(i).next('label').children('.Token5').text() + CHECKED.eq(i).parents('td').next('td').children('.Token6').text() + '\n'
+                }
+                //alert(str)
+                //for (var i =0 ;i<CHECKED.length;i++) {
+                //  alert(CHECKED.eq(i).next('label').children('.Token5ID').text())
+                //  alert(CHECKED.eq(i).next('label').children('.Token6ID').text())
+                //}
+                answer = confirm("以上確認後，按確認執行...")
+                if (answer)
+                    for (var i = 0; i < CHECKED.length; i++) {
+                        var Token5ID = (CHECKED.eq(i).next('label').children('.Token5ID').text())
+                        var Token6ID = (CHECKED.eq(i).next('label').children('.Token6ID').text())
+                        InsertIntoDB(Token5ID, Token6ID)
+                    }
+            }
+        }
+
+        else if($('#info').text()==6){                                        //3字 中文
+            a2 = $('input[name="Word4"]:checked').next('label').children('.Token54')
+            if (a2.length==0){
+                alert('未選取')
+            }else {
+                //alert('已選擇了' + a2.length + '項')
+                CHECKED = $('input[name="Word4"]:checked')
+                var str = ''
+                for (var i = 0; i < CHECKED.length; i++) {
+                    str += CHECKED.eq(i).next('label').children('.Token54').text() + CHECKED.eq(i).next('label').children('.Token64').text() + CHECKED.eq(i).next('label').children('.Token74').text() + '\n'
+                }
+                //alert(str)
+                answer = confirm("以上確認後，按確認執行...")
+                if (answer)
+                    for (var i = 0; i < CHECKED.length; i++) {
+                        var Token5ID = (CHECKED.eq(i).next('label').children('.Token54ID').text())
+                        var Token6ID = (CHECKED.eq(i).next('label').children('.Token64ID').text())
+                        var Token7ID = (CHECKED.eq(i).next('label').children('.Token74ID').text())
+                        InsertIntoDB_THREE(Token5ID, Token6ID, Token7ID)
+                    }
+            }
+        }
+        else if($('#info').text()==10){                                        //3字 中文
+            a2 = $('input[name="Word5"]:checked').next('label').children('.Token57')
+            if (a2.length==0){
+                alert('未選取')
+            }else {
+                //alert('已選擇了' + a2.length + '項')
+                CHECKED = $('input[name="Word5"]:checked')
+                var str = ''
+                for (var i = 0; i < CHECKED.length; i++) {
+                    str += CHECKED.eq(i).next('label').children('.Token57').text() + CHECKED.eq(i).next('label').children('.Token67').text() + '\n'
+                }
+                //alert(str)
+                answer = confirm("以上確認後，按確認執行...")
+                if (answer)
+                    for (var i = 0; i < CHECKED.length; i++) {
+                        var Token5ID = (CHECKED.eq(i).next('label').children('.Token57ID').text())
+                        var Token6ID = (CHECKED.eq(i).next('label').children('.Token67ID').text())
+
+                        InsertIntoDB(Token5ID, Token6ID)
+                    }
+            }
+        }
+
+		    //InsertIntoDB();
+    }
+    function InsertIntoDB_THREE(Token5ID,Token6ID,Token7ID){
+        $.ajax({
+            type: 'post',
+            url: '{% url "LabNLP:InsertIntoDB_THREE" %}', // this is the mapping between the url and view
+            data:{
+                'Token5ID':Token5ID,
+                'Token6ID':Token6ID,
+                'Token7ID':Token7ID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+                if(response.state[0]==1) {
+                    alert("修改成功!馬上重新整理");
+                    myrefresh();
+                }
+                else{
+                    alert("無法修改");
+                    myrefresh();
+                }
+
+            }
+        })
+    }
+    function InsertIntoDB(Token5ID,Token6ID){
+        $.ajax({
+            type: 'post',
+            url: '{% url "LabNLP:InsertIntoDB" %}', // this is the mapping between the url and view
+            data:{
+                'Token5ID':Token5ID,
+                'Token6ID':Token6ID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response) {
+                if(response.state[0]==1) {
+                    alert("修改成功!馬上重新整理");
+                    myrefresh();
+                }
+                else{
+                    alert("無法修改");
+                    myrefresh();
+                }
+
+            }
+        })
+    }
+
+    function GOOGLE() {
+        if (a == '英文') {
+            var string1 = ''
+            var string2 = ''
+            CHECKED = $('input[name="Word4"]:checked')
+            var string1 = $('input[name="Word4"]:checked').eq(CHECKED.length - 1).next('label').children('.Token54').text()
+            var string2 = $('input[name="Word4"]:checked').eq(CHECKED.length - 1).next('label').children('.Token74').text()
+            //var string2=$('input[name="Word4"]:checked').eq(CHECKED.length-1).parents('td').next('td').children('.Token74').text()
+
+            var herfstr = 'https://www.bing.com/search?q=' + string1 + '+' + string2 + '中文&form=IENTHT&pc=EUPP_NMTE&mkt=zh-tw&httpsmsn=1&msnews=1&refig=5bd96b88d67f4df3b122f1a0adbc5fc2&sp=-1&pq=' + string1 + '+' + string2 + '&sc=8-13'
+
+
+            $('#googleblock').attr('src', herfstr);
+            //HERF:https://www.google.com/search?q=tazobactam+tazobactam&rlz=1
+        }
+    }
+
+    function ThreeWord(){
+        a=$(event.target).html();/*抓取其內容*/
+        $('#info-2').text(a)
+        var Type1,Type2,Type3;
+
+        //alert(a);
+        if(a=='中文') {
+            Type1 = 'C'
+            Type2 = 'C'
+            Type3 = 'C'
+
+        }else if(a=='英文'){
+            Type1 = 'E'
+            Type2 = 'S'
+            Type3 = 'E'
+        }else if(a=='符英符'){
+            Type1 = 'S'
+            Type2 = 'E'
+            Type3 = 'S'
+        }else if(a=='數符數'){
+            Type1 = 'N'
+            Type2 = 'S'
+            Type3 = 'N'
+        }else if(a=='符號'){
+            Type1 = 'S'
+            Type2 = 'S'
+            Type3 = 'S'
+        }else if(a=='符中符'){
+            Type1 = 'S'
+            Type2 = 'C'
+            Type3 = 'S'
+        }
+        ;
+        $.ajax({
+            type: 'post',
+            url: '{% url "LabNLP:ThreeWord" %}', // this is the mapping between the url and view
+            data: {
+                'Type1': Type1,
+                'Type2': Type2,
+                'Type3': Type3,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function (response) {
+                //alert(response.SUM.length)
+                $('#Word').children('tr').remove()
+                for (var i = 0; i < response.SUM.length; i++) {
+                    //alert(response.Token[i])
+                    $('#Word').append('<tr><td>' +
+                        '<input type="radio" onclick="GOOGLE()" name="Word4" id=Word4' + i + '>' +
+                        '<label for=Word4' + i + '>' +
+                        '<p  class="Token54ID">' + response.Token5ID[i] + '</p>' +
+                        '<p  class="Token64ID">' + response.Token6ID[i] + '</p>' +
+                        '<p  class="Token74ID">' + response.Token7ID[i] + '</p>' +
+                        '<p  class="Token54">' + response.Token5[i] + '</p>' +
+                        '<p  class="Token64">' + response.Token6[i] + '</p>' +
+                        '<p  class="Token74">' + response.Token7[i] + '</p>' +
+                        '<p  class="SUM4">' + response.SUM[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+                //$j = 1
+                $('#info').text(6)
+            }
+        })
+
+    }
+    function TwoWord(){
+
+        b=$(event.target).html();/*抓取其內容*/
+        $('#info-2').text(b)
+
+        var Type4,Type5;
+
+        //alert(a);
+        if(b=='中文') {
+            Type4 = 'C'
+            Type5 = 'C'
+        }else if(b=='中符'){
+            Type4 = 'C'
+            Type5 = 'S'
+        }else if(b=='英符'){
+            Type4 = 'E'
+            Type5 = 'S'
+        }else if(b=='符號'){
+            Type4 = 'S'
+            Type5 = 'S'
+        }
+        ;
+        $.ajax({
+            type: 'post',
+            url: '{% url "LabNLP:TwoWord" %}', // this is the mapping between the url and view
+            data: {
+                'Type4': Type4,
+                'Type5': Type5,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function (response) {
+
+                //alert(response.SUM.length)
+                $('#Word').children('tr').remove()
+                for (var i = 0; i < response.SUM.length; i++) {
+                    //alert(response.Token[i])
+                    $('#Word').append('<tr><td>' +
+                        '<input type="radio" onclick="GOOGLE()" name="Word5" id=Word5' + i + '>' +
+                        '<label for=Word5' + i + '>' +
+                        '<p  class="Token57ID">' + response.Token5ID[i] + '</p>' +
+                        '<p  class="Token67ID">' + response.Token6ID[i] + '</p>' +
+                        '<p  class="Token57">' + response.Token5[i] + '</p>' +
+                        '<p  class="Token67">' + response.Token6[i] + '</p>' +
+                        '<p  class="SUM7">' + response.SUM[i] + '</p>' +
+                        '</label>' +
+                        '</td></tr>'
+                    )
+                }
+                //$j = 1
+                $('#info').text(10)
+            }
+        })
+    }
+
+    $(document).ready(function (e) {
+        $('.dropdown2').on('change',function (){
+            document.getElementById("text_box").value = '';
+            $('#Word').children('tr').remove()
+            var text=$(this).val()
+            if(text=='三字'){
+                $('#title').css('display','none')
+                $('#aks').css('display','none')
+                $('#title2').css('display','inline')
+                $('#aks2').css('display','flex')
+            }else if(text=='二字'){
+                $('#title').css('display','inline')
+                $('#aks').css('display','flex')
+                $('#title2').css('display','none')
+                $('#aks2').css('display','none')
+            }
+        }),$('#selecter').on('click',function (){
+            find=$(event.target).html();
+            texter=$('#text_box').val()
+            if(texter==''){
+                alert('請輸入查詢字眼')
+            }else{
+                select(find)
+            }
+        }),$('#selecter2').on('click',function (){
+            find=$(event.target).html();
+            texter=$('#text_box').val()
+            if(texter==''){
+                alert('請輸入查詢字眼')
+            }else{
+                select(find)
+            }
+        })
+        /*$('#text_box').on('input',function (){
+            var Type1=''
+            var Type2=''
+            var Type3=''
+            var a=$('#info-2').text()
+
+            if(a=='中文') {
+                Type1 = 'C'
+                Type2 = 'C'
+                Type3 = 'C'
+            }else if(a=='英文'){
+                Type1 = 'E'
+                Type2 = 'S'
+                Type3 = 'E'
+            }else if(a=='符英符'){
+                Type1 = 'S'
+                Type2 = 'E'
+                Type3 = 'S'
+            }else if(a=='數符數'){
+                Type1 = 'N'
+                Type2 = 'S'
+                Type3 = 'N'
+            }else if(a=='符號'){
+                Type1 = 'S'
+                Type2 = 'S'
+                Type3 = 'S'
+            }else if(a=='符中符'){
+                Type1 = 'S'
+                Type2 = 'C'
+                Type3 = 'S'
+            }
+            select(Type1,Type2,Type3,$('#text_box').val())
+
+        })*/
+    })
+//})
+</script>
+<body onload="test()">
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >Link</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
+            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
+            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
+
+</body>
+
+<div id="block">
+
+    <div id="aks" class="btn-group">
+        <a class="dropdown-item" role="button" onclick="TwoWord()">中文</a>
+        <!--  <a class="dropdown-item" role="button" onclick="ChineseAndEnglish()">中英文</a>  -->
+        <a class="dropdown-item" role="button" onclick="TwoWord()">中符</a>
+        <a class="dropdown-item" role="button" onclick="TwoWord()">英符</a>
+        <a class="dropdown-item" role="button" onclick="TwoWord()">符號</a>
+    </div>
+
+    <div  id="aks2" class="btn-group">
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">中文</button>
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">英文</button>
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">符英符</button>
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">符中符</button>
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">數符數</button>
+        <button class="dropdown-item" role="button" name="rr" onclick="ThreeWord()">符號</button>
+
+    </div>
+
+<button type="button" class="btn-light" onclick="ShowChecked()"> Confirm </button>
+
+    <!--<label class="label1">二字詞</label>-->
+   <select class="dropdown2" style="font-size:20px;font-family:DFKai-sb;">
+        <optgroup label="請選擇">
+        <option>二字</option>
+        <option>三字</option>
+        <option>多字</option>
+        </optgroup>
+   </select>
+
+    <div >
+      <!--<<label for="exampleFormControlTextarea2">Small textarea</label>-->
+      <!--<input type="input"  id="text_box"  onkeyup="value=value.replace(/[^\d\.]/g,'')">-->
+        <textarea class="form-control" id="text_box" rows="3" ></textarea>
+        <button type="button" class="btn-light" id="selectbutton" onclick="select()"> Select </button>
+    <!--<ul class="drop-down-menu" id="SeButton">
+        <li><a href="#">Select</a>
+            <ul>
+                <li ><a href="#">First Word</a>
+                </li>
+                <li><a href="#">Second Word</a>
+                </li>
+                <li><a href="#">Third Word</a>
+                </li>
+            </ul>
+        </li>
+    </ul>-->
+    </div>
+</div>
+
+<iframe id="googleblock">
+</iframe>
+
+<div id="title">
+    <table class="thead-dark">
+        <thead>
+        <th class="header">First Word</th>
+        <th class="header">Second Word</th>
+        <th class="header">Sum</th>
+        </thead>
+    </table>
+    <ul class="drop-down-menu" id="selecter">
+            <li><a href="#">Select</a>
+                <ul>
+                    <li><a href="#">First Word</a>
+                    </li>
+                    <li><a href="#">Second Word</a>
+                    </li>
+
+                </ul>
+            </li>
+        </ul>
+</div>
+<div id="title2">
+    <table class="thead-dark">
+        <thead>
+        <th class="header2">First Word</th>
+        <th class="header2">Second Word</th>
+        <th class="header2">Third Word</th>
+        <th class="header2">Sum</th>
+        </thead>
+    </table>
+    <ul class="drop-down-menu" id="selecter2">
+            <li><a href="#">Select</a>
+                <ul>
+                    <li><a href="#">First Word</a>
+                    </li>
+                    <li><a href="#">Second Word</a>
+                    </li>
+                    <li><a href="#">Third Word</a>
+                    </li>
+
+                </ul>
+            </li>
+        </ul>
+</div>
+
+
+<div id="WordTable">
+    <div id="table1">
+        <table class="table  table-striped" id="Word">
+        </table>
+
+    </div>
+</div>
+<p id="info-2"> </p>
+<p id="info"></p>
+</html>

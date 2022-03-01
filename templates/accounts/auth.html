@@ -1,0 +1,13 @@
+{% if user.is_authenticated %}
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-haspopup="true"
+        aria-expanded="false">管理員專區</a>
+    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        <a class="dropdown-item"  href="{% url 'administrator:auth_control' %}">權限控管</a>
+    </div>
+</li>
+
+{% endif %}
+<style>
+.dropdown-item{text-align: left;padding-left: 30px}
+</style>
