@@ -110,7 +110,6 @@ def measure_Tumor(img,pixelSpacing,sliceThickness,delta_Z):
     '''算體積'''
     volume=0
     slice_space=[]
-
     for slice in label_vol:
         if (np.unique(slice)!=0).any():
             slice_space.append(np.sum(slice==tumor_label.get())*np.square(pixelSpacing))
