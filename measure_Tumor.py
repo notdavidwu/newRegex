@@ -6,7 +6,6 @@ import cv2
 import cupy as cp
 import math
 import numpy as np
-from ellipse import LsqEllipse
 def measure_Tumor(img,pixelSpacing,sliceThickness,delta_Z):
     labels_out, N = cc3d.connected_components(img, return_N=True,connectivity=26)
     
