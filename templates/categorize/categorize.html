@@ -409,11 +409,11 @@
                             '</label>'+
                         '</div>')
                         if(response.categorized[i]>0){
-                            $('#'+response.TokenID[i]).next('label').css('border','2px solid #FFFF00')
-                            $('#'+response.TokenID[i]).next('label').css('box-sizing','border-box')
-                            $('#'+response.TokenID[i]).next('label').css('-moz-box-sizing','border-box')
-                            $('#'+response.TokenID[i]).next('label').css('-webkit-box-sizing','border-box')
-                            
+                            $('#'+response.TokenID[i]).parents('.floatingBox').css('border','2px solid #FFFF00')
+                            $('#'+response.TokenID[i]).parents('.floatingBox').css('box-sizing','border-box')
+                            $('#'+response.TokenID[i]).parents('.floatingBox').css('-moz-box-sizing','border-box')
+                            $('#'+response.TokenID[i]).parents('.floatingBox').css('-webkit-box-sizing','border-box')
+                            $('#'+response.TokenID[i]).parents('.floatingBox').css('line-height','36px')
                         }
                     }
                     
@@ -466,10 +466,11 @@
                     createFloatingBox('Pool','',response.TokenID[i],response.Token[i],'Pooltable','need2Categorize()')
                     console.log(response.categorized[i])
                     if(response.categorized[i]>0){
-                        $('#'+response.TokenID[i]).next('label').css('border','2px solid #FFFF00')
-                        $('#'+response.TokenID[i]).next('label').css('box-sizing','border-box')
-                        $('#'+response.TokenID[i]).next('label').css('-moz-box-sizing','border-box')
-                        $('#'+response.TokenID[i]).next('label').css('-webkit-box-sizing','border-box')
+                        $('#'+response.TokenID[i]).parents('.floatingBox').css('border','2px solid #FFFF00')
+                        $('#'+response.TokenID[i]).parents('.floatingBox').css('line-height','36px')
+                        $('#'+response.TokenID[i]).parents('.floatingBox').css('box-sizing','border-box')
+                        $('#'+response.TokenID[i]).parents('.floatingBox').css('-moz-box-sizing','border-box')
+                        $('#'+response.TokenID[i]).parents('.floatingBox').css('-webkit-box-sizing','border-box')
                         
                     }
                 }
@@ -629,7 +630,8 @@
             let TokenID = removeObject.eq(i).attr('id').replaceAll('C_','')
             removeObjectID.push(TokenID)
             removeObject.eq(i).parents('.floatingBox').remove()
-            $('#'+TokenID).next('label').css('border','none')
+            $('#'+TokenID).parenets('.floatingBox').css('border','none')
+            $('#'+TokenID).parenets('.floatingBox').css('line-height','40px')
         }
 
         $.ajax({
