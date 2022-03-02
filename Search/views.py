@@ -63,12 +63,18 @@ def PoolList(request):
 def TimeShow(request):
     ChartNo = request.POST.get('ChartNo')
     careRecordCheck = request.POST.get('careRecordCheck')
+    hospitalized = request.POST.get('hospitalized')
     query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Attribute],b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
+    if hospitalized =='true':
+        query +=''',30402,30401,30403'''
+    query +=''') and a.ChartNo='''+ChartNo+''' '''
     if careRecordCheck =='true':
-        query +=''',30801'''
-    
-    query +=''') and a.ChartNo='''+ChartNo+''' order by a.ChartNo,a.ExecDate asc '''
-    
+        query +='''
+            union all
+	            select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Attribute],b.TypeName 
+                from threedayprogression('''+ChartNo+''')as a inner join medTypeSet as b on a.MedType=b.MedType
+            '''
+    query +='''order by ExecDate asc '''
     cursor = connections['AIC_Infection'].cursor()
     ChartNo=[]
     VisitNo = []

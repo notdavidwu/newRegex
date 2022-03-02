@@ -321,8 +321,9 @@
 
     function TimeShow(){
        var ChartNo = ($('input[name="Pooltable"]:checked').next('label').children('.ChartNo').text())
-       var careRecordCheck = $('#careRecord').is(':checked')
-        $('#priReport').empty()
+       var careRecordCheck = $('#careRecord_check').is(':checked')
+       var hospitalized =  $('#hospitalized_check').is(':checked')
+       $('#priReport').empty()
         $('#abstract').empty()
         $.ajax({
             type: 'post',
@@ -330,6 +331,7 @@
             data: {
                 'ChartNo': ChartNo,
                 'careRecordCheck':careRecordCheck,
+                'hospitalized':hospitalized,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
@@ -354,49 +356,29 @@
                     if(response.Attribute[i]==1){
                         $('#TimeShow'+i).next('label').children('.Bacteria').css('display','inline')
                     }
-                }
-            }
-        })
-    }
-
-    function careRecord(){
-        var ChartNo = ($('input[name="Pooltable"]:checked').next('label').children('.ChartNo').text())
-        var careRecordCheck = $('#careRecord').is(':checked')
-        $('#priReport').empty()
-        $('#abstract').empty()
-        $.ajax({
-            type: 'post',
-            url: '{% url "Search:TimeShow" %}', // this is the mapping between the url and view
-            data: {
-                'ChartNo': ChartNo,
-                'careRecordCheck':careRecordCheck,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success: function (response) {
-                $('#TimeShow').children('tr').remove()
-                for (var i = 0; i < response.ChartNo.length; i++) {
-                    //alert(response.Token[i])
-                    $('#TimeShow').append('<tr><td>' +
-                        '<input type="radio" onclick="primarytext()" name="Timetable" id=TimeShow' + i + '>' +
-                        '<label for=TimeShow' + i + '>' +
-                        '<p  class="timeChartNo">' + response.ChartNo[i] + '</p>' +
-                        '<p  class="VisitNo">' + response.VisitNo[i] + '</p>' +
-                        '<p  class="OrderNo">' + response.OrderNo[i] + '</p>' +
-                        '<p  class="ItemNo">' + response.ItemNo[i] + '</p>' +
-                        '<p  class="ExecDate">' + response.ExecDate[i] + '</p>' +
-                        '<p  class="MedType">' + response.MedType[i] + '</p>' +
-                        '<p  class="TypeName">' + response.TypeName[i] + '</p>' +
-                        '</label>' +
-                        '</td></tr>'
-                    )
-                    if(response.MedType[i]==30801){
+                    if(response.MedType[i]==30801){ //護理紀錄
                         $('#TimeShow'+i).parents('td').css('background-color',"#FEDFE1")
+                    }
+                    if(response.MedType[i]==30401){ //住院
+                        $('#TimeShow'+i).parents('td').css('background-color',"#64363C")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
+                        $('#TimeShow'+i).prop('onclick',null)
+                    }
+                    if(response.MedType[i]==30402){ //出院
+                        $('#TimeShow'+i).parents('td').css('background-color',"#64363C")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
+                        $('#TimeShow'+i).prop('onclick',null)
+                    }
+                    if(response.MedType[i]==30403){ //轉房
+                        $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
+                        $('#TimeShow'+i).prop('onclick',null)
                     }
                 }
             }
         })
     }
-
+    
     function primarytext(){
         var OrderNo = ($('input[name="Timetable"]:checked').next('label').children('.OrderNo').text())
         var ExecDate = ($('input[name="Timetable"]:checked').next('label').children('.ExecDate').text())
@@ -657,11 +639,11 @@
         </div>
 
         <div id="filter" class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
-            <input type="checkbox" class="btn-check"  id="btncheck1" autocomplete="off" name="EXAM[]" value="3570" >
-            <label class="btn btn-outline-secondary" for="btncheck1">住院</label>
+            <input type="checkbox" class="btn-check" onclick="TimeShow()" id="hospitalized_check" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary" for="hospitalized_check">住院</label>
           
-            <input type="checkbox" class="btn-check" onclick="careRecord()" id="careRecord" autocomplete="off"  name="EXAM[]" value="3032">
-            <label class="btn btn-outline-secondary" for="careRecord">護理紀錄</label>
+            <input type="checkbox" class="btn-check" onclick="TimeShow()" id="careRecord_check" autocomplete="off"  checked>
+            <label class="btn btn-outline-secondary" for="careRecord_check">護理紀錄</label>
           
             <input type="checkbox" class="btn-check" id="btncheck3" autocomplete="off"  name="EXAM[]" value="3041">
             <label class="btn btn-outline-secondary" for="btncheck3">中心導管</label>
