@@ -29,5 +29,6 @@ urlpatterns = [
     path('getComfirmCategory/', views.getComfirmCategory,name='getComfirmCategory'),
     path('getCategoriedClass/', views.getCategoriedClass,name='getCategoriedClass'),
     path('getCategoriedList/', views.getCategoriedList,name='getCategoriedList'),
+    path('uncheckedList/', views.uncheckedList,name='uncheckedList'),
 
 ]

@@ -96,6 +96,7 @@ def comfirmList(request):
 def add2Category(request):
     CategoryID = request.POST.get('CategoryID')
     Category = request.POST.get('Category')
+    Pool = request.POST.get('Pool')
     query = '''
         SELECT * FROM Infection_Conversion_Category WHERE Category=%s
     '''
@@ -104,9 +105,9 @@ def add2Category(request):
     result = cursor.fetchall()
     if(len(result)==0):
         query = '''
-            INSERT INTO Infection_Conversion_Category (CategoryNo,Category) VALUES(%s,%s)
+            INSERT INTO Infection_Conversion_Category (CategoryNo,Category,Pool) VALUES(%s,%s,%s)
         '''
-        cursor.execute(query,[CategoryID,Category])
+        cursor.execute(query,[CategoryID,Category,Pool])
 
     return JsonResponse({})
 
@@ -116,14 +117,18 @@ def add2ConversionTable(request):
     Category = request.POST.get('Category')
     TokenID = request.POST.getlist('TokenID[]')
 
-    query = '''
+    query_check_same_class = '''
         SELECT CategoryNo FROM Infection_Conversion_Category WHERE Category=%s
     '''
     cursor = connections['AIC_Infection'].cursor()
-    cursor.execute(query,[Category])
+    cursor.execute(query_check_same_class,[Category])
     result = cursor.fetchall()
-
-    CategoryNo = CategoryID
+    print(len(result)>0)
+    print(result[0][0])
+    if len(result)>0:
+        CategoryNo = result[0][0]
+    else:
+        CategoryNo = CategoryID
     
     query_insert = '''
         INSERT INTO Infection_Conversion_Table(CategoryNo,TokenID) VALUES(%s,%s)
@@ -133,11 +138,11 @@ def add2ConversionTable(request):
     '''
     query_update = '''
         UPDATE [AIC_Infection].[dbo].[InfectionCategoryPool] SET categorized=(
-        select categorized from InfectionCategoryPool where TokenID=%s
-        )+1 where TokenID=%s
+        select categorized+1 from InfectionCategoryPool where TokenID=%s
+        ) where TokenID=%s
     '''
 
-
+    print(CategoryNo)
     cursor = connections['AIC_Infection'].cursor()
     for i in range(len(TokenID)):
         cursor.execute(query_check,[CategoryNo,TokenID[i]])
@@ -147,7 +152,7 @@ def add2ConversionTable(request):
             cursor.execute(query_update,[TokenID[i],TokenID[i]])
 
 
-    return JsonResponse({'CategoryNo':CategoryNo[0]})
+    return JsonResponse({'CategoryNo':CategoryNo})
 
 @csrf_exempt
 def removeList(request):
@@ -160,8 +165,8 @@ def removeList(request):
     '''
     query_update = '''
         UPDATE [AIC_Infection].[dbo].[InfectionCategoryPool] SET categorized=(
-        select categorized from InfectionCategoryPool where TokenID=%s
-        )-1 where TokenID=%s
+        select categorized-1 from InfectionCategoryPool where TokenID=%s
+        ) where TokenID=%s
     '''
     for i in range(len(removeObjectID)):
         cursor.execute(query,[category,removeObjectID[i]])
@@ -211,16 +216,19 @@ def confirmAndAbandon(request):
 
 @csrf_exempt
 def getCategoriedClass(request):
+    Pool = request.POST.get('Pool')
+    print(Pool)
     query = '''
-        select a.*,COUNT(a.CategoryNo) as Total from Infection_Conversion_Category as a
+        select a.CategoryNo,a.Category,COUNT(a.CategoryNo) as Total from Infection_Conversion_Category as a
         inner join Infection_Conversion_Table as b on a.CategoryNo=b.CategoryNo
+        where a.Pool=%s 
         group by a.CategoryNo,a.Category order by a.CategoryNo
     '''
     cursor = connections['AIC_Infection'].cursor()
     CategoryNo = []
     Category = []
     Total = []
-    cursor.execute(query)
+    cursor.execute(query,Pool)
     result = cursor.fetchall()
     for i in range(len(result)):
         CategoryNo.append(result[i][0])
@@ -248,3 +256,16 @@ def getCategoriedList(request):
         Token.append(result[i][1])
 
     return JsonResponse({'TokenID':TokenID,'Token': Token})
+
+@csrf_exempt
+def uncheckedList(request):
+    CatergoryNo = request.POST.get('category')
+    TokenID = request.POST.getlist('removeObjectID[]')
+    query = '''
+        UPDATE InfectionCategoryPool SET checked=-1 WHERE CategoryNo=%s AND TokenID=%s
+    '''
+    for i in range(len(TokenID)):
+        cursor = connections['AIC_Infection'].cursor()
+        cursor.execute(query,[CatergoryNo,TokenID[i]])
+
+    return JsonResponse({})

@@ -83,9 +83,9 @@
         padding-right:10px;
         margin:0px;
         background:url("{% static 'image/texture.png' %}");
-        background-color: #7C99AC;
         border-radius: 10px;
         height:100%;
+        background-color: #7C99AC;
     }  
     input[name='Pooltable']:checked ~label{
         border-radius: 10px;
@@ -102,7 +102,7 @@
         z-index:15;
         margin:5px;
         float:left;
-        background-color:#F05454;
+        background-color:#7C99AC;
         border-radius:10px;
         text-align:left;
         vertical-align:middle;
@@ -119,7 +119,7 @@
     input[name='need2Categorize']:checked ~label{
         border-radius: 10px;
         background:url("{% static 'image/texture.png' %}");
-        background-color: #333333;
+        background-color: #F05454;
     }
 
     #menu{padding-bottom:5px;padding-left:5px;padding-right:5px;position: fixed;z-index: 5;max-height: 85vh;display: none;margin: 0;width: 100px;background-color: #d6d8db; border-radius: 5px 5px 5px 5px}
@@ -364,10 +364,15 @@
                 selectCategoryChange()
             }
         })
+    }
+    function getCategoriedClass(){
+        $('#categorizedList').empty()
+        $('#categorizedClassSelection').empty()
         $.ajax({
             type: 'post',
             url: '{% url "categorize:getCategoriedClass" %}', // this is the mapping between the url and view
             data: {
+                'Pool':$('.selectCategory option:checked').val(),
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
@@ -403,8 +408,15 @@
                                 response.Token[i]+
                             '</label>'+
                         '</div>')
-
+                        if(response.categorized[i]>0){
+                            $('#'+response.TokenID[i]).next('label').css('border','2px solid #FFFF00')
+                            $('#'+response.TokenID[i]).next('label').css('box-sizing','border-box')
+                            $('#'+response.TokenID[i]).next('label').css('-moz-box-sizing','border-box')
+                            $('#'+response.TokenID[i]).next('label').css('-webkit-box-sizing','border-box')
+                            
+                        }
                     }
+                    
                 },complete:function(){
                     let checkObject = $('input[name="need2Categorize"]')
                     let num = checkObject.length
@@ -440,6 +452,7 @@
         let keyword = $('#search').val()
         let category = $('.selectCategory option:selected').val()
         $('#Pool').empty()
+        getCategoriedClass()
         $.ajax({
             type: 'post',
             url: '{% url "categorize:PoolList" %}', // this is the mapping between the url and view
@@ -451,8 +464,13 @@
             success: function (response) {
                 for (var i = 0; i < response.Token.length; i++) {
                     createFloatingBox('Pool','',response.TokenID[i],response.Token[i],'Pooltable','need2Categorize()')
+                    console.log(response.categorized[i])
                     if(response.categorized[i]>0){
-                        $('#'+response.TokenID[i]).css('background-color','green')
+                        $('#'+response.TokenID[i]).next('label').css('border','2px solid #FFFF00')
+                        $('#'+response.TokenID[i]).next('label').css('box-sizing','border-box')
+                        $('#'+response.TokenID[i]).next('label').css('-moz-box-sizing','border-box')
+                        $('#'+response.TokenID[i]).next('label').css('-webkit-box-sizing','border-box')
+                        
                     }
                 }
             },complete:function(){
@@ -461,6 +479,7 @@
                 for(let i=0;i<num;i++){         
                     $('#'+checkObject.eq(i).attr('id').replaceAll('F_','')).prop('checked',true)     
                 }
+                
             }
         })
     }
@@ -576,14 +595,41 @@
         $('input[name="categoriedList"]').prop('checked',false)
         $("#rightWindowMenu").css('display','none');
     }
+    function leftWindowRemove(){
+        let removeObject = $('input[name="Pooltable"]:checked')
+        let num = removeObject.length
+        let category = $('.selectCategory option:selected').val()
+        let removeObjectID=[]
+        for(let i=0;i<num;i++){
+            removeObjectID.push(removeObject.eq(i).attr('id'))
+            removeObject.eq(i).parents('.floatingBox').remove()
+        }
+
+        $.ajax({
+            type: 'post',
+            url: '{% url "categorize:uncheckedList" %}', // this is the mapping between the url and view
+            data: {
+                'removeObjectID':removeObjectID,
+                'category':category ,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('#tableframe').empty()
+            }
+        })
+        $("#leftWindowMenu").css('display','none');
+    }
+
     function rightWindowRemove(){
         let removeObject = $('input[name="categoriedList"]:checked')
         let num = removeObject.length
         let category = $('#categorizedClassSelection option:selected').val()
-        removeObjectID=[]
+        let removeObjectID=[]
         for(let i=0;i<num;i++){
-            removeObjectID.push(removeObject.eq(i).attr('id').replaceAll('C_',''))
+            let TokenID = removeObject.eq(i).attr('id').replaceAll('C_','')
+            removeObjectID.push(TokenID)
             removeObject.eq(i).parents('.floatingBox').remove()
+            $('#'+TokenID).next('label').css('border','none')
         }
 
         $.ajax({
@@ -602,6 +648,7 @@
                         type: 'post',
                         url: '{% url "categorize:getCategoriedClass" %}', // this is the mapping between the url and view
                         data: {
+                            'Pool':$('.selectCategory option:checked').val(),
                             'csrfmiddlewaretoken': window.CSRF_TOKEN
                         },
                         success: function (response) {
@@ -609,16 +656,25 @@
                                 $('#categorizedClassSelection').append('' +
                                 '<option value="'+response.CategoryNo[i]+'">'+response.Category[i]+'('+response.Total[i]+')</option>'+
                                 '')
+                                console.log(response.Total[i])
                             }
                         },
                         complete:function(){
                             changeCategoriedClass()
                         }
                     })
+                }else{
+                    let object = $('#categorizedClassSelection option:selected')
+                    let spilt1 = object.html().split('(')
+                    let spilt2 = spilt1[1].split(')')
+                    console.log(spilt1[0])
+                    console.log(parseInt(spilt2[0])-1)
+                    object.html(spilt1[0]+'('+(parseInt(spilt2[0])-1).toString()+')')
                 }
                 
             }
         })
+
         $("#rightWindowMenu").css('display','none');
     }
     function comfirm(){
@@ -647,6 +703,7 @@
         })
     }
     function submit(){
+        let Pool = $('.selectCategory option:selected').val()
         let insertObject = $('input[name="need2Categorize"]')
         let num = insertObject.length
         let TokenID=[]
@@ -665,6 +722,7 @@
         for(let i=0;i<num;i++){
             TokenID.push($('input[name="need2Categorize"]').eq(i).attr('id').replaceAll('F_',''))
         }
+        console.log(TokenID)
         if(Category==''){
             $('#categoryText').css('border','1px solid red')
             if(num==0){
@@ -682,6 +740,7 @@
                     type: 'post',
                     url: '{% url "categorize:add2Category" %}', // this is the mapping between the url and view
                     data: {
+                        'Pool':Pool,
                         'CategoryID':CategoryID,
                         'Category':Category,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -705,6 +764,7 @@
                                     type: 'post',
                                     url: '{% url "categorize:getCategoriedClass" %}', // this is the mapping between the url and view
                                     data: {
+                                        'Pool':$('.selectCategory option:checked').val(),
                                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                                     },
                                     success: function (response) {
@@ -716,7 +776,7 @@
                                         }
                                         $('#categorizedClassSelection').children('option').eq((CategoryNo-1)).prop('selected',true)
                                         changeCategoriedClass()
-                                        $('input[name="Pooltable"]').prop('checked',false)
+                                        selectCategoryChange()
                                         $('#tableframe').empty()
                                         $('#categoryText').val('')
                                     }
@@ -803,6 +863,7 @@
     <div id="leftWindowMenu">
         <button type="button" class="btn btn-secondary deletebtn" onclick="leftWindowAllChecked()">全部選取</button>
         <button type="button" class="btn btn-secondary deletebtn" onclick="leftWindowAllUnchecked()">全不選取</button>
+        <button type="button" class="btn btn-secondary deletebtn" id="rightWindowRemove" onclick="leftWindowRemove()">移除項目</button>
     </div>
     <div id="rightWindowMenu">
         <button type="button" class="btn btn-secondary deletebtn" onclick="rightWindowAllChecked()">全部選取</button>
