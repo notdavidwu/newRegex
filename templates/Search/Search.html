@@ -347,12 +347,17 @@
                         '<p  class="ItemNo">' + response.ItemNo[i] + '</p>' +
                         '<p  class="ExecDate">' + response.ExecDate[i] + '</p>' +
                         '<p  class="MedType">' + response.MedType[i] + '</p>' +
-                        '<p  class="TypeName">' + response.TypeName[i] + '</p>' +
+                        '<p  class="TypeName">' + response.TypeName[i]+'</p>' +
                         '<p  class="Bacteria"><img src={% static "image/bacterium-solid.svg" %}></img></p>' +
                         '</label>' +
                         '</td></tr>'
                     )
-                    console.log(response.Attribute[i])
+                    console.log(response.Ward[i]!=null)
+                    if(response.Ward[i]!=null){
+                        let object = $('#TimeShow'+i).next('label').children('.TypeName')
+                        object.text(object.text()+'('+response.Ward[i]+')')
+                    }
+
                     if(response.Attribute[i]==1){
                         $('#TimeShow'+i).next('label').children('.Bacteria').css('display','inline')
                     }

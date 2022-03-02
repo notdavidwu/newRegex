@@ -64,14 +64,14 @@ def TimeShow(request):
     ChartNo = request.POST.get('ChartNo')
     careRecordCheck = request.POST.get('careRecordCheck')
     hospitalized = request.POST.get('hospitalized')
-    query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Attribute],b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
+    query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Ward],a.[Attribute],b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
     if hospitalized =='true':
         query +=''',30402,30401,30403'''
     query +=''') and a.ChartNo='''+ChartNo+''' '''
     if careRecordCheck =='true':
         query +='''
             union all
-	            select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Attribute],b.TypeName 
+	            select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Ward],a.[Attribute],b.TypeName 
                 from threedayprogression('''+ChartNo+''')as a inner join medTypeSet as b on a.MedType=b.MedType
             '''
     query +='''order by ExecDate asc '''
@@ -84,6 +84,7 @@ def TimeShow(request):
     MedType = []
     TypeName = []
     Attribute = []
+    Ward = []
     cursor.execute(query)
     result = cursor.fetchall()
 
@@ -95,11 +96,12 @@ def TimeShow(request):
         ItemNo.append(result[i][3])
         ExecDate.append(result[i][4])
         MedType.append(result[i][5])
-        Attribute.append(result[i][6])
-        TypeName.append(result[i][7])
+        Ward.append(result[i][6])
+        Attribute.append(result[i][7])
+        TypeName.append(result[i][8])
 
     return JsonResponse({'ChartNo': ChartNo,'VisitNo': VisitNo,'OrderNo': OrderNo,'ItemNo': ItemNo,
-                         'ExecDate':ExecDate,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute})
+                         'ExecDate':ExecDate,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute,'Ward':Ward})
 
 @csrf_exempt
 def PrimaryText(request):
