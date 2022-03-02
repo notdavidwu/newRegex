@@ -125,6 +125,3 @@ def measure_Tumor(img,pixelSpacing,sliceThickness,delta_Z):
             volume += slice_space[i]*delta_Z
     print(volume)
     return maxDia_point1.get(),maxDia_point2.get(),maxDia.get(),secDia_point1.get(),secDia_point2.get(),secDia.get(),vector_angle,max_area,volume
-
-image = np.array(h5py.File('D:\Tumor_unet.h5','r')['Tumor'])
-measure_Tumor(image,pixelSpacing=0.6640625,sliceThickness=1,delta_Z=1)
