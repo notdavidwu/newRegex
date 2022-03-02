@@ -63,13 +63,12 @@ def PoolList(request):
 def TimeShow(request):
     ChartNo = request.POST.get('ChartNo')
     careRecordCheck = request.POST.get('careRecordCheck')
-    query = '''select a.*,b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
-    print(careRecordCheck)
+    query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Attribute],b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
     if careRecordCheck =='true':
         query +=''',30801'''
     
     query +=''') and a.ChartNo='''+ChartNo+''' order by a.ChartNo,a.ExecDate asc '''
-    print(query)
+    
     cursor = connections['AIC_Infection'].cursor()
     ChartNo=[]
     VisitNo = []
@@ -78,21 +77,23 @@ def TimeShow(request):
     ExecDate = []
     MedType = []
     TypeName = []
+    Attribute = []
     cursor.execute(query)
     result = cursor.fetchall()
 
     for i in range(len(result)):
-        print((result[i]))
+
         ChartNo.append(result[i][0])
         VisitNo.append(result[i][1])
         OrderNo.append(result[i][2])
         ItemNo.append(result[i][3])
         ExecDate.append(result[i][4])
         MedType.append(result[i][5])
-        TypeName.append(result[i][8])
+        Attribute.append(result[i][6])
+        TypeName.append(result[i][7])
 
     return JsonResponse({'ChartNo': ChartNo,'VisitNo': VisitNo,'OrderNo': OrderNo,'ItemNo': ItemNo,
-                         'ExecDate':ExecDate,'MedType':MedType,'TypeName':TypeName})
+                         'ExecDate':ExecDate,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute})
 
 @csrf_exempt
 def PrimaryText(request):
@@ -100,7 +101,7 @@ def PrimaryText(request):
     MedType = request.POST.get('MedType')
     ChartNo = request.POST.get('ChartNo')
     ExecDate = request.POST.get('ExecDate')
-    print(MedType !='30801')
+
     if MedType !='30801':
         query = '''select * from AnalyseText where ReportNo ='''+OrderNo
         cursor = connections['AIC_Infection'].cursor()
@@ -131,7 +132,7 @@ def PrimaryText(request):
         
         for i in range(len(result)):
             ReportText.append(result[i][4])
-        print(ReportText)
+
         return JsonResponse({'ReportText': ReportText})
 
 @csrf_exempt
@@ -147,8 +148,7 @@ def structureData(request):
     '''
     cursor.execute(queryCheck,[ReportID])
     check = cursor.fetchall()
-    print(len(check))
-    print(len(check) != 0)
+
     queryExamItem='''
         select * from ReportContent(%s,1278,1259)
         union all
@@ -156,10 +156,10 @@ def structureData(request):
     '''
     cursor.execute(queryExamItem,[ReportID,ReportID])
     resExamItem = cursor.fetchall()
-    print(len(resExamItem))
+
     ExamItem = resExamItem[0][3].replace('EndLine','')
     ExamItemText =  resExamItem[0][5]
-    print(ExamItemText)
+
     ExamSource = resExamItem[1][3]
     ExamSourceText = resExamItem[1][5]
 
@@ -220,7 +220,6 @@ def structureData(request):
         resBacteria = cursor.fetchall()
         Bacteria=[]
         for res in resBacteria:
-            print(res[0])
             Bacteria.append(res[0])
         return JsonResponse({
             'check':len(check),

@@ -11,7 +11,7 @@ def confirm(request):
 @csrf_exempt
 def confirmpat(request):
     Disease = request.POST.get('Disease')
-    print(Disease)
+
     query = '''select distinct chartNo from correlationPatientDisease where diseaseNo=%s
             order by chartNo asc
             '''
@@ -40,7 +40,7 @@ def Disease(request):
 @csrf_exempt
 def confirmpat2(request):
     PID=request.POST.get('ID')
-    print(PID)
+
     query = '''
         select a.chartNo,a.orderNo,a.eventDate, a.medType,b.TypeName,a.eventSummary,a.reportText,a.eventID
         from allEvents as a 
@@ -195,5 +195,5 @@ def searchPhaseAndInterval(request):
     else:
         EventID=0
         IntervalID=1
-    print('IND:',IND,'EventID:',EventID,'IntervalID:',IntervalID)
+
     return JsonResponse({'IND':IND,'EventID':EventID,'IntervalID':IntervalID})

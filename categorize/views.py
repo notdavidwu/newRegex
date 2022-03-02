@@ -50,11 +50,11 @@ def getComfirmCategory(request):
 @csrf_exempt
 def PoolList(request):
     keyword = request.POST.get('keyword')
-    keyword = keyword+'%'
+    keyword = '%'+keyword+'%'
     category = request.POST.get('category')
 
     query = '''
-        SELECT B.TokenID,REPLACE(Token,'[space]',' ') AS Token 
+        SELECT B.TokenID,REPLACE(Token,'[space]',' ') AS Token ,categorized
         FROM InfectionCategoryPool as A
         INNER JOIN Ontology as B ON A.TokenID=B.TokenID 
         WHERE A.CategoryNo=%s and Token like %s AND A.checked=1
@@ -64,11 +64,12 @@ def PoolList(request):
     result = cursor.fetchall()
     TokenID=[]
     Token=[]
+    categorized = []
     for i in range(len(result)):
         TokenID.append(result[i][0])
         Token.append(result[i][1])
-
-    return JsonResponse({'TokenID':TokenID,'Token': Token})
+        categorized.append(result[i][2])
+    return JsonResponse({'TokenID':TokenID,'Token': Token,'categorized':categorized})
 
 @csrf_exempt
 def comfirmList(request):
@@ -135,6 +136,8 @@ def add2ConversionTable(request):
         select categorized from InfectionCategoryPool where TokenID=%s
         )+1 where TokenID=%s
     '''
+
+
     cursor = connections['AIC_Infection'].cursor()
     for i in range(len(TokenID)):
         cursor.execute(query_check,[CategoryNo,TokenID[i]])

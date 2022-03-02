@@ -100,10 +100,6 @@
     #chartSearchArea{position:absolute;margin:20px;width:calc(100% - 40px)}
     .floatingBox{
         z-index:15;
-        -webkit-user-select:none; 
-        -moz-user-select:none;   
-        -o-user-select:none; 
-        user-select:none;
         margin:5px;
         float:left;
         background-color:#F05454;
@@ -455,6 +451,9 @@
             success: function (response) {
                 for (var i = 0; i < response.Token.length; i++) {
                     createFloatingBox('Pool','',response.TokenID[i],response.Token[i],'Pooltable','need2Categorize()')
+                    if(response.categorized[i]>0){
+                        $('#'+response.TokenID[i]).css('background-color','green')
+                    }
                 }
             },complete:function(){
                 let checkObject = $('input[name="need2Categorize"]')

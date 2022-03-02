@@ -168,8 +168,21 @@
         .VisitNo{display: none}
         .ItemNo{display: none}
         .MedType{display: none}
+        .Bacteria{
+            height:20px;
+            width:20px;
+            display: none;
+            margin-left: calc(2% + 200px);
+            margin-top: -40px;
+            position:absolute;
+        }
+        .Bacteria img{
+            height:20px;
+            width:100%;
+            filter: drop-shadow(1000px 0 0 red); 
+            transform: translate(-1000px);
+        }
         .TypeName{margin-left: calc(2% + 100px);margin-top: -35px}
-    
     #checkboxd input[type="checkbox"] {display: none; }
     #checkboxd input:checked + .button {background: #5e7380; color: #fff;}
     #checkboxd .button {display: inline-block; margin: 0 5px 5px 0; padding: 5px 10px; background: #f7f7f7; color: #333; cursor: pointer; }
@@ -333,9 +346,14 @@
                         '<p  class="ExecDate">' + response.ExecDate[i] + '</p>' +
                         '<p  class="MedType">' + response.MedType[i] + '</p>' +
                         '<p  class="TypeName">' + response.TypeName[i] + '</p>' +
+                        '<p  class="Bacteria"><img src={% static "image/bacterium-solid.svg" %}></img></p>' +
                         '</label>' +
                         '</td></tr>'
                     )
+                    console.log(response.Attribute[i])
+                    if(response.Attribute[i]==1){
+                        $('#TimeShow'+i).next('label').children('.Bacteria').css('display','inline')
+                    }
                 }
             }
         })

@@ -2207,7 +2207,7 @@
                         data: {
                             'PID':PID,
                             'SD': $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDate').text(),
-                            'Item': Item,
+                            'Item': $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text(),
                             'username': user_username,
                             'x':$("[name='group1']:checked").next("label").children('div').children('div').children('.x').text(),
                             'y': $("[name='group1']:checked").next("label").children('div').children('div').children('.y').text(),
