@@ -74,7 +74,7 @@ def TimeShow(request):
 	            select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Ward],a.[Attribute],b.TypeName 
                 from threedayprogression('''+ChartNo+''')as a inner join medTypeSet as b on a.MedType=b.MedType
             '''
-    query +='''order by ExecDate asc '''
+    query +='''order by ExecDate,VisitNo,a.MedType asc '''
     cursor = connections['AIC_Infection'].cursor()
     ChartNo=[]
     VisitNo = []
