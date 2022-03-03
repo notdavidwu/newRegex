@@ -630,8 +630,8 @@
             let TokenID = removeObject.eq(i).attr('id').replaceAll('C_','')
             removeObjectID.push(TokenID)
             removeObject.eq(i).parents('.floatingBox').remove()
-            $('#'+TokenID).parenets('.floatingBox').css('border','none')
-            $('#'+TokenID).parenets('.floatingBox').css('line-height','40px')
+            $('#'+TokenID).parents('.floatingBox').css('border','none')
+            $('#'+TokenID).parents('.floatingBox').css('line-height','40px')
         }
 
         $.ajax({
