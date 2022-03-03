@@ -64,7 +64,7 @@ def TimeShow(request):
     ChartNo = request.POST.get('ChartNo')
     careRecordCheck = request.POST.get('careRecordCheck')
     hospitalized = request.POST.get('hospitalized')
-    query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Ward],a.[Attribute],b.TypeName from I_AllExam as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
+    query = '''select a.[ChartNo],a.[VisitNo],a.[OrderNo],a.[ItemNo],a.[ExecDate],a.[MedType],a.[Ward],a.[Attribute],b.TypeName from I_AllExam_Test as a inner join medTypeSet as b on a.MedType=b.MedType where a.MedType in(2134,2133'''
     if hospitalized =='true':
         query +=''',30402,30401,30403'''
     query +=''') and a.ChartNo='''+ChartNo+''' '''
@@ -81,6 +81,7 @@ def TimeShow(request):
     OrderNo = []
     ItemNo = []
     ExecDate = []
+    ExecDateTime = []
     MedType = []
     TypeName = []
     Attribute = []
@@ -89,19 +90,19 @@ def TimeShow(request):
     result = cursor.fetchall()
 
     for i in range(len(result)):
-
         ChartNo.append(result[i][0])
         VisitNo.append(result[i][1])
         OrderNo.append(result[i][2])
         ItemNo.append(result[i][3])
-        ExecDate.append(result[i][4])
+        ExecDate.append(result[i][4].date())
+        ExecDateTime.append(result[i][4].replace(microsecond=0).time())
         MedType.append(result[i][5])
         Ward.append(result[i][6])
         Attribute.append(result[i][7])
         TypeName.append(result[i][8])
 
     return JsonResponse({'ChartNo': ChartNo,'VisitNo': VisitNo,'OrderNo': OrderNo,'ItemNo': ItemNo,
-                         'ExecDate':ExecDate,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute,'Ward':Ward})
+                         'ExecDate':ExecDate,'ExecDateTime':ExecDateTime,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute,'Ward':Ward})
 
 @csrf_exempt
 def PrimaryText(request):
@@ -132,16 +133,18 @@ def PrimaryText(request):
         return JsonResponse({'ReportID': ReportID,'CategoryNo': CategoryNo,'ReportNo': ReportNo,'MedType': MedType,
                             'ReportText':ReportText,'Analysed':Analysed})
     else:
-        query = '''select * from ProgessionNote where ChartNo=%s and CONVERT(varchar(100), CreateTime, 23)=%s'''
+        query = '''select CreateTime,Content from ProgessionNote where ChartNo=%s and CONVERT(varchar(100), CreateTime, 23)=%s'''
         cursor = connections['AIC_Infection'].cursor()
         cursor.execute(query,[ChartNo,ExecDate])
         result = cursor.fetchall()
-        ReportText=[]
-        
+        ReportText = []
+        CreateTime = []
         for i in range(len(result)):
-            ReportText.append(result[i][4])
 
-        return JsonResponse({'ReportText': ReportText})
+            CreateTime.append(result[i][0].strftime("%Y-%m-%d %H:%M:%S"))
+            ReportText.append(result[i][1])
+
+        return JsonResponse({'ReportText': ReportText,'CreateTime':CreateTime})
 
 @csrf_exempt
 def structureData(request):
@@ -261,3 +264,14 @@ def getDivName(request):
     for res in fetchallDivName:
         DivName.append(res[0])
     return JsonResponse({'DivName': DivName})
+
+@csrf_exempt        
+def getCategory(request):
+    cursor = connections['AIC_Infection'].cursor()
+    query='''select Category from  Infection_Conversion_Category order by Category'''
+    cursor.execute(query)
+    fetchallDivName = cursor.fetchall()
+    Category = []
+    for res in fetchallDivName:
+        Category.append(res[0])
+    return JsonResponse({'Category': Category})
