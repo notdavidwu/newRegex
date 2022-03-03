@@ -861,7 +861,7 @@
         
         $("#frame"+name.toString()).children('label').children('div').children('div').children('.WC').text('WC: '+WC)
         $("#frame"+name.toString()).children('label').children('div').children('div').children('.WW').text('WW: '+WW)
-        console.log($('#MRI_CrossLink').is(':checked'))
+
         $.ajax({
             type: 'post',
             url: urlname, // this is the mapping between the url and view
@@ -987,7 +987,7 @@
                 frameXYZ=checkPlaneXYZ(frame,x,y,z)
                 //ajax_connect_view(ind)
                 //$('#frame'+ind).children('label').children('.slider').scrollTop(b)
-                ajax(ind,frameXYZ['x'],frameXYZ['y'],frameXYZ['z'],true,true)
+                //ajax(ind,frameXYZ['x'],frameXYZ['y'],frameXYZ['z'],true,true)
                 $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
                 $('#frame'+ind).children('label').children('div').children('div').children('.x').text(x)
                 $('#frame'+ind).children('label').children('div').children('div').children('.y').text(y)

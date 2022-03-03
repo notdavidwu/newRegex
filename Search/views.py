@@ -243,7 +243,7 @@ def structureData(request):
 @csrf_exempt        
 def getWard(request):
     cursor = connections['AIC_Infection'].cursor()
-    query='''select Ward from Bed group by Ward'''
+    query='''select Ward from Bed group by Ward order by Ward'''
     cursor.execute(query)
     fetchallWard = cursor.fetchall()
     ward = []
