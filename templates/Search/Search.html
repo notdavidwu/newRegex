@@ -191,8 +191,8 @@
     #checkboxd .button:hover {background: #bbb; color: #fff; }
     #checkboxds .round {border-radius: 10px; }
 
-    #priReport{background:url("{% static 'image/texture.png' %}");background-color: #FEFFEF;resize: none;box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.2);border-radius: 10px;width: calc(46% - 20px);top: calc(70% + 65px);height: calc(23% - 10px);z-index: 1;position: absolute;left: calc(54% );}
-    #abstract{overflow-y:auto;background:url("{% static 'image/texture.png' %}");background-color: #FEFFEF;resize: none;box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.2);border-radius: 10px;width: calc(46% - 20px);top: 65px;height: calc(70% - 15px);z-index: 1;position: absolute;left: calc(54% );}
+    
+    #abstract{overflow-y:auto;background:url("{% static 'image/texture.png' %}");background-color: #FEFFEF;resize: none;box-shadow: 0px 0px 10px 5px rgba(0, 0, 0, 0.2);border-radius: 10px;width: calc(46% - 20px);top: 65px;height: calc(100% - 77px);z-index: 1;position: absolute;left: calc(54% );}
     .abstractContent{border-bottom:5px solid #333333;background:url("{% static 'image/texture.png' %}");background-color: #EEEEEE;width:calc(100% - 20px);margin:10px;border-radius:10px;}
     .Resistance{margin-top:10px;background-color: #DDDDDD;padding:10px;border:1px solid #333333;border-radius:10px}
     .col-3{text-align:center}
@@ -214,6 +214,23 @@
     .Imageform{overflow-x: hidden;-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
     #ImageReport{margin-top: 5px;margin-left: 5px;width: calc(100% - 10px)}
     td{background:url("{% static 'image/texture.png' %}");}
+
+    
+    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #8e8fef; --border-radius: 10px; --width: 450px; --form-mob-width: 420px; }
+    #Reportcheckbox { display:none;position: absolute; right: -9999px; }
+    .Report-label{ position: fixed; top: 105px; left: 0px;,width:50px}
+    .Reportform { position: fixed; top: 85px; left: 0px;height:calc(100% - 90px)}
+    
+    .Report-label { transform-origin: top right; transform: rotate(0deg) translate(0%, 50%); z-index: 2;writing-mode: vertical-rl }
+    .Reportform {background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--width); transform: translate(-100%, -0%);  overflow: auto; background-color: #FFFFFF; z-index: 7; border-radius:10px}
+    .Report-label { padding: 5px 10px; border-radius:  0 var(--border-radius)  var(--border-radius) 0;; }
+    .Report-label { background: brown; color: white}
+    .Report-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #Reportcheckbox:checked + .Report-label { background: #e78632; transform:  translate(calc((var(--width) - 20%) * 1),50%)}
+    #Reportcheckbox:checked ~ .Reportform { transform: translate(0%, -0%);z-index: 7;}
+    .Report-label, .Reportform { transition: all 0.35s ease-in-out; }
+    .Reportform{overflow-x: hidden;-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #priReport{background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);height: calc(100%);z-index: 1;margin:0px;padding:10px}
 </style>
 
 
@@ -267,6 +284,17 @@
                 for (var i = 0; i < response.Category.length; i++) {
                     $('#Category').append('<option>'+response.Category[i]+'</option>')
                 }
+            }
+        })
+        $('body').on('click',function(event){
+            if ($(event.target).attr('class')=="Report-label" || $(event.target).attr('class')=="TypeName-label" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="TypeName" || $(event.target).attr('class')=="ExecDate" || $(event.target).attr('class')=="ExecDateTime" || $(event.target).attr('class')=="TimeShowLabel"){
+                return true;
+            }else if(event.target.id=='Reportcheckbox' || event.target.id.includes('TimeShow')){
+                return true;
+            }else if(event.target.name=='Timetable'){
+                return true;
+            }else{
+                $('#Reportcheckbox').prop('checked',false);
             }
         })
     })
@@ -354,7 +382,7 @@
                     //alert(response.Token[i])
                     $('#TimeShow').append('<tr><td>' +
                         '<input type="radio" onclick="primarytext()" name="Timetable" id=TimeShow' + i + '>' +
-                        '<label for=TimeShow' + i + '>' +
+                        '<label class="TimeShowLabel" for=TimeShow' + i + '>' +
                         '<p  class="timeChartNo">' + response.ChartNo[i] + '</p>' +
                         '<p  class="VisitNo">' + response.VisitNo[i] + '</p>' +
                         '<p  class="OrderNo">' + response.OrderNo[i] + '</p>' +
@@ -405,6 +433,7 @@
         var MedType = ($('input[name="Timetable"]:checked').next('label').children('.MedType').text())
         var ChartNo = ($('input[name="Timetable"]:checked').next('label').children('.timeChartNo').text())
         var ExecDate = ($('input[name="Timetable"]:checked').next('label').children('.ExecDate').text())
+        
         $.ajax({
             type: 'post',
             url: '{% url "Search:PrimaryText" %}', // this is the mapping between the url and view
@@ -537,8 +566,10 @@
                         $('#priReport').append('【'+response.CreateTime[i]+'】\n'+response.ReportText[i]+' \n  \n')
                     }
                 }
+            },
+            complete:function(){
+                $('#Reportcheckbox').prop('checked',true)
             }
-            
         })
 
     }
@@ -693,7 +724,15 @@
             <table class="table table-striped" id="TimeShow"></table>
         </div>
     </div>
-    <textarea class="form-control" id="priReport" rows="3" readonly></textarea>
+    
 
     <div  id="abstract" ></div>
+
+    <div  id="Report" >
+        <input type="checkbox" id="Reportcheckbox">
+        <label for="Reportcheckbox" class="Report-label">原始報告</label>
+        <form class="Reportform sc2 row g-3">
+            <textarea class="form-control" id="priReport" rows="3" readonly></textarea>
+        </form>
+    </div>
 </html>
