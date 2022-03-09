@@ -25,5 +25,5 @@ urlpatterns = [
     path('Session/', views.Session,name='Session'),
     path('Patient_num/', views.Patient_num,name='Patient_num'),
     path('getPreviousAction/', views.getPreviousAction,name='getPreviousAction'),
-    
+    path('Disease/', views.Disease,name='Disease'),
 ]

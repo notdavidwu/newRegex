@@ -2,6 +2,8 @@ from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from itertools import chain
+
 @csrf_exempt
 def confirm(request):
     au = request.session.get('au')
@@ -11,17 +13,15 @@ def confirm(request):
 @csrf_exempt
 def confirmpat(request):
     Disease = request.POST.get('Disease')
-
-    query = '''select distinct chartNo from correlationPatientDisease where diseaseNo=%s
-            order by chartNo asc
-            '''
+    print(Disease)
+    query = '''select distinct chartNo from correlationPatientDisease where diseaseNo = %s order by chartNo asc'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[Disease])
-    examID=[]
-    exam = cursor.fetchall()
-    for i in range(len(exam)):
-        examID.append(exam[i][0])
-
+    examID=''
+    #examID = list(cursor.fetchall())
+    for i,row in enumerate(cursor):
+        examID += '<tr><td><input type="radio" onclick="GetTime()" name="confirmPID" id='+str(i)+'><label for='+str(i)+'>'+str(row[0])+'</label></td></tr>'
+        
     return JsonResponse({'examID': examID})
 
 @csrf_exempt

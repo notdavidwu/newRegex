@@ -13,6 +13,20 @@ def pool(request):
     return render(request, 'pool/pool.html',{'au':au,'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
 @csrf_exempt
+def Disease(request):
+    query = '''select * from diseaseGroup'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query)
+    DiseaseNo = []
+    Disease = []
+    res = cursor.fetchall()
+    for i in range(len(res)):
+        DiseaseNo.append(res[i][0])
+        Disease.append(res[i][1])
+    return JsonResponse({'DiseaseNo': DiseaseNo,'Disease': Disease})
+
+
+@csrf_exempt
 def getPreviousAction(request):
     diseaseCode = request.session.get('diseaseCode',1)
     ScrollTop = request.session.get('scrollTop',0)
@@ -25,7 +39,6 @@ def SubjectPatientList(request):
     filter=request.POST.get('filter')
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))+'%'
-    print(hospital)
     request.session['diseaseCode']=Disease
     request.session['filter']=filter
     PID_previous_select = str(request.session.get('PID',0))

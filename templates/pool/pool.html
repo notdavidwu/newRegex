@@ -269,7 +269,7 @@
         $('.loader').css('display','inline')
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:Disease" %}', // this is the mapping between the url and view
+            url: '{% url "pool:Disease" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN,
 

@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
-
+    <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
     <!-- JS, Popper.js, and jQuery -->
     <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
@@ -36,6 +36,8 @@
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
     <title>DICOM</title>
     </head>
 
@@ -129,7 +131,7 @@
         #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
 
     }
-
+    .loader{display:none;position:absolute;top:40%;left:50%}
 </style>
 
 
@@ -137,7 +139,6 @@
 <script>
     function GetTime(){
         text=$('input[name=confirmPID]:checked').next().html()
-        /*alert(text)*/
         $('#time').css('visibility','hidden')
         var IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
@@ -214,7 +215,6 @@
                                     for(var j=0;j<response.Disease.length;j++) {
                                         str += '<span style="font-weight: bold">'+response.Disease[j]+'</span>'+': '+response.Event[j] + '<br>'
                                     }
-
                                     $('#timePID'+response.IND).next('label').children('.note').html(str)
                                     if(50> $('#timePID'+response.IND).next('label').children('.note').height()&& 50>$('#timePID'+response.IND).next('label').children('.type2').height()){
                                         $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').height()+10)
@@ -245,19 +245,11 @@
                                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                                 },
                                 success:function (response){
-                                    //alert(response.EventID)
                                     $('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
                                     $('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
                                 }
                             })
                         }
-                        //alert($('#timePID'+i).next('label').children('.phase').height())
-
-                        //$('#timePID'+i).next('label').children('.phase').children('option[value='+response.EventID[i]+']').attr('selected','selected')
-                        //$('#timePID'+i).next('label').children('.IntervalNo').children('option[value='+response.IntervalNo[i]+']').attr('selected','selected')
-
-                        //alert(ind)
-
 
                     }
                     
@@ -368,6 +360,7 @@
 
     }
     $(document).ready(function (e) {
+        $('.loader').css('display','inline')
         $.ajax({
             type: 'post',
             url: '{% url "confirm:Disease" %}', // this is the mapping between the url and view
@@ -391,15 +384,11 @@
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
                     success:function (response){
-                        for(var i=0;i<response.examID.length;i++){
-                                $('#Report').append('' +
-                                    '<tr><td>' +
-                                        '<input type="radio" onclick="GetTime()" name="confirmPID" id='+i+'>' +
-                                        '<label for='+i+'>'+
-                                            response.examID[i]+
-                                        '</label>' +
-                                    '</td></tr>')
-                        }
+                        $('#Report').append(response.examID) 
+                        
+                    },
+                    complete:function(){
+                        $('.loader').css('display','none')
                     }
                 })
             }
@@ -429,17 +418,10 @@
                 },
                 success:function (response){
                     $('#Report').empty()
-                    for(var i=0;i<response.examID.length;i++){
-                        $('#Report').append('' +
-                            '<tr><td>' +
-                                '<input type="radio" onclick="GetTime()" name="confirmPID" id='+i+'>' +
-                                '<label for='+i+'>'+
-                                    response.examID[i]+
-                                '</label>' +
-                            '</td></tr>')
-                    }
-                    //$('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
-                    //$('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
+                    $('#Report').append(response.examID) 
+                },
+                complete:function(){
+                    $('.loader').css('display','none')
                 }
             })
         })
@@ -490,6 +472,8 @@
 //-------------------------------定位功能------------------------------------
 </script>
 <body >
+{{ user.username|json_script:"user_username" }}
+{{ user.last_name|json_script:"hospital" }}
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
@@ -531,6 +515,18 @@
 </div>
 
 <div id="patient">
+    <div class="loader">
+        <div class="loader-inner pacman">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <span class="tooltip">
+            <p>載入中，請稍後‧‧‧</p>
+        </span>
+    </div>
     <table class="table table-striped" id="Report"></table>
 </div>
 
