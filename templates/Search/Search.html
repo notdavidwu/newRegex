@@ -481,6 +481,8 @@
                                         for(var i =0;i<response.Bacteria.length;i++){
                                             element += '菌種'+(i+1).toString()+'：'
                                             element += '</span>'+response.Bacteria[i]+'</span>'
+                                            element += '<input type="checkbox" class="btn-check" id="btn-check-outlined" autocomplete="off">'
+                                            element += '<label class="btn btn-outline-primary" for="btn-check-outlined">Single toggle</label><br>'
                                         }        
                                     element +='</div>' 
                                     let countResistance1w=0

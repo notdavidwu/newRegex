@@ -13,7 +13,13 @@ class UserForm(forms.Form):
     username = forms.CharField(label='帳號', max_length=100)
     password = forms.CharField(label='密碼', widget=forms.PasswordInput())
     realname = forms.CharField(label='姓名', max_length=100)
-
+    hospital_type_choices = (
+        (1, '中山附醫'),
+        (2, '台大'),
+    )
+    hospital = forms.ChoiceField(label='院別', widget=forms.Select(attrs={"id": "select_0"}),
+                                 choices=hospital_type_choices,
+                                 initial=hospital_type_choices[0])
 
 
 def index(request):
@@ -28,6 +34,7 @@ def regist(request):
             username = uf.cleaned_data['username']
             password = uf.cleaned_data['password']
             realname = uf.cleaned_data['realname']
+            hospital = uf.cleaned_data['hospital']
             re = User.objects.filter(username=username)
             # print(len(re))
             if len(re) != 0:
@@ -35,7 +42,7 @@ def regist(request):
                 return render(request, 'accounts/register.html', {'register_error': '該帳號已經註冊過', 'uf': uf})
             else:
                 registAdd = User.objects.create_user(username=username, password=password, first_name=realname,
-                                                     is_active=0)
+                                                     last_name=hospital,is_active=0)
                 # print(registAdd)
                 if registAdd == False:
                     return render(request, 'accounts/register.html', {'registAdd': registAdd, 'username': username})

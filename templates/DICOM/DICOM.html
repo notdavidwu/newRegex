@@ -1313,7 +1313,7 @@
                         functionAjax[window_sno]
                     }
                 });
-                selectLocation(PID,Study_Date,str)
+                selectLocation(PID)
             }
         });
     }
@@ -1419,14 +1419,22 @@
         })
     }
 
-    function selectLocation(PID,Study_Date,str){
+    function selectLocation(PID){
+        var str=$('.SeriesID').eq(0).text()
+        for(var i =1;i<$('.SeriesID').length;i++){
+            str+=','+$('.SeriesID').eq(i).text()
+        }
+        var Study_Date=$('.StudyDate').eq(0).text()
+        for(var i =1;i<$('.StudyDate').length;i++){
+            Study_Date+=','+$('.StudyDate').eq(i).text()
+        }
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:selectLocation" %}', // this is the mapping between the url and view
             data: {
                 'PID': PID,
                 'Disease':$('#Disease').val(),
-                'username':JSON.parse(document.getElementById('user_username').textContent),
+                'username':$('#users option:selected').text(),
                 'date':Study_Date,
                 'str':str,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1489,20 +1497,50 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function(response) {
-                var str=$('.SeriesID').eq(0).text()
-                for(var i =1;i<$('.SeriesID').length;i++){
-                    str+=','+$('.SeriesID').eq(i).text()
-                }
-                var Study_Date=$('.StudyDate').eq(0).text()
-                for(var i =1;i<$('.StudyDate').length;i++){
-                    Study_Date+=','+$('.StudyDate').eq(i).text()
-                }
-                selectLocation(PID,Study_Date,str)
+
+                selectLocation(PID)
             },
         });
     }
 
-
+    function getuser(){
+        let username = JSON.parse(document.getElementById('user_username').textContent)
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:getusers" %}', // this is the mapping between the url and view
+            data: {
+                'username':username,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function(response) {
+                
+                for(var i=0;i<response.users.length;i++){
+                    $('#users').append('<option >'+response.users[i]+'</option>')
+                    if(response.users[i]==username){
+                        $('#users').children('option').eq(i).prop('selected',true)
+                    }
+                }
+                if(response.is_superuser){
+                    $('#users').css({
+                        'z-index': '2',
+                        'position': 'fixed',
+                        'height': '40px',
+                        'top': '95px',
+                        'width': '9.9%',
+                        'margin': '0px',
+                        'right': '20%',
+                        'border-radius': '0px 0px 5px 5px'
+                    })
+                    $('.localizationform').css({
+                        'position': 'fixed',
+                        'height': 'calc(100% - 130px)', 
+                        'top': '130px',  
+                        'right': '20%'
+                    })
+                }
+            }
+        });
+    }
 
     $(document).ready(function (e) {
         PID=$('#PIDText').text()
@@ -1511,7 +1549,7 @@
         StudyIDText=$('#StudyIDText').text()
         SeriesIDText=$('#SeriesIDText').text()
         SeriesDesText=$('#SeriesDesText').text()
-
+        getuser()
         $(document).keydown(function(event) {
             if (event.ctrlKey==true && (event.which == '61' || event.which == '107' || event.which == '173' || event.which == '109'  || event.which == '187'  || event.which == '189'  ) ) {
                     event.preventDefault();
@@ -1771,15 +1809,7 @@
                                         
                                         
                                         $('#frame1').children('label').children('.main').children('div').children('.thickness').text(response.thickness+'mm')
-                                        var str=$('.SeriesID').eq(0).text()
-                                        for(var i =1;i<$('.SeriesID').length;i++){
-                                            str+=','+$('.SeriesID').eq(i).text()
-                                        }
-                                        var Study_Date=$('.StudyDate').eq(0).text()
-                                        for(var i =1;i<$('.StudyDate').length;i++){
-                                            Study_Date+=','+$('.StudyDate').eq(i).text()
-                                        }
-                                        selectLocation(PID,Study_Date,str)
+                                        selectLocation(PID)
                                         $('#RT_Contour').empty()
                                         
                                         if(Item=='RTPLAN'){
@@ -2462,15 +2492,10 @@
             }
         })
         $('#Disease').on('change',function(){
-            var str=$('.SeriesID').eq(0).text()
-            for(var i =1;i<$('.SeriesID').length;i++){
-                str+=','+$('.SeriesID').eq(i).text()
-            }
-            var Study_Date=$('.StudyDate').eq(0).text()
-            for(var i =1;i<$('.StudyDate').length;i++){
-                Study_Date+=','+$('.StudyDate').eq(i).text()
-            }
-            selectLocation(PID,Study_Date,str)
+            selectLocation(PID)
+        })
+        $('#users').on('change',function(){
+            selectLocation(PID)
         })
 
         $('#textarea').on('mousedown','td',function(d){
@@ -2660,6 +2685,7 @@
 
 <div id="localizationslideout">
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="Disease" ></select>
+    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="users" ></select>
     <form class="localizationform sc2">
 
             <table id="textarea" >

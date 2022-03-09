@@ -1747,3 +1747,22 @@ def SaveCoordinate(request):
     cursor = connections['default'].cursor()
     cursor.execute(query, [PID,date,'MRI',str(current_time),username,'0','0','0',variable,'MRI','slice coordinate','note: '+LabelRecord,'0','0',variable,Disease,StudyID,'',SeriesID])
     return JsonResponse({}, status=200)   
+
+@csrf_exempt
+def getusers(request):
+    username = str(request.POST.get('username'))
+    '''get all users'''
+    query = '''select username from auth_user order by is_superuser　DESC'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query)
+    users = []
+    res = cursor.fetchall()
+    for rows in res:
+        users.append(rows[0])
+
+    '''is current user superuser?'''
+    query = '''select is_superuser from auth_user where username=%s'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query,[username])
+    is_superuser = cursor.fetchall()[0][0]
+    return JsonResponse({'users':users,'is_superuser':is_superuser}, status=200) 

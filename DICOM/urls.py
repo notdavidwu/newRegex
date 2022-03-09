@@ -48,5 +48,6 @@ urlpatterns = [
     path('SaveCoordinate/', views.SaveCoordinate, name='SaveCoordinate'),
     path('cancer/', views.cancer, name='cancer'),
     path('convert_MRI_coordinate/', views.convert_MRI_coordinate, name='convert_MRI_coordinate'),
+    path('getusers/', views.getusers, name='getusers'),
     
 ]
