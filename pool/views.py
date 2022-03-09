@@ -24,7 +24,7 @@ def SubjectPatientList(request):
     Disease=request.POST.get('Disease')
     filter=request.POST.get('filter')
     username=request.POST.get('username')
-    hospital=str(request.POST.get('hospital','%'))
+    hospital=str(request.POST.get('hospital'))+'%'
     print(hospital)
     request.session['diseaseCode']=Disease
     request.session['filter']=filter
