@@ -300,7 +300,8 @@
                                 'csrfmiddlewaretoken': window.CSRF_TOKEN,
                                 'Disease':$('#Disease').val(),
                                 'filter':$('#filter').val(),
-                                'username':JSON.parse(document.getElementById('user_username').textContent)
+                                'username':JSON.parse(document.getElementById('user_username').textContent),
+                                'hospital':JSON.parse(document.getElementById('hospital').textContent)
                             },
                             success:function (response){
                                 PatientListID=response.PatientListID
