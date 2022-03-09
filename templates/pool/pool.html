@@ -228,7 +228,7 @@
         $(document).get(0).oncontextmenu = function() {
             return false
         };
-
+        
         $('body').on('mousedown',function (e){
 
             if(e.which==3){
@@ -311,7 +311,8 @@
                                     data:{
                                         'csrfmiddlewaretoken': window.CSRF_TOKEN,
                                         'Disease':$('#Disease').val(),
-                                        'username':JSON.parse(document.getElementById('user_username').textContent)
+                                        'username':JSON.parse(document.getElementById('user_username').textContent),
+                                        'hospital':JSON.parse(document.getElementById('hospital').textContent)
                                     },
                                     success:function (response){
                                         $('#filter option[value="0"]').text('全部'+'('+response.all+')')
@@ -351,7 +352,8 @@
                     'csrfmiddlewaretoken': window.CSRF_TOKEN,
                     'Disease':$('#Disease').val(),
                     'filter':$('#filter').val(),
-                    'username':JSON.parse(document.getElementById('user_username').textContent)
+                    'username':JSON.parse(document.getElementById('user_username').textContent),
+                    'hospital':JSON.parse(document.getElementById('hospital').textContent)
                 },
                 success:function (response){
                     PatientListID=response.PatientListID
@@ -361,7 +363,8 @@
                         data:{
                             'csrfmiddlewaretoken': window.CSRF_TOKEN,
                             'Disease':$('#Disease').val(),
-                            'username':JSON.parse(document.getElementById('user_username').textContent)
+                            'username':JSON.parse(document.getElementById('user_username').textContent),
+                            'hospital':JSON.parse(document.getElementById('hospital').textContent)
                         },
                         success:function (response){
                             $('.loader').css('display','none')
@@ -394,7 +397,8 @@
                     'csrfmiddlewaretoken': window.CSRF_TOKEN,
                     'Disease':$('#Disease').val(),
                     'filter':$('#filter').val(),
-                    'username':JSON.parse(document.getElementById('user_username').textContent)
+                    'username':JSON.parse(document.getElementById('user_username').textContent),
+                    'hospital':JSON.parse(document.getElementById('hospital').textContent)
                 },
                 success:function (response){
                     $('.loader').css('display','none')
@@ -445,6 +449,7 @@
     </div>
 </nav>
     {{ user.username|json_script:"user_username" }}
+    {{ user.last_name|json_script:"hospital" }}
     <select class="form-select" aria-label="Default select example" id="Disease"></select>
     <select class="form-select" aria-label="Default select example" id='filter'>
         <option value='0'>全部</option>
