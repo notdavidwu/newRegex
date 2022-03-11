@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'Classify.apps.ClassifyConfig',
     'Search.apps.SearchConfig',
     'categorize.apps.categorizeConfig',
+    'poolConfirm.apps.poolConfirmConfig',
 ]
 
 MIDDLEWARE = [
@@ -133,6 +134,18 @@ DATABASES = {
             'HOST': '172.31.6.157',
             'PORT': '1433',
             'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
+                'MARS_Connection': True,
+            },
+        },
+        'dbDesigning': {
+            'ENGINE': 'mssql',
+            'NAME': 'dbDesigning',
+            'USER': 'TEST',
+            'PASSWORD': '81218',
+            'HOST': '172.31.6.157',
+            'PORT': '1433',
+            'OPTIONS': { 
                 'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
                 'MARS_Connection': True,
             },

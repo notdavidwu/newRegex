@@ -30,6 +30,7 @@ urlpatterns = [
     path('Classify/', include('Classify.urls', namespace='Classify')),
     path('Search/', include('Search.urls', namespace='Search')),
     path('categorize/', include('categorize.urls', namespace='categorize')),
+    path('poolConfirm/', include('poolConfirm.urls', namespace='poolConfirm')),
     path('', views.index, name="base"),
 
 ]

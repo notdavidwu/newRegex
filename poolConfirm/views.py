@@ -7,15 +7,15 @@ from itertools import chain
 @csrf_exempt
 def confirm(request):
     au = request.session.get('au')
-    return render(request, 'confirm/confirm.html',{'au':au})
+    return render(request, 'poolConfirm/confirm.html',{'au':au})
 
 
 @csrf_exempt
 def confirmpat(request):
     Disease = request.POST.get('Disease')
     print(Disease)
-    query = '''select distinct chartNo from correlationPatientDisease where diseaseNo = %s order by chartNo asc'''
-    cursor = connections['default'].cursor()
+    query = '''select distinct chartNo from PatientDisease where diseaseNo = %s order by chartNo asc'''
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[Disease])
     examID=''
     #examID = list(cursor.fetchall())
@@ -27,7 +27,7 @@ def confirmpat(request):
 @csrf_exempt
 def Disease(request):
     query = '''select * from diseaseGroup'''
-    cursor = connections['default'].cursor()
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query)
     DiseaseNo = []
     Disease = []
@@ -42,13 +42,14 @@ def confirmpat2(request):
     PID=request.POST.get('ID')
 
     query = '''
-        select a.chartNo,a.orderNo,a.eventDate, a.medType,b.TypeName,a.eventSummary,a.reportText,a.eventID
+        select a.chartNo,a.orderNo,a.eventDate, a.medType,b.typeName,c.eventTag,c.eventText,a.eventID
         from allEvents as a 
-        inner join medTypeSet as b on a.medType=b.MedType
+        inner join medTypeSet as b on a.medType=b.medType
+		inner join eventDetails as c on a.eventID=c.eventID
         where a.chartNo=%s
         order by a.eventDate desc
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[PID])
     ChartNo=[]
     OrderNo=[]
@@ -75,8 +76,8 @@ def confirmpat2(request):
 @csrf_exempt
 def Phase(request):
 
-    query = '''select * from ClinicalEvents order by EventID asc '''
-    cursor = connections['default'].cursor()
+    query = '''select * from eventGroup order by eventNo asc '''
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query)
     EventID=[]
     Event=[]
@@ -91,25 +92,25 @@ def ignore(request):
     eventID=request.POST.get('eventID')
     diseaseNo = request.POST.get('diseaseNo')
     query = '''Select Ignore from Ignore WHERE eventID=%s  AND diseaseNo=%s'''
-    cursor = connections['default'].cursor()
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[eventID,diseaseNo])
     res = cursor.fetchall()
     if len(res)==0:
         Ignore = 1
         query = '''insert into Ignore (eventID,Ignore,diseaseNo) values(%s,%s,%s)'''
-        cursor = connections['default'].cursor()
+        cursor = connections['dbDesigning'].cursor()
         cursor.execute(query,[eventID,Ignore,diseaseNo])
     else:
         Ignore = res[0][0]
         if Ignore == 0:
             Ignore = 1
             query = '''UPDATE Ignore SET Ignore=1 WHERE eventID=%s  AND diseaseNo=%s'''
-            cursor = connections['default'].cursor()
+            cursor = connections['dbDesigning'].cursor()
             cursor.execute(query,[eventID,diseaseNo])
         elif Ignore == 1:
             Ignore = 0
             query = '''UPDATE Ignore SET Ignore=0 WHERE eventID=%s  AND diseaseNo=%s'''
-            cursor = connections['default'].cursor()
+            cursor = connections['dbDesigning'].cursor()
             cursor.execute(query,[eventID,diseaseNo])
     return JsonResponse({'Ignore':Ignore})
 @csrf_exempt
@@ -120,21 +121,21 @@ def updatePhase(request):
     IntervalNo = request.POST.get('IntervalNo')
 
     if EventID!=str(0):
-        query = '''SELECT * FROM EventDefinition WHERE eventID=%s AND DiseaseNo=%s'''
-        cursor = connections['default'].cursor()
+        query = '''SELECT * FROM eventDefinition WHERE eventID=%s AND DiseaseNo=%s'''
+        cursor = connections['dbDesigning'].cursor()
         cursor.execute(query,[eventID,Disease])
         res = cursor.fetchall()
         if len(res)==0: #insert
-            query = 'INSERT EventDefinition (eventID,DiseaseNo,EventID,IntervalNo) VALUES (%s,%s,%s,%s)'
-            cursor = connections['default'].cursor()
+            query = 'INSERT eventDefinition (eventID,DiseaseNo,EventID,IntervalNo) VALUES (%s,%s,%s,%s)'
+            cursor = connections['dbDesigning'].cursor()
             cursor.execute(query,[eventID,Disease,EventID,IntervalNo])
         elif len(res)==1: #update
-            query = 'UPDATE EventDefinition SET EventID=%s WHERE DiseaseNo=%s AND eventID=%s'
-            cursor = connections['default'].cursor()
+            query = 'UPDATE eventDefinition SET EventID=%s WHERE DiseaseNo=%s AND eventID=%s'
+            cursor = connections['dbDesigning'].cursor()
             cursor.execute(query,[EventID,Disease,eventID])
     else:#請選擇階段，就刪除資料
-        query = 'DELETE FROM EventDefinition WHERE DiseaseNo=%s AND eventID=%s'
-        cursor = connections['default'].cursor()
+        query = 'DELETE FROM eventDefinition WHERE DiseaseNo=%s AND eventID=%s'
+        cursor = connections['dbDesigning'].cursor()
         cursor.execute(query,[Disease,eventID])
     return JsonResponse({})
 @csrf_exempt
@@ -142,17 +143,17 @@ def updateInterval(request):
     Disease = request.POST.get('Disease')
     eventID = request.POST.get('eventID')
     IntervalNo = request.POST.get('IntervalNo')
-    query = '''SELECT * FROM EventDefinition WHERE eventID=%s AND DiseaseNo=%s'''
-    cursor = connections['default'].cursor()
+    query = '''SELECT * FROM eventDefinition WHERE eventID=%s AND DiseaseNo=%s'''
+    cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[eventID,Disease])
     res = cursor.fetchall()
     if len(res)==0: #insert
-        query = 'insert EventDefinition(eventID,DiseaseNo,EventID,IntervalNo) values(%s,%s,%s,%s,%s)'
-        cursor = connections['default'].cursor()
+        query = 'insert eventDefinition(eventID,DiseaseNo,EventID,IntervalNo) values(%s,%s,%s,%s,%s)'
+        cursor = connections['dbDesigning'].cursor()
         cursor.execute(query,[eventID,Disease,str(-9999),IntervalNo])
     elif len(res)==1: #update
-        query = 'UPDATE EventDefinition SET IntervalNo=%s WHERE DiseaseNo=%s AND eventID=%s'
-        cursor = connections['default'].cursor()
+        query = 'UPDATE eventDefinition SET IntervalNo=%s WHERE DiseaseNo=%s AND eventID=%s'
+        cursor = connections['dbDesigning'].cursor()
         cursor.execute(query,[IntervalNo,Disease,eventID])
     return JsonResponse({})
 
@@ -161,13 +162,14 @@ def searchNote(request):
     IND = request.POST.get('IND')
     eventID = request.POST.get('eventID')
     query = '''
-      select  B.Disease,C.Enent,A.IntervalNo from EventDefinition as A 
-      inner join diseaseGroup as B on A.DiseaseNo = B.DiseaseNo 
-      inner join ClinicalEvents as C on A.EventID=C.EventID 
-      where eventID=''' + eventID+''' Order by A.DiseaseNo ASC'''
+      select  D.disease,C.event,A.seqNo from eventDefinition as A 
+	  inner join PatientDisease as B on A.pdID=B.pdID
+      inner join eventGroup as C on A.eventNo=C.eventNo
+	  inner join diseaseGroup as D on B.diseaseNo=D.diseaseNo
+      where eventID=%s Order by B.diseaseNo ASC'''
 
-    cursor = connections['default'].cursor()
-    cursor.execute(query)
+    cursor = connections['dbDesigning'].cursor()
+    cursor.execute(query,[eventID])
     res = cursor.fetchall()
     Disease=[]
     Event=[]
@@ -184,11 +186,11 @@ def searchPhaseAndInterval(request):
     DiseaseNo = request.POST.get('DiseaseNo')
     eventID = request.POST.get('eventID')
     query = '''
-    select  EventID,IntervalNo from EventDefinition 
-    where eventID=''' + str(eventID)+''' AND DiseaseNo=''' + str(DiseaseNo)+'''
+    select  eventNo,seqNo from eventDefinition 
+    where eventID=%s
     '''
-    cursor = connections['default'].cursor()
-    cursor.execute(query)
+    cursor = connections['dbDesigning'].cursor()
+    cursor.execute(query,[eventID])
     res = cursor.fetchall()
 
     if len(res)!=0:

@@ -114,8 +114,8 @@
         #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
-        .edate{float: left;width: 10%;padding-left: 20px;height: auto}
-        .type2{float: left;width: 20%;padding-left: 20px;height: auto}
+        .edate{float: left;width: 15%;padding-left: 20px;height: auto}
+        .type2{float: left;width: 15%;padding-left: 20px;height: auto}
         .note{float: left;width: 40%;padding-left: 20px;height: auto;font-size: 12pt;}
         .phase{float: left;width: 12%;margin-left:  20px;height: auto;padding-top: 0}
         .IntervalNo{float: left;margin-top: 0;top:0;margin-left: 5px;width: 5%;padding-top: 0}
@@ -129,7 +129,7 @@
         p{height: 100%;align-items: center;vertical-align: center}
         #Disease{position: absolute;top: 55px;height: 100px;width: 200px;background-color: #11171a}
         #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
-        #header_date{width:10%}
+        #header_date{width:20%}
         #header_note{width:50%}
     }
     .loader{display:none;position:absolute;top:40%;left:50%}
@@ -144,7 +144,7 @@
         var IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
                 type: 'post',
-                url: '{% url "confirm:confirmpat2" %}', // this is the mapping between the url and view
+                url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
                 data:{
                     'ID':text,
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -205,7 +205,7 @@
 
                             $.ajax({
                                 type: 'post',
-                                url: '{% url "confirm:searchNote" %}', // this is the mapping between the url and view
+                                url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
                                 data:{
                                     'IND':i,
                                     'eventID':response.eventID[i],
@@ -238,7 +238,7 @@
 
                             $.ajax({
                                 type: 'post',
-                                url: '{% url "confirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+                                url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
                                 data:{
                                     'IND':i,
                                     'DiseaseNo':$('#ChangeDisease').val(),
@@ -269,7 +269,7 @@
         target=$(event.target)
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:updatePhase" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
             data:{
                 'Disease':$('#Disease').children('select').val(),
                 'Event':target.val(),
@@ -281,7 +281,7 @@
             success:function (response){
                 $.ajax({
                     type: 'post',
-                    url: '{% url "confirm:searchNote" %}', // this is the mapping between the url and view
+                    url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
                     data:{
                         'IND':0,
                         'eventID':target.prevAll('.eventID').html(),
@@ -291,13 +291,13 @@
                         target.parents('label').css('height',0)
                         str=''
                         for(var j=0;j<response.Disease.length;j++) {
-                            str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.Event[j]+'—'+response.Interval[j]+'</p>'
+                            str += '<span style="font-weight: bold">'+response.Disease[j]+'</span>'+': '+response.Event[j] + '<br>'
                         }
                         target.prevAll('.note').html(str)
 
                         if(50> target.prevAll('.note').height()&& 50>target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',62)
-                            target.parents('label').css('height',62)
+                            target.parents('label').prev().parents('td').css('height',50)
+                            target.parents('label').css('height',50)
                             target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
                         }else if(target.prevAll('.note').height()>target.prevAll('.type2').height()){
                             target.parents('label').prev().parents('td').css('height',target.prevAll('.note').height()+8)
@@ -312,55 +312,25 @@
                         }
                     }
                 })
+
+
+
             }
         })
 
     }
     function UpdateInterval(){
-        target=$(event.target)
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:updateInterval" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:updateInterval" %}', // this is the mapping between the url and view
             data:{
                 'Disease':$('#Disease').children('select').val(),
-                'eventID':target.prevAll('.eventID').html(),
-                'IntervalNo':target.val(),
+                'eventID':$(event.target).prevAll('.eventID').html(),
+                'IntervalNo':$(event.target).val(),
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "confirm:searchNote" %}', // this is the mapping between the url and view
-                    data:{
-                        'IND':0,
-                        'eventID':target.prevAll('.eventID').html(),
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-                        target.parents('label').css('height',0)
-                        str=''
-                        for(var j=0;j<response.Disease.length;j++) {
-                            str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.Event[j]+'—'+response.Interval[j]+'</p>'
-                        }
-                        target.prevAll('.note').html(str)
 
-                        if(50> target.prevAll('.note').height()&& 50>target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',62)
-                            target.parents('label').css('height',62)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }else if(target.prevAll('.note').height()>target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',target.prevAll('.note').height()+8)
-                            target.parents('label').css('height',target.prevAll('.note').height()+10)
-                            target.nextAll('.Ignore').css('height',target.prevAll('.note').height()+5)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }else if(target.prevAll('.note').height()<target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',target.prevAll('.type2').height()+8)
-                            target.parents('label').css('height',target.prevAll('.type2').height()+10)
-                            target.nextAll('.Ignore').css('height',target.prevAll('.type2').height()+5)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }
-                    }
-                })
             }
         })
     }
@@ -368,7 +338,7 @@
         target = $(event.target);
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:ignore" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:ignore" %}', // this is the mapping between the url and view
             data:{
                 'diseaseNo':$('#ChangeDisease').val(),
                 'eventID':$(event.target).prevAll('.eventID').text(),
@@ -394,7 +364,7 @@
         $('.loader').css('display','inline')
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:Disease" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:Disease" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -409,7 +379,7 @@
                 var disease = $('#ChangeDisease').val()
                 $.ajax({
                     type: 'post',
-                    url: '{% url "confirm:confirmpat" %}', // this is the mapping between the url and view
+                    url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
                     data:{
                         'Disease':disease,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -429,7 +399,7 @@
         selection ='<option value="0">請選擇階段</option>'
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:Phase" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -442,7 +412,7 @@
         $('#ChangeDisease').on('change',function (){
             $.ajax({
                 type: 'post',
-                url: '{% url "confirm:confirmpat" %}', // this is the mapping between the url and view
+                url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
                 data:{
                     'Disease':$('#ChangeDisease').val(),
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -461,7 +431,7 @@
             for(var i = 0; i < num; i++){
                 $.ajax({
                     type: 'post',
-                    url: '{% url "confirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+                    url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
                     data:{
                         'IND':i,
                         'DiseaseNo':$('#ChangeDisease').val(),
@@ -478,26 +448,7 @@
                 })
             }
         })
-        $( window ).resize(function() {
-            for(var i=0;i<$('.ChartNo').length;i++){
-                if(50> $('#timePID'+i).next('label').children('.note').height()&& 50>$('#timePID'+i).next('label').children('.type2').height()){
-                    $('#timePID'+i).next('label').prev().parents('td').css('height',50)
-                    $('#timePID'+i).next('label').css('height',52)
-                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
-                }else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
-                    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+8)
-                    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+12)
-                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
-                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-                }else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.type2').height()){
-                    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.type2').height()+8)
-                    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.type2').height()+12)
-                    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
-                    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.type2').height())/2)
-                }
-            }
-        })
+        
     })
 
 //-------------------------------定位功能------------------------------------
@@ -569,7 +520,7 @@
     <th class="header" id ="header_exam">檢查項目</th>
     <th class="header" id ="header_note">註記</th>
     <th class="header">確認階段</th>
-
+    <th class="header"><select class="form-select"></select></th>
     </thead>
 </table>
 </div>

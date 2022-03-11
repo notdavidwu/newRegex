@@ -1094,6 +1094,7 @@ def insertLocation(request):
 def deleteLocation(request):
 
     id=str(request.POST.get('id'))
+    print(id)
     querySearch='''SELECT PID,SD,StudyID,seriesID FROM Localization WHERE id=%s'''
     cursor = connections['default'].cursor()
     cursor.execute(querySearch,[id])
@@ -1124,11 +1125,11 @@ def deleteLocation(request):
     query = '''delete from Localization where id=%s'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[id])
-
-    query = '''delete from measureTumor where ID=%s'''
+    print('done')
+    query = '''delete from measureTumor where EventID=%s'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[id])
-
+    print('done')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))

@@ -1,0 +1,171 @@
+
+{% load static%}
+{% block content %}
+
+
+<html lang="en" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-select.min.css' %}">
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-select.min.js' %}"></script>
+    <title>DICOM</title>
+    </head>
+
+<style>
+
+    #patient {margin-top:70px;height: 90%;overflow-y: auto}
+    #Report td{background-color: #DAC9A6;color: black;font-size: 16pt}
+    input[name='confirmPID']:checked ~label{background-color: #ffdf7e}
+    input[name='confirmPID'] +label{width: 100%;}/*點擊顏色變長*/
+    #patient{width: 13%;position: absolute}
+    input[name='confirmPID']{display: none}/*radio  消失*/
+    input[name='timePID']{display: none}/*radio  消失*/
+    input[name='timePID'] +label{width: 100%;}/*點擊顏色變長*/
+    input[name='timePID']:checked ~label{background-color: #ffdf7e}
+    #timetable{margin-top:120px;width: 40%;position: absolute;left: 13%;height:83%;overflow-y: auto}
+    #text{margin-top:70px;height: 90%;width: 47%;position: absolute;left: 53%;font-size: 14pt}/*Report 放的框框*/
+    #time td{background-color: #adb5bd;color: black;font-family: "Yu Gothic Light";font-size: 16pt}
+    .report2{display: none}
+    #button {margin-top:60px;height:10%;width: 40%;margin-left:13%;position: absolute;background-color: #b8daff;}
+</style>
+
+
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+<script>
+    function GetTime(){
+        text=$('input[name=confirmPID]:checked').next().children('.type').html()
+        /*alert(text)*/
+        $.ajax({
+                type: 'post',
+                url: '{% url "confirm:confirmpat2" %}', // this is the mapping between the url and view
+                data:{
+                    'ID':text,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    $('#time').children('tr').remove()
+                    for(var i=0;i<response.ID.length;i++){
+
+                        $('#time').append('<tr><td>' +
+                            '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
+                            '<label for=timePID'+i+'>'+
+                                '<span style="margin-right: 40px;" class="edate">'+response.ExecDate[i] +'</span>'+
+                                '<span style="margin-right: 40px;" class="type2">'+response.TypeName[i] +'</span>'+
+                                '<p class="report2">'+response.ReportText[i] +'</p>'+
+                            '</label>' +
+                            '</td></tr>')
+
+                        if(response.MedType[i]==995){
+                            $('#timePID'+i).parents().css('background-color','#BDC0BA')
+                            $('#timePID'+i).parents().next('td').css('background-color','#BDC0BA')
+                            $('#timePID'+i).parents().next('td').next('td').css('background-color','#BDC0BA')
+
+                        }
+                    }
+                }
+        })
+    }
+    function GetReport() {
+
+        reporttext=$('input[name=timePID]:checked').next('label').children('p').text()
+        $('#text').text(reporttext)
+    }
+
+    $(document).ready(function (e) {
+        $.ajax({
+            type: 'post',
+            url: '{% url "confirm:confirmpat" %}', // this is the mapping between the url and view
+            data:{
+                'ID':$('#ID').val(),
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(var i=0;i<response.examID.length;i++){
+                    $('#Report').append('<tr><td>' +
+                        '<input type="radio" onclick="GetTime()" name="confirmPID" id='+i+'>' +
+                        '<label for='+i+'>'+
+                            '<span class="type">'+response.examID[i] +'</span>'+
+                        '</label>' +
+                        '</td></tr>')
+                }
+            }
+        })
+
+        $('#ID').on('input',function (){
+
+        })
+    })
+
+//-------------------------------定位功能------------------------------------
+</script>
+<body onload="test()">
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >Link</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% include 'accounts/loginpartial2.html' %}
+            {% include 'accounts/Infection_prevention_and_control.html' %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
+
+
+</body>
+
+
+<div id="patient">
+    <table class="table table-striped" id="Report"></table>
+</div>
+
+
+
+
+<div id="button">
+
+
+    <a href="http://www.google.com/">
+        <button style="margin-left: 35%;margin-top: 17px;width:15%"  type="button" class="btn btn-warning">標記</button>
+    </a>
+    <a href="https://www.youtube.com/">
+        <button style="margin-left: 5%;margin-top: 17px;width:15%"  type="button" class="btn btn-success">確認</button>
+    </a>
+
+</div>
+
+
+<div id="timetable">
+    <table class="table table-striped" id="time"></table>
+</div>
+
+<textarea id="text" readonly>
+
+</textarea>
+</html>
+
+
+{% endblock %}
