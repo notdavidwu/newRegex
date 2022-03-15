@@ -36,7 +36,7 @@ def PoolList(request):
     if bacterial=='true':
         query +=''' and d.ReportNo is not null'''
 
-    query += ') as a inner join I_AllExam as b on a.ChartNo=b.ChartNo'
+    query += ') as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo'
 
     if ward != '不限':
         query +=" where b.Ward = '"+ward+"'"
@@ -56,7 +56,7 @@ def PoolList(request):
 
     for i in range(len(result)):
         ChartNo.append(result[i][0])
-
+    print(ChartNo)
     return JsonResponse({'ChartNo': ChartNo})
 
 @csrf_exempt

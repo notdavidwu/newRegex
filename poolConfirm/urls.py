@@ -28,5 +28,6 @@ urlpatterns = [
     path('updateInterval/', views.updateInterval, name='updateInterval'),
     path('searchNote/', views.searchNote, name='searchNote'),
     path('searchPhaseAndInterval/', views.searchPhaseAndInterval, name='searchPhaseAndInterval'),
+    path('searchRecord/', views.searchRecord, name='searchRecord'),
 
 ]

@@ -73,75 +73,185 @@
         input[name='confirmPID']:checked ~label{background-color: #e78632;}
 
         input[name='timePID']{display: none}/*radio  消失*/
-        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;height: 50px;padding-left: 12px;padding-top: 10px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
+        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e}
-        #timetable{position: absolute;margin-top:105px;width:85%;left:max( calc(15% ) , 150px );height:50%;overflow-y: scroll;overflow-x: hidden}
+        #timetable{position: absolute;top:105px;width:85%;left:max( calc(15% ) , 150px );height:calc(50% + 18px);overflow-y: scroll;overflow-x: hidden}
 
         #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
         #title{margin-top:55px;height:50px;width: 89%;left:max( calc(15% ) , 150px );position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: calc(100% - 100px)}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
-        .edate{font-size:12pt;float: left;width: 20%;padding-left: 20px;height: auto}
-        .type2{font-size:12pt;float: left;width: 20%;margin-left: 20px;height: auto}
-        .note{font-size:12pt;float: left;width: 20%;padding-left: 20px;height: auto;word-break:break-all;}
-        .phase{font-size:12pt;float: left;width: 12%;margin-left:  20px;height: 30px;padding-top: 0;}
-        .IntervalNo{float: left;margin-top: 0;top:0;margin-left:  1%;width: 6%;height: 30px;padding-top: 0;}
+        .edate{font-size:12pt;float: left;width: 15%;padding-left: 20px;height: auto}
+        .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
+        .note{font-size:12pt;float: left;width: 40%;padding-left: 20px;height: auto;word-break:break-all;}
+        .menu{width: 20%;right:0;position:absolute;padding-top:5px}
+        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
+        .phase{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
+        .IntervalNo{float:left;margin: 0;top:0;width: calc(40% - 25px);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
-        #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");bottom:0px;height: calc(50% - 105px);width:calc( 100% - 149px);position: absolute;left:max( calc(14.9% ) , 149px );font-size: 12pt;padding:20px}/*Report 放的框框*/
-        textarea {resize: none}
-        .ChartNo{display: none}
-        .OrderNo{display: none}
-        .eventID{display: none}
+        #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 100% - 149px);position: absolute;left:max( calc(14.9% ) , 149px );font-size: 12pt;padding:20px}/*Report 放的框框*/
         p{height: 100%;align-items: center;vertical-align: center}
         #Disease{position: absolute;top: 55px;height: 100px;;min-width:150px;width: 15%;background-color: #11171a}
         #Disease select{width:92%;height: 40px;margin: 5px;font-size: 11pt}
+        #header_date{width:18%}
+        #header_note{width:45%}
+        #header_confirm{}
     }
     @media (min-width: 1200px) {
-        #Report td{color: whitesmoke;font-size: 16pt}
+        #Report td{color: whitesmoke;font-size: 16pt;}
         #Report tr{padding: 0;margin: 0}
         #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;width: 200px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
         #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 200px;text-align: center}
         input[name='confirmPID']{display: none}
-        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: 200px;height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px}
+        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: 200px;}
         input[name='confirmPID']:checked ~label{background-color: #e78632;}
 
         input[name='timePID']{display: none}/*radio  消失*/
-        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;height: 60px;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
+        input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e}
-        #timetable{position: absolute;margin-top:105px;width: 54.5% ;left: 200px;position: absolute;height:88.8%;overflow-y: scroll;overflow-x: hidden}
+        #timetable{position: absolute;top:105px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 90px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
         #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
-        .edate{float: left;width: 15%;padding-left: 20px;height: auto}
-        .type2{float: left;width: 15%;padding-left: 20px;height: auto}
-        .note{float: left;width: 40%;padding-left: 20px;height: auto;font-size: 12pt;}
-        .phase{float: left;width: 12%;margin-left:  20px;height: auto;padding-top: 0}
-        .IntervalNo{float: left;margin-top: 0;top:0;margin-left: 5px;width: 5%;padding-top: 0}
+        .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
+        .type2{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
+        .note{width: 40%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;}
+        .menu{width: 25%;right:0;position:absolute;padding-top:5px}
+        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
+        .phase{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
+        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(40% - 25px);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
         #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
-        textarea {resize: none}
-        .ChartNo{display: none}
-        .OrderNo{display: none}
-        .eventID{display: none}
+
         p{height: 100%;align-items: center;vertical-align: center}
         #Disease{position: absolute;top: 55px;height: 100px;width: 200px;background-color: #11171a}
         #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
-        #header_date{width:20%}
-        #header_note{width:50%}
+        #header_date{width:18%}
+        #header_note{width:45%}
+        #header_confirm{}
     }
+    textarea {resize: none}
+    .ChartNo{display: none}
+    .OrderNo{display: none}
+    .eventID{display: none}
+    .pdID{display: none}
     .loader{display:none;position:absolute;top:40%;left:50%}
 </style>
 
 
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
 <script>
+    function setdisplay(i){
+        
+        //if($('#timePID'+i).next('label').height()> $('#timePID'+i).next('label').children('.note').height()&& $('#timePID'+i).next('label').height()>$('#timePID'+i).next('label').children('.type2').height()){
+        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').height()+22)
+        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').height()+22)
+        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+        //    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
+        //    console.log(1)
+        //}else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
+        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
+        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
+        //    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
+        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+        //    console.log(2)
+        //}else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.menu').height()){
+        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.menu').height()+22)
+        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height())
+        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
+        //    console.log(3)
+        //}
+        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
+        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)    
+    }
+    function addPhaseAndSeq(pannel,selection,IntervalNoOption,appendOrPrepend){
+        if(appendOrPrepend=='append'){
+            $('#'+pannel).next('label').children('.menu').append('<div class=menublock id="sno_-1">'+
+                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
+                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+                '</div>'
+                )
+        }else{
+            $('#'+pannel).next('label').children('.menu').children('.addButton').before('<div class=menublock id="sno_-1">'+
+                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
+                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+                '</div>'
+                )
+        }
+
+            
+    }
+    function addMenu(){
+        let id = $(event.target).parents('label').prevAll('input').attr('id')
+        let IND = id.split('timePID')[1]
+        addPhaseAndSeq(id,selection,IntervalNoOption,'prepend')
+        setdisplay(IND)
+    }
+    function searchNote(IND,eventID){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
+            data:{
+                'IND':IND,
+                'eventID':eventID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                str=''
+                for(var j=0;j<response.Disease.length;j++) {
+                    str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.Event[j]+'—'+response.Interval[j]+'</p>'
+                }
+                $('#timePID'+response.IND).next('label').children('.note').html(str)
+                
+            }
+        })
+        setdisplay(IND)
+    }
+    function searchPhaseAndInterval(sno){
+        console.log(sno)
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+            data:{
+                'sno':sno,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#sno_'+sno).children('.phase').children('option[value='+response.eventNo+']').attr('selected','selected')
+                $('#sno_'+sno).children('.IntervalNo').children('option[value='+response.seqNo+']').attr('selected','selected')
+            }
+        })
+    }
+    function searchRecord(IND,eventID,selection,IntervalNoOption){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:searchRecord" %}', // this is the mapping between the url and view
+            data:{
+                'IND':IND,
+                'eventID':eventID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(var i =0 ;i<response.Record;i++){
+                    let id = 'timePID'+IND.toString()
+                    addPhaseAndSeq(id,selection,IntervalNoOption,'append')
+                    $('#timePID'+IND.toString()).next('label').children('.menu').children('div').eq(i).attr('id','sno_'+response.sno[i])
+                    searchPhaseAndInterval(response.sno[i])
+                }
+                $('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
+                
+                setdisplay(IND)
+            }
+        })
+    }
     function GetTime(){
+        
         text=$('input[name=confirmPID]:checked').next().html()
-        $('#time').css('visibility','hidden')
-        var IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
+        $('#timetable').css('visibility','hidden')
+        IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
                 type: 'post',
                 url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
@@ -159,6 +269,7 @@
                             $('#time').append('<tr><td>' +
                             '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
                             '<label for=timePID'+i+'>'+
+                                '<p  class="pdID">'+response.pdID[i]+'</div>'+
                                 '<p  class="eventID">'+response.eventID[i]+'</p>'+
                                 '<p  class="ChartNo">'+response.ChartNo[i]+'</p>'+
                                 '<p  class="OrderNo">'+response.OrderNo[i]+'</p>'+
@@ -171,92 +282,34 @@
                             $('#timePID'+i).parents('td').css('background-color', '#33333a')
                             $('#timePID'+i+', [for="timePID'+i+'"]').prop('disabled', true)
                             $('#timePID'+i).next('label').css('color', 'red')
-                            if($('#timePID'+i).next('label').height()> $('#timePID'+i).next('label').children('.note').height()&& $('#timePID'+i).next('label').height()>$('#timePID'+i).next('label').children('.type2').height()){
-                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').height()+22)
-                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').height()+22)
-                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
-                            }else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
-                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
-                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
-                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
-                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-                            }else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.type2').height()){
-                                $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.type2').height()+22)
-                                $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.type2').height()+22)
-                                $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
-                                $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-                            }
+                            setdisplay(i)
                         }else{
                             $('#time').append('<tr><td height="auto">' +
                             '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
                             '<label for=timePID'+i+'>'+
-                                '<p  class="eventID">'+response.eventID[i]+'</p>'+
-                                '<p  class="ChartNo">'+response.ChartNo[i]+'</p>'+
-                                '<p  class="OrderNo">'+response.OrderNo[i]+'</p>'+
-                                '<p class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</p>'+
-                                '<p class="type2">'+response.TypeName[i].replaceAll(' ','') +'</p>'+
-                                '<p class="note"></p>'+
+                                '<div  class="pdID">'+response.pdID[i]+'</div>'+
+                                '<div  class="eventID">'+response.eventID[i]+'</div>'+
+                                '<div  class="ChartNo">'+response.ChartNo[i]+'</div>'+
+                                '<div  class="OrderNo">'+response.OrderNo[i]+'</div>'+
+                                '<div class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</div>'+
+                                '<div class="type2">'+response.TypeName[i].replaceAll(' ','') +'</div>'+
+                                '<div class="note"></div>'+
+                                '<div class="menu"></div>'+
                                 '<p class="report2">'+response.ReportText[i] +'</p>'+
-                                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
-                                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+                                
                             '</label>' +
                             '</td></tr>')
-
-                            $.ajax({
-                                type: 'post',
-                                url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
-                                data:{
-                                    'IND':i,
-                                    'eventID':response.eventID[i],
-                                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                                },
-                                success:function (response){
-                                    str=''
-                                    for(var j=0;j<response.Disease.length;j++) {
-                                        str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.Event[j]+'—'+response.Interval[j]+'</p>'
-                                    }
-                                    $('#timePID'+response.IND).next('label').children('.note').html(str)
-                                    if(50> $('#timePID'+response.IND).next('label').children('.note').height()&& 50>$('#timePID'+response.IND).next('label').children('.type2').height()){
-                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').height()+10)
-                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').height()+12)
-                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
-                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+5)
-                                    }else if($('#timePID'+response.IND).next('label').children('.note').height()>$('#timePID'+response.IND).next('label').children('.type2').height()){
-                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+8)
-                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+10)
-                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.note').height()+5)
-                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
-                                    }else if($('#timePID'+response.IND).next('label').children('.note').height()<$('#timePID'+response.IND).next('label').children('.type2').height()){
-                                        $('#timePID'+response.IND).next('label').prev().parents('td').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+8)
-                                        $('#timePID'+response.IND).next('label').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+10)
-                                        $('#timePID'+response.IND).next('label').children('.Ignore').css('height',$('#timePID'+response.IND).next('label').children('.type2').height()+5)
-                                        $('#timePID'+response.IND).next('label').children('.note').css('margin-top',($('#timePID'+response.IND).parents().height()-$('#timePID'+response.IND).next('label').children('.note').height())/2)
-                                    }
-                                }
-                            })
-
-                            $.ajax({
-                                type: 'post',
-                                url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
-                                data:{
-                                    'IND':i,
-                                    'DiseaseNo':$('#ChangeDisease').val(),
-                                    'eventID':response.eventID[i],
-                                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                                },
-                                success:function (response){
-                                    $('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
-                                    $('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
-                                }
-                            })
+                            searchRecord(i,response.eventID[i],selection,IntervalNoOption)
+                            searchNote(i,response.eventID[i])
+                            
+                            
                         }
 
                     }
                     
                 },
                 complete:function(){
-                    $('#time').css('visibility','visible')
+                    $('#timetable').css('visibility','visible')
                 }
         })
 
@@ -267,70 +320,62 @@
     }
     function UpdatePhase(){
         target=$(event.target)
+        let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
+        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
+        let pdID = target.parents('.menu').prevAll('.pdID').html()
+        let eventID = target.parents('.menu').prevAll('.eventID').html()
+        let eventNo = target.val()
+        let seqNo = target.next('.IntervalNo').val()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
             data:{
-                'Disease':$('#Disease').children('select').val(),
-                'Event':target.val(),
-                'eventID':target.prevAll('.eventID').html(),
-                'IntervalNo':target.next('.IntervalNo').val(),
+                'sno':sno,
+                'pdID':pdID,
+                'eventID':eventID,
+                'eventNo':eventNo,
+                'seqNo':seqNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
-
             success:function (response){
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
-                    data:{
-                        'IND':0,
-                        'eventID':target.prevAll('.eventID').html(),
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-                        target.parents('label').css('height',0)
-                        str=''
-                        for(var j=0;j<response.Disease.length;j++) {
-                            str += '<span style="font-weight: bold">'+response.Disease[j]+'</span>'+': '+response.Event[j] + '<br>'
-                        }
-                        target.prevAll('.note').html(str)
-
-                        if(50> target.prevAll('.note').height()&& 50>target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',50)
-                            target.parents('label').css('height',50)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }else if(target.prevAll('.note').height()>target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',target.prevAll('.note').height()+8)
-                            target.parents('label').css('height',target.prevAll('.note').height()+10)
-                            target.nextAll('.Ignore').css('height',target.prevAll('.note').height()+5)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }else if(target.prevAll('.note').height()<target.prevAll('.type2').height()){
-                            target.parents('label').prev().parents('td').css('height',target.prevAll('.type2').height()+8)
-                            target.parents('label').css('height',target.prevAll('.type2').height()+10)
-                            target.nextAll('.Ignore').css('height',target.prevAll('.type2').height()+5)
-                            target.prevAll('.note').css('margin-top',(target.parents().parents().height()-target.prevAll('.note').height())/2)
-                        }
+                target.parents('.menublock').attr('id','sno_'+response.sno)
+                searchNote(IND,eventID)
+                //alert(target.parents('.menublock').parents('.menu').children('.menublock').length)
+                if(target.parents('.menublock').parents('.menu').children('.menublock').length !=1 ){
+                    if(eventNo==0){
+                        target.parents('#sno_'+response.sno).remove()
+                        setdisplay(IND)
                     }
-                })
-
-
-
+                }
             }
         })
 
     }
+
+
     function UpdateInterval(){
+        target=$(event.target)
+        let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
+        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
+        let pdID = target.parents('.menu').prevAll('.pdID').html()
+        let eventID = target.parents('.menu').prevAll('.eventID').html()
+        let eventNo = target.prevAll('.IntervalNo').val()
+        let seqNo = target.val()
+
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updateInterval" %}', // this is the mapping between the url and view
             data:{
-                'Disease':$('#Disease').children('select').val(),
-                'eventID':$(event.target).prevAll('.eventID').html(),
-                'IntervalNo':$(event.target).val(),
+                'sno':sno,
+                'pdID':pdID,
+                'eventID':eventID,
+                'eventNo':eventNo,
+                'seqNo':seqNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-
+                target.parents('.menublock').attr('id','sno_'+response.sno)
+                searchNote(IND,eventID)
             }
         })
     }
@@ -519,8 +564,7 @@
     <th class="header" id ="header_date">日期</th>
     <th class="header" id ="header_exam">檢查項目</th>
     <th class="header" id ="header_note">註記</th>
-    <th class="header">確認階段</th>
-    <th class="header"><select class="form-select"></select></th>
+    <th class="header" id ="header_confirm">確認階段</th>
     </thead>
 </table>
 </div>
