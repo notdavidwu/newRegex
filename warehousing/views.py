@@ -168,7 +168,7 @@ def PatientList(request):
         )as b on a.chartNo=b.chartNo and a.eventDate=b.eventDate and a.eventID=b.eventID and a.TypeName=b.TypeName and a.studyDes=b.studyDes
         and a.studyID=b.studyID and a.sliceNo=b.slice
         ) as a
-        order by a.chartNo ASC
+        order by a.chartNo,a.eventDate ASC
     '''
 
 
