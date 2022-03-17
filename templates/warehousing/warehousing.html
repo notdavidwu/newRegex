@@ -1,0 +1,307 @@
+
+
+{% load static%}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="zh-Hant" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
+    <title>DICOM</title>
+    </head>
+
+<style>
+    body{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow-x: auto;overflow-y: hidden;}
+
+    #SubjectName{background:url("{% static 'image/texture.png' %}");z-index: 1;position: absolute;height: 40px;margin-top: 55px;padding-left: 200px;width: 100%;background-color: #A67F78;font-weight:bold ;font-size: 18pt;text-align: center;color: #EEEEEE}
+    #PatientList{background:url("{% static 'image/texture.png' %}");padding: 0px;padding-left: 200px;margin: 0px;z-index: 0;position: absolute;top: 55px;width: 100%;height: 95%;overflow-x: auto;overflow-y: auto;background-color: #E1DCD9}
+
+    #Disease{z-index: 2;position: absolute;top:55px;height: 50px;width: 200px;border-radius: 2px}
+    #filter{z-index: 2;position: absolute;top:105px;height: 40px;width: 200px;border-radius: 2px}
+    #SubjectPatient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 145px;width: 200px;height: calc(100% - 145px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+    #SubjectPatient table{padding: 0px;margin: 0px;color:white;width: 200px;text-align: center;font-size: 16pt}
+    input[name='Patient']{display: none}
+    input[name='Patient'] +label{width: 100%;height: 40px;padding-top: 5px;margin: 0}
+    input[name='Patient']:checked ~label{background-color: #e78632;}
+
+
+    #PatientList table{width: 96%;margin: 2%;border: solid 1px  #1D6A96;background-color: #FFFFFF;font-size: 14pt}
+    #PatientList table thead{background:url("{% static 'image/texture.png' %}");height: 50px;border: solid 1px #1D6A96;border-left: solid 5px #1D6A96;border-right: solid 5px #1D6A96;;background-color: #333333;color: #FFFFFF;text-align: center;margin: 0;padding: 0 ;}
+    #PatientList table thead td{}
+    #PatientList table tbody{background:url("{% static 'image/texture.png' %}");border: solid 1px #1D6A96;border-left: solid 5px #1D6A96;border-right: solid 5px #1D6A96;text-align: center;margin: 0;padding: 0 }
+    #PatientList table tbody td{height: 50px}
+    /* width */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    .StudyDes{display:none}
+    .loader{display:none;position:absolute;top:40%;left:50%}
+    #menu{padding-bottom:5px;padding-left:5px;padding-right:5px;position: fixed;z-index: 5;max-height: 85vh;display: none;margin: 0;width: 150px;background-color: #A6AAAb; border-radius: 5px 5px 5px 5px}
+    .btnSetting { font-size:10pt;margin:0;margin-top: 5px;width: 100%;max-height: 85vh; border-radius: 5px 5px 5px 5px}
+    #PIDSearchText{width:100%}
+</style>
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+<script>
+    function TimeReport(){
+        var PID=$('#Disease').val()
+        var scrollTop = $('#SubjectPatient').scrollTop()
+        $.ajax({
+            type: 'post',
+            url: '{% url "warehousing:PatientList" %}', // this is the mapping between the url and view
+            data:{
+                'PID':PID,
+                'scrollTop':scrollTop,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            async: false,
+            success:function (response){
+                $('#PatientList').children('table').children('tbody').remove()
+                $('#PatientList').children('table').append('<tbody class="thead-dark">')
+                for(var i=0;i<response.PID.length;i++){
+
+                    if(response.Check[i]=='Y') {
+                        $('#PatientList').children('table').append('' +
+                            '<tr>' +
+                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
+                            '<td class="Item">' + response.Item[i] + '</td>' +
+                            '<td class="StudyID">' + response.StudyID[i] + '</td>' +
+                            '<td class="SeriesID">' + response.SeriesID[i] + '</td>' +
+                            '<td>O</td>' +
+                            '</tr>'
+                        )
+                    }else{
+                        $('#PatientList').children('table').append('' +
+                            '<tr>' +
+                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
+                            '<td class="Item">' + response.Item[i] + '</td>' +
+                            '<td class="StudyID">' + response.StudyID[i] + '</td>' +
+                            '<td class="SeriesID">' + response.SeriesID[i] + '</td>' +
+                            '<td>X</td>' +
+                            '</tr>'
+                        )
+                    }
+                }
+                $('#PatientList').children('table').append('</tbody>')
+            }
+        })
+    }
+    
+
+    $(document).ready(function (e) {
+        $(document).get(0).oncontextmenu = function() {
+            return false
+        };
+
+        $('body').on('mousedown',function (e){
+
+            if(e.which==3){
+                var x = e.originalEvent.x || e.originalEvent.layerX || 0;
+                var y = e.originalEvent.y || e.originalEvent.layerY || 0;
+                $("#menu").css('display', 'inline');
+                $("#menu").css('left', x);
+                $("#menu").css('top', y);
+            }
+        })
+        $('.btnSetting').on('click',function(e){
+            if(e.which==1){
+                $("#menu").css('display', 'none');
+            }
+        })
+        $('#PatientList').on('click',function(e){
+            if(e.which==1){
+                $("#menu").css('display', 'none');
+            }
+        })
+        $('#SubjectPatient').on('click',function(e){
+            if(e.which==1){
+                $("#menu").css('display', 'none');
+            }
+        })
+
+        $('#PIDSearch').on('shown.bs.modal', function () {
+            // get the locator for an input in your modal. Here I'm focusing on
+            // the element with the id of myInput
+            $('#PIDSearchText').focus()
+        })
+        $('#PIDSearch').on('keypress', function (event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if(keycode == '13'){
+              $('#search').click();   
+            }
+        });
+        $('.loader').css('display','inline')
+        $.ajax({
+            type: 'post',
+            url: '{% url "warehousing:Disease" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN,
+
+            },
+            success:function (response){
+               
+                for(var i=0;i<response.DiseaseNo.length;i++){
+                    $('#Disease').append('' +
+                        '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
+                        '')
+                }
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "warehousing:getPreviousAction" %}', // this is the mapping between the url and view
+                    data:{
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN,
+                    },
+                    success:function (response){
+                        diseaseCode=response.diseaseCode
+                        Filter=response.Filter
+                        ScrollTop=response.ScrollTop
+                        $('#Disease').val(diseaseCode).prop('selected',true);
+                        $('#filter').val(Filter).prop('selected',true)
+                        TimeReport()
+                    }
+                })
+            }
+        })
+        
+        $('#Disease').on('change',function (){
+            $('.loader').css('display','inline')
+            $('#SubjectPatient').children('table').children('tr').remove()
+            TimeReport()
+        })
+    })
+</script>
+
+<body >
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >相關連結</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
+            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
+            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
+    {{ user.username|json_script:"user_username" }}
+    {{ user.last_name|json_script:"hospital" }}
+    <select class="form-select" aria-label="Default select example" id="Disease"></select>
+    <select class="form-select" aria-label="Default select example" id='filter'>
+        <option value='0'>全部</option>
+        <option value='1'>尚未標註</option>
+        <option value='2'>已標註</option>
+    </select>
+   
+    <div id="SubjectPatient">
+        <table>
+            <div class="loader">
+                <div class="loader-inner pacman">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <span class="tooltip">
+                    <p>載入中，請稍後‧‧‧</p>
+                </span>
+            </div>
+        </table>
+    </div>
+    <div id="PatientList"><table class="table-striped"><thead><tr><td>病歷號</td><td >檢查日期</td><td >檢查項目</td><td>StudyID</td><td>SeriesID</td><td>有無影像</td></tr></thead></table></div>
+
+    <div id="menu">
+        <button type="button" class="btn btn-secondary btnSetting" data-bs-toggle="modal" data-bs-target="#PIDSearch" id="PIDSearchButton">病歷號查詢</button>
+    </div>
+    <div class="modal fade" id="PIDSearch"  aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">請輸入病歷號</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="InsertMessage" class="modal-body">
+                <input type="text" id="PIDSearchText">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="search" onclick="PIDSearchFunction()">查詢</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+</body>
+
+
+
+</html>
+
+
+{% endblock %}
+

@@ -77,7 +77,31 @@ def confirmpat2(request):
                          'ReportText': ReportText})
 @csrf_exempt
 def Phase(request):
+    eventNo=request.POST.get('eventNo')
+    print(eventNo)
+    query = '''select eventTag, tagName from eventTag where eventNo=%s order by eventTag asc '''
+    cursor = connections['dbDesigning'].cursor()
+    cursor.execute(query,[eventNo])
+    EventID=[]
+    Event=[]
+    res = cursor.fetchall()
+    for i in range(len(res)):
+        EventID.append(res[i][0])
+        Event.append(res[i][1])
 
+    return JsonResponse({'PhaseID': EventID,'PhaseName': Event})
+
+@csrf_exempt
+def deleteDefinition(request):
+    sno = request.POST.get('sno')
+    query = 'DELETE FROM eventDefinition WHERE sno=%s'
+    cursor = connections['dbDesigning'].cursor()
+    cursor.execute(query,[sno])
+
+    return JsonResponse({'sno':sno})
+
+@csrf_exempt
+def eventGroup(request):
     query = '''select * from eventGroup order by eventNo asc '''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query)
@@ -87,8 +111,8 @@ def Phase(request):
     for i in range(len(res)):
         EventID.append(res[i][0])
         Event.append(res[i][1])
-
     return JsonResponse({'PhaseID': EventID,'PhaseName': Event})
+
 @csrf_exempt
 def ignore(request):
     eventID=request.POST.get('eventID')
@@ -121,21 +145,19 @@ def updatePhase(request):
     pdID = request.POST.get('pdID')
     eventID = request.POST.get('eventID')
     eventNo = request.POST.get('eventNo')
+    eventTag = request.POST.get('eventTag')
     seqNo = request.POST.get('seqNo')
-    if eventNo!=str(0):
-        if sno=='-1': #insert
-            query = 'INSERT eventDefinition (pdID,eventID,eventNo,seqNo) OUTPUT INSERTED .sno VALUES (%s,%s,%s,%s)'
-            cursor = connections['dbDesigning'].cursor()
-            cursor.execute(query,[pdID,eventID,eventNo,seqNo])
-            sno = cursor.fetchall()[0]
-        else: #update
-            query = 'UPDATE eventDefinition SET eventNo=%s WHERE sno=%s'
-            cursor = connections['dbDesigning'].cursor()
-            cursor.execute(query,[eventNo,sno])
-    else:#請選擇階段，就刪除資料
-        query = 'DELETE FROM eventDefinition WHERE sno=%s'
+
+    if sno=='-1': #insert
+        query = 'INSERT eventDefinition (pdID,eventID,eventNo,eventTag,seqNo) OUTPUT INSERTED .sno VALUES (%s,%s,%s,%s,%s)'
         cursor = connections['dbDesigning'].cursor()
-        cursor.execute(query,[sno])
+        cursor.execute(query,[pdID,eventID,eventNo,eventTag,seqNo])
+        sno = cursor.fetchall()[0]
+    else: #update
+        query = 'UPDATE eventDefinition SET eventNo=%s , eventTag=%s WHERE sno=%s'
+        cursor = connections['dbDesigning'].cursor()
+        cursor.execute(query,[eventNo,eventTag,sno])
+
 
     return JsonResponse({'sno':[sno]})
 @csrf_exempt
@@ -160,52 +182,61 @@ def updateInterval(request):
 def searchNote(request):
     IND = request.POST.get('IND')
     eventID = request.POST.get('eventID')
+    print(eventID)
     query = '''
-      select D.disease,C.event,A.seqNo from eventDefinition as A
-	inner join(
-		select * from PatientDisease where chartNo=(
-		select distinct b.chartNo from eventDefinition as a
-			inner join PatientDisease as b on a.pdID=b.pdID
-			)
-	) as B on A.pdID=B.pdID
-	inner join eventGroup as C on A.eventNo=C.eventNo
-	inner join diseaseGroup as D on B.diseaseNo=D.diseaseNo
-    where eventID=%s Order by B.diseaseNo ASC'''
+        select D.disease,C.event,E.tagName,A.seqNo from eventDefinition as A
+            inner join(
+                select * from PatientDisease where chartNo=(
+                select distinct b.chartNo from eventDefinition as a
+                    inner join PatientDisease as b on a.pdID=b.pdID
+                    )
+            ) as B on A.pdID=B.pdID
+            inner join eventGroup as C on A.eventNo=C.eventNo
+            inner join diseaseGroup as D on B.diseaseNo=D.diseaseNo
+            inner join eventTag as E on A.eventTag = E.eventTag and A.eventNo=E.eventNo
+            where eventID=%s Order by B.diseaseNo ASC
+        '''
 
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[eventID])
     res = cursor.fetchall()
     Disease=[]
-    Event=[]
+    EventGroup=[]
+    EventTag=[]
     Interval = []
+    print(len(res))
     for i in range(len(res)):
         Disease.append(res[i][0].replace('  ',''))
-        Event.append(res[i][1].replace('  ',''))
-        Interval.append(res[i][2])
-    return JsonResponse({'IND':IND,'Disease':Disease,'Event':Event,'Interval':Interval})
+        EventGroup.append(res[i][1].replace('  ',''))
+        EventTag.append(res[i][2].replace('  ',''))
+        Interval.append(res[i][3])
+    return JsonResponse({'IND':IND,'Disease':Disease,'EventGroup':EventGroup,'EventTag':EventTag,'Interval':Interval})
 
 @csrf_exempt
 def searchPhaseAndInterval(request):
     sno = request.POST.get('sno')
     query = '''
-    select  eventNo,seqNo from eventDefinition 
+    select  eventNo,eventTag,seqNo from eventDefinition 
     where sno=%s
     '''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[sno])
     res = cursor.fetchall()
     eventNo = []
+    eventTag = []
     seqNo = []
     if len(res)!=0:
         for row in res:
             eventNo.append(row[0])
-            seqNo.append(row[1])
+            eventTag.append(row[1])
+            seqNo.append(row[2])
     else:
         eventNo=[0]
+        eventTag=[0]
         seqNo=[1]
     
 
-    return JsonResponse({'eventNo':eventNo,'seqNo':seqNo})
+    return JsonResponse({'eventNo':eventNo,'eventTag':eventTag,'seqNo':seqNo})
 
 @csrf_exempt
 def searchRecord(request):

@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'Search.apps.SearchConfig',
     'categorize.apps.categorizeConfig',
     'poolConfirm.apps.poolConfirmConfig',
+    'warehousing.apps.warehousingConfig',
+    
 ]
 
 MIDDLEWARE = [

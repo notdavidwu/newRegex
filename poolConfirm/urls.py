@@ -29,5 +29,7 @@ urlpatterns = [
     path('searchNote/', views.searchNote, name='searchNote'),
     path('searchPhaseAndInterval/', views.searchPhaseAndInterval, name='searchPhaseAndInterval'),
     path('searchRecord/', views.searchRecord, name='searchRecord'),
+    path('eventGroup/', views.eventGroup, name='eventGroup'),
+    path('deleteDefinition/', views.deleteDefinition, name='deleteDefinition'),
 
 ]

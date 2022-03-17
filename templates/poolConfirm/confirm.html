@@ -85,9 +85,10 @@
         .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
         .note{font-size:12pt;float: left;width: 40%;padding-left: 20px;height: auto;word-break:break-all;}
         .menu{width: 20%;right:0;position:absolute;padding-top:5px}
-        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
+        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:0px;border-style:dashed;border-width:2px;border-radius:0}
+        .eventGroup{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
         .phase{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;top:0;width: calc(40% - 25px);padding-top: 0}
+        .IntervalNo{float:left;margin: 0;margin-left:  10px;top:0;width: calc(40% - 25px);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
         #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 100% - 149px);position: absolute;left:max( calc(14.9% ) , 149px );font-size: 12pt;padding:20px}/*Report 放的框框*/
@@ -120,8 +121,9 @@
         .note{width: 40%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;}
         .menu{width: 25%;right:0;position:absolute;padding-top:5px}
         .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
-        .phase{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(40% - 25px);padding-top: 0}
+        .eventGroup{float: left;margin: 0;width: 33%;margin-left:  10px;height: auto;padding-top: 0}
+        .phase{float: left;margin: 0;width: 33%;margin-left:  10px;height: auto;padding-top: 0}
+        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(30% - 25px);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
         #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
@@ -168,21 +170,16 @@
         $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)    
     }
     function addPhaseAndSeq(pannel,selection,IntervalNoOption,appendOrPrepend){
+        let addObject = '<div class=menublock id="sno_-1">'+
+            '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+            '<select onchange="searchPhase()" class="eventGroup form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
+            '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+'</select>'+
+            '</div>'
         if(appendOrPrepend=='append'){
-            $('#'+pannel).next('label').children('.menu').append('<div class=menublock id="sno_-1">'+
-                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
-                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
-                '</div>'
-                )
+            $('#'+pannel).next('label').children('.menu').append(addObject)
         }else{
-            $('#'+pannel).next('label').children('.menu').children('.addButton').before('<div class=menublock id="sno_-1">'+
-                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
-                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
-                '</div>'
-                )
-        }
-
-            
+            $('#'+pannel).next('label').children('.menu').children('.addButton').before(addObject)
+        }           
     }
     function addMenu(){
         let id = $(event.target).parents('label').prevAll('input').attr('id')
@@ -190,6 +187,56 @@
         addPhaseAndSeq(id,selection,IntervalNoOption,'prepend')
         setdisplay(IND)
     }
+
+    function searchPhase(){
+        var target = $(event.target)
+        var sno = target.parents('.menublock').attr('id').split('sno_')[1]
+        var eventNo = target.val()
+        var eventID = target.parents('.menu').prevAll('.eventID').html()
+        let phase = ''
+        var IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
+        if(eventNo==0){
+            $.ajax({
+                type: 'post',
+                url: '{% url "poolConfirm:deleteDefinition" %}', // this is the mapping between the url and view
+                data:{
+                    'sno':sno,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    if(target.parents('.menublock').parents('.menu').children('.menublock').length !=1 ){
+                        if(eventNo==0){
+                            target.parents('#sno_'+response.sno).remove()
+                            setdisplay(IND)
+                        }
+                    }else{
+                        target.next('.phase').empty()
+                        target.parents('.menublock').attr('id','sno_-1')
+                    }
+                    searchNote(IND,eventID)
+                }
+            })
+        }else{
+            $.ajax({
+                type: 'post',
+                url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+                data:{
+                    'eventNo':eventNo,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    $(target).next('.phase').empty()
+                    for(var i=0;i<response.PhaseID.length;i++) {
+                        phase += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
+                    }
+                    $(target).next('.phase').append(phase)
+                },complete:function(){
+                    UpdateEventGroup(target)
+                }
+            })
+        }
+    }
+    
     function searchNote(IND,eventID){
         $.ajax({
             type: 'post',
@@ -202,7 +249,7 @@
             success:function (response){
                 str=''
                 for(var j=0;j<response.Disease.length;j++) {
-                    str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.Event[j]+'—'+response.Interval[j]+'</p>'
+                    str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.EventGroup[j]+'—'+response.EventTag[j]+'—'+response.Interval[j]+'</p>'
                 }
                 $('#timePID'+response.IND).next('label').children('.note').html(str)
                 
@@ -211,7 +258,6 @@
         setdisplay(IND)
     }
     function searchPhaseAndInterval(sno){
-        console.log(sno)
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
@@ -220,7 +266,29 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('#sno_'+sno).children('.phase').children('option[value='+response.eventNo+']').attr('selected','selected')
+                $('#sno_'+sno).children('.eventGroup').children('option[value='+response.eventNo+']').attr('selected','selected')
+                let eventNo = response.eventNo[0]
+                console.log(eventNo)
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+                    data:{
+                        'eventNo':eventNo,
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                    },
+                    success:function (response){
+
+                        $('#sno_'+sno).children('.phase').empty()
+                        let phase=''
+                        for(var i=0;i<response.PhaseID.length;i++) {
+                            phase += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
+                        }
+                        $('#sno_'+sno).children('.phase').append(phase)
+                    }
+                })
+            },
+            complete:function(response){
+                $('#sno_'+sno).children('.phase').children('option[value='+response.eventTag+']').attr('selected','selected')
                 $('#sno_'+sno).children('.IntervalNo').children('option[value='+response.seqNo+']').attr('selected','selected')
             }
         })
@@ -324,8 +392,9 @@
         let sno = target.parents('.menublock').attr('id').split('sno_')[1]
         let pdID = target.parents('.menu').prevAll('.pdID').html()
         let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let eventNo = target.val()
-        let seqNo = target.next('.IntervalNo').val()
+        let eventNo = target.prevAll('.eventGroup').val()
+        let eventTag = target.val()
+        let seqNo = target.prevAll('.IntervalNo').val()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
@@ -334,24 +403,42 @@
                 'pdID':pdID,
                 'eventID':eventID,
                 'eventNo':eventNo,
+                'eventTag':eventTag,
                 'seqNo':seqNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
                 target.parents('.menublock').attr('id','sno_'+response.sno)
                 searchNote(IND,eventID)
-                //alert(target.parents('.menublock').parents('.menu').children('.menublock').length)
-                if(target.parents('.menublock').parents('.menu').children('.menublock').length !=1 ){
-                    if(eventNo==0){
-                        target.parents('#sno_'+response.sno).remove()
-                        setdisplay(IND)
-                    }
-                }
             }
         })
-
     }
-
+    function UpdateEventGroup(target){
+        let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
+        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
+        let pdID = target.parents('.menu').prevAll('.pdID').html()
+        let eventID = target.parents('.menu').prevAll('.eventID').html()
+        let eventNo = target.val()
+        let eventTag = target.next('.phase').val()
+        let seqNo = target.prevAll('.IntervalNo').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
+            data:{
+                'sno':sno,
+                'pdID':pdID,
+                'eventID':eventID,
+                'eventNo':eventNo,
+                'eventTag':eventTag,
+                'seqNo':seqNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                target.parents('.menublock').attr('id','sno_'+response.sno)
+                searchNote(IND,eventID)
+            }
+        })
+    }
 
     function UpdateInterval(){
         target=$(event.target)
@@ -359,7 +446,7 @@
         let sno = target.parents('.menublock').attr('id').split('sno_')[1]
         let pdID = target.parents('.menu').prevAll('.pdID').html()
         let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let eventNo = target.prevAll('.IntervalNo').val()
+        let eventNo = target.prevAll('.eventGroup').val()
         let seqNo = target.val()
 
         $.ajax({
@@ -444,7 +531,7 @@
         selection ='<option value="0">請選擇階段</option>'
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:eventGroup" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },

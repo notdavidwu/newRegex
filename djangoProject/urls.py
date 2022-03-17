@@ -31,6 +31,7 @@ urlpatterns = [
     path('Search/', include('Search.urls', namespace='Search')),
     path('categorize/', include('categorize.urls', namespace='categorize')),
     path('poolConfirm/', include('poolConfirm.urls', namespace='poolConfirm')),
+    path('warehousing/', include('warehousing.urls', namespace='warehousing')),
     path('', views.index, name="base"),
 
 ]
