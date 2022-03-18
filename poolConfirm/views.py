@@ -13,7 +13,6 @@ def confirm(request):
 @csrf_exempt
 def confirmpat(request):
     Disease = request.POST.get('Disease')
-    print(Disease)
     query = '''select distinct chartNo from PatientDisease where diseaseNo = %s order by chartNo asc'''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[Disease])
@@ -78,7 +77,6 @@ def confirmpat2(request):
 @csrf_exempt
 def Phase(request):
     eventNo=request.POST.get('eventNo')
-    print(eventNo)
     query = '''select eventTag, tagName from eventTag where eventNo=%s order by eventTag asc '''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[eventNo])
@@ -180,16 +178,13 @@ def updateInterval(request):
 
 @csrf_exempt
 def searchNote(request):
+    chartNo = request.POST.get('chartNo')
     IND = request.POST.get('IND')
     eventID = request.POST.get('eventID')
-    print(eventID)
     query = '''
         select D.disease,C.event,E.tagName,A.seqNo from eventDefinition as A
             inner join(
-                select * from PatientDisease where chartNo=(
-                select distinct b.chartNo from eventDefinition as a
-                    inner join PatientDisease as b on a.pdID=b.pdID
-                    )
+                select * from PatientDisease where chartNo=%s
             ) as B on A.pdID=B.pdID
             inner join eventGroup as C on A.eventNo=C.eventNo
             inner join diseaseGroup as D on B.diseaseNo=D.diseaseNo
@@ -198,13 +193,12 @@ def searchNote(request):
         '''
 
     cursor = connections['dbDesigning'].cursor()
-    cursor.execute(query,[eventID])
+    cursor.execute(query,[chartNo,eventID])
     res = cursor.fetchall()
     Disease=[]
     EventGroup=[]
     EventTag=[]
     Interval = []
-    print(len(res))
     for i in range(len(res)):
         Disease.append(res[i][0].replace('  ',''))
         EventGroup.append(res[i][1].replace('  ',''))
@@ -259,6 +253,5 @@ def searchRecord(request):
         Record = len(res)
         for row in res:
             sno.append(row[0])
-    print(sno)
 
     return JsonResponse({'IND':IND,'Record':Record,'sno':sno})

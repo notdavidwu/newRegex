@@ -238,10 +238,12 @@
     }
     
     function searchNote(IND,eventID){
+        let chartNo= $('input[name="confirmPID"]:checked').next('label').html() 
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
             data:{
+                'chartNo':chartNo,
                 'IND':IND,
                 'eventID':eventID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
