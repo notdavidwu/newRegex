@@ -46,7 +46,7 @@ def confirmpat2(request):
         inner join medTypeSet as b on a.medType=b.medType
 		inner join eventDetails as c on a.eventID=c.eventID
         inner join PatientDisease as d on a.chartNo=d.chartNo
-        where a.chartNo=%s and c.eventTag like %s
+        where a.chartNo=%s and c.eventTag like %s and a.eventFID=0 
         order by a.eventDate desc
     '''
     cursor = connections['dbDesigning'].cursor()
