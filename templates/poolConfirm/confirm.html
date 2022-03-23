@@ -257,7 +257,7 @@
                 
             }
         })
-        setdisplay(IND)
+        
     }
     function searchPhaseAndInterval(sno){
         $.ajax({
@@ -320,7 +320,7 @@
     function GetTime(){
         
         text=$('input[name=confirmPID]:checked').next().html()
-        $('#timetable').css('visibility','hidden')
+        
         IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
                 type: 'post',
@@ -330,59 +330,26 @@
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
                 success:function (response){
-
+                    $('#timetable').css('visibility','hidden')
                     $('#time').children('tbody').children('tr').remove()
                     var HeavyDisease=[30001,30002]
-                    for(var i=0;i<response.ChartNo.length;i++){
-
+                    for(var i=0;i<response.objectArray.length;i++){
                         if(response.MedType[i]==30001 || response.MedType[i]==30002){
-                            $('#time').append('<tr><td>' +
-                            '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
-                            '<label for=timePID'+i+'>'+
-                                '<p  class="pdID">'+response.pdID[i]+'</div>'+
-                                '<p  class="eventID">'+response.eventID[i]+'</p>'+
-                                '<p  class="ChartNo">'+response.ChartNo[i]+'</p>'+
-                                '<p  class="OrderNo">'+response.OrderNo[i]+'</p>'+
-                                '<p  class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</p>'+
-                                '<p  class="type2">'+response.TypeName[i].replaceAll(' ','') +'</p>'+
-                                '<p class="note">'+response.ReportText[i]+'</p>'+
-                                '<p  class="report2">'+response.ReportText[i] +'</p>'+
-                            '</label>' +
-                            '</td></tr>')
+                            $('#time').append(response.objectArray[i])
                             $('#timePID'+i).parents('td').css('background-color', '#33333a')
-                            $('#timePID'+i+', [for="timePID'+i+'"]').prop('disabled', true)
                             $('#timePID'+i).next('label').css('color', 'red')
                             setdisplay(i)
                         }else{
-                            $('#time').append('<tr><td height="auto">' +
-                            '<input type="radio" onclick="GetReport()" name="timePID" id=timePID'+i+'>' +
-                            '<label for=timePID'+i+'>'+
-                                '<div  class="pdID">'+response.pdID[i]+'</div>'+
-                                '<div  class="eventID">'+response.eventID[i]+'</div>'+
-                                '<div  class="ChartNo">'+response.ChartNo[i]+'</div>'+
-                                '<div  class="OrderNo">'+response.OrderNo[i]+'</div>'+
-                                '<div class="edate">'+response.ExecDate[i].replaceAll(' ','') +'</div>'+
-                                '<div class="type2">'+response.TypeName[i].replaceAll(' ','') +'</div>'+
-                                '<div class="note"></div>'+
-                                '<div class="menu"></div>'+
-                                '<p class="report2">'+response.ReportText[i] +'</p>'+
-                                
-                            '</label>' +
-                            '</td></tr>')
+                            $('#time').append(response.objectArray[i])
                             searchRecord(i,response.eventID[i],selection,IntervalNoOption)
                             searchNote(i,response.eventID[i])
-                            
-                            
                         }
-
                     }
-                    
                 },
                 complete:function(){
                     $('#timetable').css('visibility','visible')
                 }
         })
-
     }
     function GetReport() {
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()

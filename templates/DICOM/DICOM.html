@@ -978,7 +978,6 @@
         for(var i =0;i<4;i++) {
             Con.push($('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
         }
-
         for(var i =0;i<4;i++) {
             if(Con[i]==Date+SD){
                 var ind=i+1
@@ -987,7 +986,8 @@
                 frameXYZ=checkPlaneXYZ(frame,x,y,z)
                 //ajax_connect_view(ind)
                 //$('#frame'+ind).children('label').children('.slider').scrollTop(b)
-                //ajax(ind,frameXYZ['x'],frameXYZ['y'],frameXYZ['z'],true,true)
+                ajax(ind,frameXYZ['x'],frameXYZ['y'],frameXYZ['z'],true,true)
+
                 $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
                 $('#frame'+ind).children('label').children('div').children('div').children('.x').text(x)
                 $('#frame'+ind).children('label').children('div').children('div').children('.y').text(y)
@@ -1058,7 +1058,7 @@
                     $("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.y').text(y)
                     $("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.z').text(z)
                     $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
-                    $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(frameXYZ['z']+1+'/'+num)
+                    $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+1+'/'+num)
                 }
             }
         }
@@ -1313,7 +1313,7 @@
                         functionAjax[window_sno]
                     }
                 });
-                selectLocation(PID)
+                selectLocation()
             }
         });
     }
@@ -1419,7 +1419,9 @@
         })
     }
 
-    function selectLocation(PID){
+    function selectLocation(){
+        PID = $('#PIDText').text()
+
         var str=$('.SeriesID').eq(0).text()
         for(var i =1;i<$('.SeriesID').length;i++){
             str+=','+$('.SeriesID').eq(i).text()
@@ -1498,7 +1500,7 @@
             },
             success: function(response) {
 
-                selectLocation(PID)
+                selectLocation()
             },
         });
     }
@@ -1809,7 +1811,7 @@
                                         
                                         
                                         $('#frame1').children('label').children('.main').children('div').children('.thickness').text(response.thickness+'mm')
-                                        selectLocation(PID)
+                                        selectLocation()
                                         $('#RT_Contour').empty()
                                         
                                         if(Item=='RTPLAN'){
@@ -2492,10 +2494,10 @@
             }
         })
         $('#Disease').on('change',function(){
-            selectLocation(PID)
+            selectLocation()
         })
         $('#users').on('change',function(){
-            selectLocation(PID)
+            selectLocation()
         })
 
         $('#textarea').on('mousedown','td',function(d){

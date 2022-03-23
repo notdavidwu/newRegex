@@ -39,7 +39,6 @@ def Disease(request):
 @csrf_exempt
 def confirmpat2(request):
     PID=request.POST.get('ID')
-
     query = '''
         select a.chartNo,a.orderNo,a.eventDate, a.medType,b.typeName,c.eventTag,c.eventText,a.eventID,d.pdID
         from allEvents as a 
@@ -51,29 +50,41 @@ def confirmpat2(request):
     '''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[PID,'3%'])
-    ChartNo=[]
-    OrderNo=[]
-    ExecDate=[]
+    objectArray=[]
     MedType=[]
-    TypeName=[]
-    ReportText=[]
     eventID=[]
-    pdID=[]
     con = cursor.fetchall()
     for i in range(len(con)):
-        ChartNo.append(con[i][0])
-        OrderNo.append(con[i][1])
-        ExecDate.append(con[i][2])
         MedType.append(con[i][3])
-        TypeName.append(con[i][4].replace(' ',''))
-        if con[i][3] in [30001,30002]:
-            ReportText.append(con[i][5])
-        else:
-            ReportText.append(con[i][6])
         eventID.append(con[i][7])
-        pdID.append(con[i][8])
-    return JsonResponse({'pdID':pdID,'eventID':eventID,'ChartNo': ChartNo,'OrderNo': OrderNo, 'ExecDate': ExecDate,'MedType':MedType , 'TypeName': TypeName,
-                         'ReportText': ReportText})
+        object = f'''<tr><td>'''
+        if con[i][3] == 30001 or con[i][3]==30002:
+            object += f'''<input type="radio" onclick="GetReport()" name="timePID" id=timePID{i} disabled>
+                            <label for=timePID{i}>'''
+        else:
+            object += f'''<input type="radio" onclick="GetReport()" name="timePID" id=timePID{i}>
+                            <label for=timePID{i}>'''
+        object += f'''
+        <div class="pdID"> {con[i][8]} </div>
+        <div class="eventID"> {con[i][7]} </div>
+        <div class="ChartNo"> {con[i][0]} </div>
+        <div class="OrderNo"> {con[i][1]} </div>
+        <div class="edate"> {con[i][2]} </div>
+        <div class="type2"> {con[i][4].replace(' ','')} </div>
+        ''' 
+        if con[i][3] == 30001 or con[i][3]==30002:
+            object += f'''
+                <p class="report2">{con[i][5]}</p>
+            '''
+        else:
+            object += f'''
+                <div class="note"></div>
+                <div class="menu"></div>
+                <p class="report2">{con[i][6]}</p>
+            '''
+        print(object) 
+        objectArray.append(object)
+    return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray})
 @csrf_exempt
 def Phase(request):
     eventNo=request.POST.get('eventNo')

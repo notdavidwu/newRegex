@@ -1210,18 +1210,25 @@ def selectLocation(request):
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
 
-    PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
+    PID = request.POST.get('PID')
     string = request.POST.get('str').split(',')
     studyDate = request.POST.get('date').split(',')
-
+    username = str(request.POST.get('username'))
     query = '''select　* from Localization where  PID=%s and (username=%s or username='') and Disease=%s and seriesID in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by SD,LabelName ,date ASC,seriesID ASC'''
     cursor = connections['default'].cursor()
 
     cursor.execute(query,
-                   [PID, str(request.POST.get('username')), Disease, string[0], string[1],
+                   [PID, username, Disease, string[0], string[1],
                     string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
     response = cursor.fetchall()
+    print(len(response))
+    print('SeriesIdIndex:',SeriesIdIndex)
+    print('studyDate:',studyDate)
+    print('string',string)
+    print('PID:', PID)
+    print('username:',username)
     id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID = [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
+
     for info in response:
         Type = str(info[3]).replace(' ', '')
 
@@ -1298,7 +1305,7 @@ def findLocalMax(request):
     Category = request.session.get('Category_' + ind)
     x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,Category)
 
-
+    print(x,' ', y,' ', z)
 
     return JsonResponse({'x': x, 'y': y, 'z': z, 'maxValue': maxValue})
 
