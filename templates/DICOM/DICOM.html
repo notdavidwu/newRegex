@@ -975,14 +975,12 @@
         var Date=$("[name='location']:checked").next('label').children('.LocalStudyDate').text()
         var StudyID=$("[name='location']:checked").next('label').children('.LocalStudyID').text()
         var Con=[]
-        //for(var i =0;i<4;i++) {
-        //    Con.push($('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
-        //}
         for(var i =0;i<4;i++) {
-            Con.push($('.StudyID').eq(i).text()+$('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text()[1])
+            Con.push($('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
         }
+        
         for(var i =0;i<4;i++) {
-            if(Con[i]==StudyID+Date+SD){
+            if(Con[i]==Date+SD){
                 var ind=i+1
                
                 frame=$("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.plane').text()
