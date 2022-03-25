@@ -121,6 +121,8 @@
                     $('#PatientList').children('table').append(insertObject)
                 }
                 $('#PatientList').children('table').append('</tbody>')
+            },complete:function(){
+                $('.loader').css('display','none')
             }
         })
     }
