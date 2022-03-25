@@ -33,5 +33,6 @@ urlpatterns = [
     path('poolConfirm/', include('poolConfirm.urls', namespace='poolConfirm')),
     path('warehousing/', include('warehousing.urls', namespace='warehousing')),
     path('', views.index, name="base"),
-
+    path('django_plotly_dash/', include('django_plotly_dash.urls')),
+    path('MEWS/', include('MEWS.urls', namespace='MEWS')),
 ]

@@ -53,8 +53,22 @@ INSTALLED_APPS = [
     'categorize.apps.categorizeConfig',
     'poolConfirm.apps.poolConfirmConfig',
     'warehousing.apps.warehousingConfig',
-    
+    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
+    'channels',
+    'channels_redis',
+    'MEWS.apps.MEWSConfig'
 ]
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+ASGI_APPLICATION = 'djangoProject.routing.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379),],
+        },
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -192,6 +206,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django_plotly_dash.finders.DashAssetFinder',
+    'django_plotly_dash.finders.DashComponentFinder'
+]
+
+PLOTLY_COMPONENTS = [
+    'dash_core_components',
+    'dash_html_components',
+    'dash_renderer',
+    'dpd_components'
+]
 
 DICOM_URL = '/DICOM/'
 DICOM_ROOT = os.path.join(BASE_DIR,'DICOM')

@@ -86,6 +86,7 @@
     #menu{padding-bottom:5px;padding-left:5px;padding-right:5px;position: fixed;z-index: 5;max-height: 85vh;display: none;margin: 0;width: 150px;background-color: #A6AAAb; border-radius: 5px 5px 5px 5px}
     .btnSetting { font-size:10pt;margin:0;margin-top: 5px;width: 100%;max-height: 85vh; border-radius: 5px 5px 5px 5px}
     #PIDSearchText{width:100%}
+    .downloadCSV{margin:5px;width:calc(100% - 10px)}
 </style>
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
 <script>
@@ -183,6 +184,7 @@
         })
     }
 
+    
     $(document).ready(function (e) {
         $(document).get(0).oncontextmenu = function() {
             return false
@@ -313,6 +315,7 @@
                     <p>載入中，請稍後‧‧‧</p>
                 </span>
             </div>
+            <a type="button" class="btn btn-warning downloadCSV" href="{% url 'warehousing:downloadCSV' %}" >下載</a>
         </table>
     </div>
     <div id="PatientList"><table class="table-striped"><thead><tr><td>病歷號</td><td >檢查日期</td><td >檢查項目</td><td>StudyID</td><td>SeriesID</td><td>有無影像</td></tr></thead></table></div>

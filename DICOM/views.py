@@ -1338,7 +1338,7 @@ def findSUV(request):
     return JsonResponse({'SUV': SUV})
 
 
-from .models import Drugset, Drugsetlog, Examreporttext, Meditem, Medorder, Visitrecord
+
 from django.db import connections
 
 

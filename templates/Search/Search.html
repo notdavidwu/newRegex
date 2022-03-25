@@ -228,7 +228,7 @@
     #Reportcheckbox:checked ~ .Reportform { transform: translate(0%, -0%);z-index: 7;}
     .Report-label, .Reportform { transition: all 0.35s ease-in-out; }
     .Reportform{overflow-x: hidden;-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
-    #priReport{background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);height: calc(100%);z-index: 1;margin:0px;padding:10px}
+    
     .floatingBox{
         z-index:15;
         margin:5px;
@@ -245,7 +245,11 @@
         height:40px;
         box-shadow: 0px 0px 0px 3px #030340
     }
-
+    #priReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);height: calc(100%);z-index: 1;margin:0px;padding:10px}
+    #tubeReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);z-index: 1;margin:0px;padding:10px}
+    #tubeReport td{width:50%;height:50px}
+    .center{text-align:center;vertical-align: middle}
+    .noMarginAndPadding{padding:0px;margin:0px}
 </style>
 
 
@@ -273,7 +277,7 @@
             },
             success: function (response) {
                 for (var i = 0; i < response.ward.length; i++) {
-                    $('#ward').append('<option>'+response.ward[i]+'</option>')
+                    $('#ward').append('<option value="'+response.ward[i]+'">'+response.ward[i]+'</option>')
                 }
             }
         })
@@ -285,7 +289,7 @@
             },
             success: function (response) {
                 for (var i = 0; i < response.DivName.length; i++) {
-                    $('#DivName').append('<option>'+response.DivName[i]+'</option>')
+                    $('#DivName').append('<option value='+response.DivName[i]+'>'+response.DivName[i]+'</option>')
                 }
             }
         })
@@ -325,10 +329,10 @@
     function PoolList(){
         let partystart = $('#partystart').val()
         let partyend = $('#partyend').val()
-        let hospitalized = $('#hospitalized').is(':checked')
-        let bacterial = $('#bacterial').is(':checked')
-        let ward = $('#ward option:selected').text()
-        let DivName = $('#DivName option:selected').text()
+        let hospitalized = Number($('#hospitalized').is(':checked'))
+        let bacterial = Number($('#bacterial').is(':checked'))
+        let ward = $('#ward option:selected').val()
+        let DivName = $('#DivName option:selected').val()
         $('#Imagecheckbox').prop('checked',false)
 
         $.ajax({
@@ -353,10 +357,13 @@
     }
 
     function TimeShow(){
-       var ChartNo = ($('input[name="Pooltable"]:checked').next('label').children('.ChartNo').text())
-       var careRecordCheck = $('#careRecord_check').is(':checked')
-       var hospitalized =  $('#hospitalized_check').is(':checked')
-       $('#priReport').empty()
+        let partystart = $('#partystart').val()
+        let partyend = $('#partyend').val()
+        let ChartNo = ($('input[name="Pooltable"]:checked').next('label').children('.ChartNo').text())
+        let careRecordCheck = $('#careRecord_check').is(':checked')
+        let hospitalized =  $('#hospitalized_check').is(':checked')
+        let tubeCheck =  $('#tube_check').is(':checked')
+        $('#priReport').empty()
         $('#abstract').empty()
         $.ajax({
             type: 'post',
@@ -365,6 +372,9 @@
                 'ChartNo': ChartNo,
                 'careRecordCheck':careRecordCheck,
                 'hospitalized':hospitalized,
+                'tubeCheck':tubeCheck,
+                'partystart':partystart,
+                'partyend':partyend,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
@@ -409,9 +419,17 @@
                         $('#TimeShow'+i).prop('onclick',null)
                     }
                     if(response.MedType[i]==30403){ //轉房
-                        $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
+                        $('#TimeShow'+i).parents('td').css('background-color',"#932452")
                         $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
                         $('#TimeShow'+i).prop('onclick',null)
+                    }
+                    if(response.MedType[i]==30901){ //導管插入
+                        $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
+                    }
+                    if(response.MedType[i]==30902){ //導管移除
+                        $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
                     }
                 }
             }
@@ -424,8 +442,7 @@
         var ExecDate = ($('input[name="Timetable"]:checked').next('label').children('.ExecDate').text())
         var MedType = ($('input[name="Timetable"]:checked').next('label').children('.MedType').text())
         var ChartNo = ($('input[name="Timetable"]:checked').next('label').children('.timeChartNo').text())
-        var ExecDate = ($('input[name="Timetable"]:checked').next('label').children('.ExecDate').text())
-        
+        var ItemNo = ($('input[name="Timetable"]:checked').next('label').children('.ItemNo').text())
         $.ajax({
             type: 'post',
             url: '{% url "Search:PrimaryText" %}', // this is the mapping between the url and view
@@ -434,6 +451,7 @@
                 'MedType':MedType,
                 'ChartNo':ChartNo,
                 'ExecDate':ExecDate,
+                'ItemNo':ItemNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
@@ -441,7 +459,22 @@
                 $('#priReport').empty()//or text('')
 
                 
-                if(MedType!=30801){
+                if(MedType==30801){
+                    $('#priReport').css('display','block')
+                    $('#tubeReport').css('display','none')
+                    for(var i =0;i<response.ReportText.length;i++){
+                        $('#priReport').append('【'+response.CreateTime[i]+'】\n'+response.ReportText[i]+' \n  \n')
+                    }
+                }else if(MedType ==30901 || MedType ==30902){
+                    $('#priReport').css('display','none')
+                    $('#tubeReport').css('display','table')
+                    $('#tubeReport').empty()
+                    $('#tubeReport').append(response.object)
+                    $('.TubeRemark').height($('.Reportform').height()-$('#tubeReport').height())
+
+                }else{
+                    $('#priReport').css('display','block')
+                    $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
                         $('#priReport').append(response.ReportText[i]+' \n  \n')
                     }
@@ -555,14 +588,11 @@
                             }
                         }
                     })
-                }else{
-                    for(var i =0;i<response.ReportText.length;i++){
-                        $('#priReport').append('【'+response.CreateTime[i]+'】\n'+response.ReportText[i]+' \n  \n')
-                    }
                 }
             },
             complete:function(){
                 $('#Reportcheckbox').prop('checked',true)
+
             }
         })
 
@@ -618,7 +648,7 @@
         </div>
         <div class="col-md-6">
             <label for="partyend" class="form-label">終止日期</label>
-            <input class="form-control"  autocomplete="off" type="text" id="partyend" name="party" value="2021-12-01">
+            <input class="form-control"  autocomplete="off" type="text" id="partyend" name="party" value="2030-12-31">
         </div>
         <div class="col-md-12">
             <label for="Category" class="form-label">歸類</label>
@@ -645,7 +675,7 @@
         <div class="col-md-12">
             <label for="ward" class="form-label">護理站</label>
             <select class="form-select SPdropdown" id="ward" required>
-                    <option>不限</option>
+                    <option value="%">不限</option>
             </select>
             <div class="invalid-feedback">
                 Please select a valid state.
@@ -654,7 +684,7 @@
         <div class="col-md-12">
             <label for="DivName" class="form-label">科別</label>
             <select class="form-select SPdropdown" id="DivName" required>
-                    <option>不限</option>
+                    <option value="%">不限</option>
             </select>
             <div class="invalid-feedback">
                 Please select a valid state.
@@ -707,8 +737,8 @@
             <input type="checkbox" class="btn-check" onclick="TimeShow()" id="careRecord_check" autocomplete="off"  checked>
             <label class="btn btn-outline-secondary" for="careRecord_check">護理紀錄</label>
           
-            <input type="checkbox" class="btn-check" id="btncheck3" autocomplete="off"  name="EXAM[]" value="3041">
-            <label class="btn btn-outline-secondary" for="btncheck3">中心導管</label>
+            <input type="checkbox" class="btn-check" onclick="TimeShow()" id="tube_check" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary" for="tube_check">中心導管</label>
 
         </div>
 
@@ -727,6 +757,7 @@
         <label for="Reportcheckbox" class="Report-label">原始報告</label>
         <form class="Reportform sc2 row g-3">
             <textarea class="form-control" id="priReport" rows="3" readonly></textarea>
+            <table class="form-control table table-dark table-hover center" id="tubeReport"></table>
         </form>
     </div>
 </html>

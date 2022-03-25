@@ -15,17 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from warehousing import views
-app_name='warehousing'
+from MEWS import views
+from MEWS import dash
+
+app_name='MEWS'
 urlpatterns = [
-    path('', views.warehousing,name='warehousing'),
-    path('ResearchTopic/', views.warehousing,name='ResearchTopic'),
-    path('SubjectPatientList/', views.SubjectPatientList,name='SubjectPatientList'),
-    path('PatientList/', views.PatientList,name='PatientList'),
-    path('Session/', views.Session,name='Session'),
-    path('Patient_num/', views.Patient_num,name='Patient_num'),
-    path('getPreviousAction/', views.getPreviousAction,name='getPreviousAction'),
-    path('Disease/', views.Disease,name='Disease'),
-    path('downloadCSV/', views.downloadCSV,name='downloadCSV'),
-    
+    path('', views.MEWS,name='MEWS'),
+
 ]

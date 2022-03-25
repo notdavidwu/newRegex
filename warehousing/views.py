@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import pathlib
 import os
 import platform 
+import csv,codecs
 def warehousing(request):
     au = request.session.get('au')
     diseaseCode = request.session.get('diseaseCode',0)
@@ -141,14 +142,7 @@ def Patient_num(request):
     return JsonResponse({'all': all,'unlabeled':unlabeled,'labeled':labeled})
 
 
-
-@csrf_exempt
-def PatientList(request):
-    condition = request.POST.get('PID')
-    scrollTop = request.POST.get('scrollTop')
-    request.session['PID']=condition
-    request.session['scrollTop']=scrollTop
-    
+def searchSQL(condition):
     query =  '''
         select chartNo,eventDate,studyID,seriesID,TypeName from(
         select a.chartNo,a.eventDate,a.TypeName,a.eventID,a.studyDes,a.studyID,a.seriesID,a.seriesDes,a.sliceNo from (
@@ -170,7 +164,6 @@ def PatientList(request):
         ) as a
         order by a.chartNo,a.eventDate ASC
     '''
-
 
     cursor = connections['default'].cursor()
     cursor.execute(query,[condition,condition])
@@ -200,8 +193,35 @@ def PatientList(request):
         Study.append(res[j][2])
         Series.append(res[j][3])
         Item.append(res[j][4])
+    return PID, MedExecTime,Study ,Series, Item,  Check
+
+@csrf_exempt
+def PatientList(request):
+    condition = request.POST.get('PID')
+    scrollTop = request.POST.get('scrollTop')
+    request.session['condition'] = condition
+    request.session['PID']=condition
+    request.session['scrollTop']=scrollTop
+    PID, MedExecTime,Study ,Series, Item,  Check =searchSQL(condition)
+
     return JsonResponse({'PID': PID, 'MedExecTime': MedExecTime,'StudyID':Study ,'SeriesID':Series,'Item': Item, 'Check': Check},
                         status=200)
+
+
+@csrf_exempt
+def downloadCSV(request):
+    condition = request.session.get('condition')
+    PID, MedExecTime,Study ,Series, Item,  Check = searchSQL(condition)
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type = 'text/csv')
+    response.charset = 'utf-8-sig'
+    response['Content-Disposition'] = 'attachment; filename=output.csv'
+    # Create the CSV writer using the HttpResponse as the "file"
+    writer = csv.writer(response)
+    writer.writerow(['PID', 'MedExecTime','Item','Study' ,'Series','Check'])
+    for (pid, date,study,series,item,check) in zip( PID, MedExecTime,Study ,Series, Item,  Check):
+        writer.writerow([pid, date,item,study,series,check])
+    return response
 
 from cryptography.fernet import Fernet
 @csrf_exempt
