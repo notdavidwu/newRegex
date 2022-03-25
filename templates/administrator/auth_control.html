@@ -144,6 +144,11 @@ function auth(){
             }else{
                 $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="4" type="checkbox" name="auth_app" id="upload"><label class="form-check-label" for="upload">影像上傳</label></div>')
             }
+            if(response.auth_app.includes('5')){
+                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="5" checked type="checkbox" name="auth_app" id="MEWS"><label class="form-check-label" for="MEWS">MEWS</label></div>')
+            }else{
+                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="5" type="checkbox" name="auth_app" id="MEWS"><label class="form-check-label" for="MEWS">MEWS</label></div>')
+            }
         }
     })
     $.ajax({

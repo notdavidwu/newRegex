@@ -63,6 +63,7 @@ $(document).ready(function (e) {
             </li>
             {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
             {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '5' in au or 'F' in au %}{% include 'accounts/MEWS.html' %}{% endif %}
             {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
             {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
             {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
