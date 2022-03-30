@@ -205,14 +205,14 @@
     :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #eeefef; --border-radius: 10px; --width: 400px; --form-height: 400px; --form-mob-height: 100px; }
     #Topcheckbox { position: absolute; left: -9999px; }
     .tool{float: left;overflow-x: auto}
-    .Top-label { position: fixed; top: 65px; left: 0%; height: 37px;}
-    .Topform { position: fixed; top: 55px; left: 0%;height: 100% ;}
-    .Top-label { transform-origin: top right; transform: rotate(90deg) translate(100%, 140%); z-index: 10; }
+    .Top-label { position: fixed; top: 65px; left: 0px; height: 37px;}
+    .Topform { position: fixed; top: 55px; left: 0px;height: 100% ;}
+    .Top-label { transform-origin: top right; transform: rotate(90deg) translate(100%, 51px); z-index: 10; }
     .Topform {z-index: 11;background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--width); height: calc(100% - 55px); transform: translate(-100%, 0%); padding: 0px; overflow: auto; background-color: #6699A1;  border-radius:10px}
     .Top-label { padding: 5px 10px; border-radius:10px 10px 0px 0px ; }
     .Top-label { background: brown; color: white;}
     .Top-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
-    #Topcheckbox:checked + .Top-label { background: #e78632; transform: rotate(90deg) translate(100%, calc((var(--width) - 140%) * -1))}
+    #Topcheckbox:checked + .Top-label { background: #e78632; transform: rotate(90deg) translate(100%, calc((var(--width) - 51px) * -1))}
     #Topcheckbox:checked ~ .Topform { transform: translate(0%, 0%);}
     .Top-label, .Topform { transition: all 0.35s linear; }
     .form-check-label{ -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
@@ -335,16 +335,16 @@
 
     :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #eeefef; --border-radius: 10px; --form-width: 300px; --form-mob-width: 320px; }
     #localizationslideout{position: fixed;width: 10%;left: 1154px;z-index: 5}
-    .localizationform { position: fixed; height: calc(91%); top: 90px;  right: 20%}
+    .localizationform { position: fixed; height: calc(100% - 90px); top: 90px;  right: 20%}
     
-    .localizationform {background:url("{% static 'image/texture.png' %}");width: 9.9%; max-height: 91%; padding-top: 10px;  overflow-x: hidden ; background-color: var(--form); z-index: 1; border-radius:0px}
+    .localizationform {background:url("{% static 'image/texture.png' %}");width: 9.9%;  padding-top: 10px;  overflow-x: hidden ; background-color: var(--form); z-index: 1; border-radius:0px}
     #textarea{width:100%}
     #textarea td{height:0px}
     input[name="location"]{display: none;}
     input[name="location"]~label{background:url("{% static 'image/texture.png' %}");height:100%;padding: 0;margin: 0;margin-left: 4px;margin-bottom: 4px;width: calc(100% - 8px);background-color: #BBBBBB;border-radius: 10px;padding-top: 5px;padding-bottom: 5px}
     input[name="location"]:checked ~label{background-color: #e78632}
-    .data{line-height: 18px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center}
-    .data1{line-height: 18px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center;word-break:break-all;word-wrap:break-word}
+    .data{font-size:12pt;line-height: 15px;display: block;color: #11171a;width: 100%;margin: 0;margin-bottom: 5px;text-align: center}
+    .data1{font-size:10pt;line-height: 12px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center;word-break:break-all;word-wrap:break-word}
     #Disease{z-index: 2;position: fixed; height: 40px; top: 55px; width: 9.9%; margin: 0px; right: 20%;border-radius: 0px 0px 5px 5px;}
     #tumor{height: 145px;display: none;position: fixed;z-index: 3;background-color:#CCCCCC ;width: 120px;padding: 5px;border-radius:10px; -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
     #tumor input{border-radius:5px;margin-bottom: 5px ;width: 100%}
@@ -1547,6 +1547,9 @@
     }
 
     $(document).ready(function (e) {
+        if('{{de_identification}}'=='True'){
+            $('.PID').css('display','none')
+        }
         PID=$('#PIDText').text()
         MedExecTime=$('#MedExecTimeText').text()
         Item=$('#ItemText').text().replaceAll(' ','')

@@ -63,7 +63,9 @@ def login(request):
         # print(username, password)
         if re is not None:
             au = Auth(username)
+            de_identification = de_identification_check(username)
             request.session['au'] = au
+            request.session['de_identification'] = de_identification
             auth.login(request, re)
             return redirect('/', {'user': re})
             # return render(request, 'home.html', {'user': re})
@@ -89,3 +91,11 @@ def Auth(username):
     for i in range(len(res)):
         au.append(res[i][0])
     return au
+
+def de_identification_check(username):
+    query = '''select de_identification from auth_user where username=%s'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query, [username])
+    res = cursor.fetchall()
+    de_identification=res[0][0]
+    return de_identification

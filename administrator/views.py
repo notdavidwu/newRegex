@@ -119,13 +119,14 @@ def upadte_auth_disease(request):
 @csrf_exempt
 def get_user_setting(request):
     un=request.POST.get('username')
-    query = '''select is_active from auth_user where username=%s'''
+    query = '''select is_active,de_identification from auth_user where username=%s'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[un])
     res = cursor.fetchall()
     active = res[0][0]
+    de_identification = res[0][1]
     print(active)
-    return JsonResponse({'active': active})
+    return JsonResponse({'active': active,'de_identification':de_identification})
 
 @csrf_exempt
 def update_user_setting(request):
@@ -146,6 +147,24 @@ def update_user_setting(request):
         cursor.execute(query, [username])
     return JsonResponse({})
 
+@csrf_exempt
+def update_de_identificationSetting(request):
+    username=request.POST.get('username')
+    query = '''select de_identification from auth_user where username=%s'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query,[username])
+    res = cursor.fetchall()
+    active = res[0][0]
+    print(active)
+    if active:#True 更新為False
+        query = '''update auth_user SET de_identification=0 where username=%s'''
+        cursor = connections['default'].cursor()
+        cursor.execute(query, [username])
+    else:#更新為True
+        query = '''update auth_user SET de_identification=1 where username=%s'''
+        cursor = connections['default'].cursor()
+        cursor.execute(query, [username])
+    return JsonResponse({})
 
 @csrf_exempt
 def getAuthDiseaseLabeledUser(request):

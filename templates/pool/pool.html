@@ -86,11 +86,13 @@
     #menu{padding-bottom:5px;padding-left:5px;padding-right:5px;position: fixed;z-index: 5;max-height: 85vh;display: none;margin: 0;width: 150px;background-color: #A6AAAb; border-radius: 5px 5px 5px 5px}
     .btnSetting { font-size:10pt;margin:0;margin-top: 5px;width: 100%;max-height: 85vh; border-radius: 5px 5px 5px 5px}
     #PIDSearchText{width:100%}
+    .ID{display:none}
+    .PatientListID{display:none}
 </style>
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
 <script>
     function TimeReport(){
-        PID=$("[name='Patient']:checked").next('label').html()
+        PID=$("[name='Patient']:checked").next('label').children('.PatientListID').text()
         var scrollTop = $('#SubjectPatient').scrollTop()
         $.ajax({
             type: 'post',
@@ -116,7 +118,7 @@
                         $('#PatientList').children('table').append('' +
                             '<tr>' +
                             '<td class="StudyDes">' + response.StudyDes[i] + '</td>' +
-                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="PID">' +'<p class="PatientListID">'+ response.PID[i]+'</p>' +'<p class="ID">######</p>'+ '</td>' +
                             '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
                             '<td class="Item">' + response.Item[i] + '</td>' +
                             '<td class="phase">' + phase + '</td>' +
@@ -130,7 +132,7 @@
                         $('#PatientList').children('table').append('' +
                             '<tr>' +
                             '<td class="StudyDes">' + response.StudyDes[i] + '</td>' +
-                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="PID">' +'<p class="PatientListID">'+ response.PID[i]+'</p>' +'<p class="ID">######</p>'+ '</td>' +
                             '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
                             '<td class="Item">' + response.Item[i] + '</td>' +
                             '<td class="phase">' + phase + '</td>' +
@@ -141,6 +143,13 @@
                     }
                 }
                 $('#PatientList').children('table').append('</tbody>')
+                if("{{de_identification}}"=='False'){
+                    $('.ID').css('display','none')
+                    $('.PatientListID').css('display','inline')
+                }else{
+                    $('.ID').css('display','inline')
+                    $('.PatientListID').css('display','none')
+                }
             }
         })
     }
@@ -150,7 +159,7 @@
             type: 'post',
             url: '{% url "pool:Session" %}', // this is the mapping between the url and view
             data:{
-                'PID':$(event.target).parents('td').prevAll('.PID').html(),
+                'PID':$(event.target).parents('td').prevAll('.PID').children('.PatientListID').text(),
                 'MedExecTime':$(event.target).parents('td').prevAll('.MedExecTime').html(),
                 'Item':$(event.target).parents('td').prevAll('.StudyDes').html(),
                 'StudyID':$(event.target).parents('td').prevAll('.StudyID').html(),
@@ -182,7 +191,7 @@
                 $('#PatientList').children('table').children('tbody').remove()
                 $('#PatientList').children('table').append('<tbody class="thead-dark">')
 
-                    for(var i=0;i<response.PID.length;i++){
+                for(var i=0;i<response.PID.length;i++){
 
                     if(response.phase[i]==null){
                         phase='尚未定義'
@@ -194,7 +203,7 @@
                         $('#PatientList').children('table').append('' +
                             '<tr>' +
                             '<td class="StudyDes">' + response.StudyDes[i] + '</td>' +
-                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="PID">' +'<p class="PatientListID">'+ response.PID[i]+'</p>' +'<p class="ID">######</p>'+ '</td>' +
                             '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
                             '<td class="Item">' + response.Item[i] + '</td>' +
                             '<td class="phase">' + phase + '</td>' +
@@ -208,7 +217,7 @@
                         $('#PatientList').children('table').append('' +
                             '<tr>' +
                             '<td class="StudyDes">' + response.StudyDes[i] + '</td>' +
-                            '<td class="PID">' + response.PID[i] + '</td>' +
+                            '<td class="PID">' +'<p class="PatientListID">'+ response.PID[i]+'</p>' +'<p class="ID">######</p>'+ '</td>' +
                             '<td class="MedExecTime">' + response.MedExecTime[i] + '</td>' +
                             '<td class="Item">' + response.Item[i] + '</td>' +
                             '<td class="phase">' + phase + '</td>' +
@@ -220,6 +229,13 @@
                 }
                 $('#PatientList').children('table').append('</tbody>')
                 $('#PIDSearchText').val('')
+                if("{{de_identification}}"=='False'){
+                    $('.ID').css('display','none')
+                    $('.PatientListID').css('display','inline')
+                }else{
+                    $('.ID').css('display','inline')
+                    $('.PatientListID').css('display','none')
+                }
             }
         })
     }
@@ -266,16 +282,18 @@
               $('#search').click();   
             }
         });
+
         $('.loader').css('display','inline')
         $.ajax({
             type: 'post',
             url: '{% url "pool:Disease" %}', // this is the mapping between the url and view
             data:{
+                'username':JSON.parse(document.getElementById('user_username').textContent),
                 'csrfmiddlewaretoken': window.CSRF_TOKEN,
 
             },
             success:function (response){
-               
+                $('#Disease').empty()
                 for(var i=0;i<response.DiseaseNo.length;i++){
                     $('#Disease').append('' +
                         '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
@@ -305,6 +323,7 @@
                             },
                             success:function (response){
                                 PatientListID=response.PatientListID
+                                sno=response.sno
                                 PID_previous_select=response.PID_previous_select
                                 $.ajax({
                                     type: 'post',
@@ -324,9 +343,17 @@
                                                 '<tr><td>' +
                                                     '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
                                                     '<label for="Patient'+i+'">'+
-                                                        PatientListID[i]+
+                                                        '<p class="ID">'+sno[i]+'</p>'+
+                                                        '<p class="PatientListID">'+PatientListID[i]+'</p>'+
                                                     '</label>' +
                                                 '</td></tr>')
+                                        }
+                                        if("{{de_identification}}"=='False'){
+                                            $('.ID').css('display','none')
+                                            $('.PatientListID').css('display','inline')
+                                        }else{
+                                            $('.ID').css('display','inline')
+                                            $('.PatientListID').css('display','none')
                                         }
                                         $('.loader').css('display','none')
                                         $('#SubjectPatient').scrollTop(ScrollTop)
@@ -357,7 +384,8 @@
                     'hospital':JSON.parse(document.getElementById('hospital').textContent)
                 },
                 success:function (response){
-                    PatientListID=response.PatientListID
+                    PatientListID = response.PatientListID
+                    sno = response.sno
                     $.ajax({
                         type: 'post',
                         url: '{% url "pool:Patient_num" %}', // this is the mapping between the url and view
@@ -378,9 +406,17 @@
                                     '<tr><td>' +
                                         '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
                                         '<label for="Patient'+i+'">'+
-                                            PatientListID[i]+
+                                            '<p class="ID">'+sno[i]+'</p>'+
+                                            '<p class="PatientListID">'+PatientListID[i]+'</p>'+
                                         '</label>' +
                                     '</td></tr>')
+                            }
+                            if("{{de_identification}}"=='False'){
+                                $('.ID').css('display','none')
+                                $('.PatientListID').css('display','inline')
+                            }else{
+                                $('.ID').css('display','inline')
+                                $('.PatientListID').css('display','none')
                             }
                         }
                     }) 
@@ -407,12 +443,20 @@
                     $('#PatientList').children('table').children('tbody').remove()
                     for(var i=0;i<response.PatientListID.length;i++){
                         $('#SubjectPatient').children('table').append('' +
-                            '<tr><td>' +
-                                '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
-                                '<label for="Patient'+i+'">'+
-                                    response.PatientListID[i]+
-                                '</label>' +
-                            '</td></tr>')
+                        '<tr><td>' +
+                            '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
+                            '<label for="Patient'+i+'">'+
+                                '<p class="ID">'+response.sno[i]+'</p>'+
+                                '<p class="PatientListID">'+response.PatientListID[i]+'</p>'+
+                            '</label>' +
+                        '</td></tr>')
+                    }
+                    if("{{de_identification}}"=='False'){
+                        $('.ID').css('display','none')
+                        $('.PatientListID').css('display','inline')
+                    }else{
+                        $('.ID').css('display','inline')
+                        $('.PatientListID').css('display','none')
                     }
                 }
             })
@@ -451,6 +495,7 @@
 </nav>
     {{ user.username|json_script:"user_username" }}
     {{ user.last_name|json_script:"hospital" }}
+    
     <select class="form-select" aria-label="Default select example" id="Disease"></select>
     <select class="form-select" aria-label="Default select example" id='filter'>
         <option value='0'>全部</option>

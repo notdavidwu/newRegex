@@ -107,10 +107,15 @@ function auth(){
             $('#authSetting').append('<h2>帳號管理設定</h2>')
             $('#authSetting').append('<div class="form-check form-switch"><input class="form-check-input" ' +
                 'onchange="update_userSetting()" value="1" type="checkbox" name="update_userSetting" id="userSetting">' +
-                '<label class="form-check-label" for="setting">是否啟用</label></div>')
-
+                '<label class="form-check-label" for="userSetting">是否啟用</label></div>')
+            $('#authSetting').append('<div class="form-check form-switch"><input class="form-check-input" ' +
+                    'onchange="update_de_identificationSetting()" value="1" type="checkbox" name="update_de_identificationSetting" id="de_identificationSetting">' +
+                    '<label class="form-check-label" for="de_identificationSetting">是否去識別化</label></div>')
             if(response.active==true){
                 $('#userSetting').prop('checked',true)
+            }
+            if(response.de_identification==true){
+                $('#de_identificationSetting').prop('checked',true)
             }
         }
     })
@@ -199,6 +204,17 @@ function update_userSetting(){
     $.ajax({
         type: 'post',
         url: '{% url "administrator:update_user_setting" %}', // this is the mapping between the url and view
+        data:{
+            'username':username,
+            'csrfmiddlewaretoken': window.CSRF_TOKEN
+        }
+    })
+}
+function update_de_identificationSetting(){
+    var username = ($('input[name="user"]:checked').next('label').html())
+    $.ajax({
+        type: 'post',
+        url: '{% url "administrator:update_de_identificationSetting" %}', // this is the mapping between the url and view
         data:{
             'username':username,
             'csrfmiddlewaretoken': window.CSRF_TOKEN

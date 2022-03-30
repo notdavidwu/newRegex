@@ -109,7 +109,7 @@ def to_image(numpy_img):
 @csrf_exempt
 def DICOM(request):
     SeriesIdIndex = {'1': 0, '2': 0, '3': 0, '4': 0}
-
+    
     request.session['unet_contour_1']=[]
     request.session['unet_contour_2']=[]
     request.session['unet_contour_3']=[]
@@ -126,6 +126,7 @@ def DICOM(request):
         Item = request.session.get('Item',0).replace(' ','')
     else : 
         return redirect('/')
+    de_identification = request.session.get('de_identification')
     StudyID = request.session.get('StudyID', 0)
     SeriesID = request.session.get('SeriesID', 0)
     SeriesDes = request.session.get('SeriesDes', 0)
@@ -134,7 +135,7 @@ def DICOM(request):
     au = request.session.get('au')
 
     return render(request, 'DICOM/DICOM.html',
-                  {'PID': PID, 'MedExecTime': MedExecTime, 'Item': Item, 'StudyID': StudyID, 'SeriesID': SeriesID,'SeriesDes':SeriesDes,'Disease':Disease,'au':au})
+                  {'de_identification':de_identification,'PID': PID, 'MedExecTime': MedExecTime, 'Item': Item, 'StudyID': StudyID, 'SeriesID': SeriesID,'SeriesDes':SeriesDes,'Disease':Disease,'au':au})
 
 
 

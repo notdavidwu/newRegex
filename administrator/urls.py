@@ -30,5 +30,6 @@ urlpatterns = [
     path('getAuthDiseaseLabeledUser/', views.getAuthDiseaseLabeledUser, name='getAuthDiseaseLabeledUser'),
     path('insertAuthDiseaseLabeledUser/', views.insertAuthDiseaseLabeledUser, name='insertAuthDiseaseLabeledUser'),
     path('removeAuthDiseaseLabeledUser/', views.removeAuthDiseaseLabeledUser, name='removeAuthDiseaseLabeledUser'),
+    path('update_de_identificationSetting/', views.update_de_identificationSetting, name='update_de_identificationSetting'),
 
 ]

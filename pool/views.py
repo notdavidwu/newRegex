@@ -1,4 +1,4 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render,HttpResponse,redirect
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -6,17 +6,27 @@ import pathlib
 import os
 import platform 
 def pool(request):
-    au = request.session.get('au')
+    au = request.session.get('au',0)
+    if au == 0 : 
+        return redirect('/')
+
+    
+    de_identification = request.session.get('de_identification')
+    print(de_identification)
     diseaseCode = request.session.get('diseaseCode',0)
     ScrollTop = request.session.get('scrollTop',0)
     Filter = request.session.get('filter',0)
-    return render(request, 'pool/pool.html',{'au':au,'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
+    return render(request, 'pool/pool.html',{'de_identification':de_identification,'au':au,'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
 @csrf_exempt
 def Disease(request):
-    query = '''select * from diseaseGroup'''
+    au = '%' if (str(request.POST.get('username')) == 'AIC') else  request.POST.get('username')+'%'
+    query = '''select distinct b.* from auth_disease as a
+            inner join diseaseGroup as b on a.disease=b.DiseaseNo
+            where username like %s 
+            '''
     cursor = connections['default'].cursor()
-    cursor.execute(query)
+    cursor.execute(query,[au])
     DiseaseNo = []
     Disease = []
     res = cursor.fetchall()
@@ -45,7 +55,7 @@ def SubjectPatientList(request):
     cursor = connections['default'].cursor()
     if filter=='0':
         query = '''
-                select distinct a.chartNo
+                select distinct a.chartNo,a.sno
                 from correlationPatientDisease as a 
                     inner join allEvents as f on a.chartNo=f.chartNo
                     inner join ExamStudySeries_5 as g on f.eventID=g.eventID
@@ -54,7 +64,7 @@ def SubjectPatientList(request):
         cursor.execute(query,[Disease,hospital])
     elif filter=='1':
         query = '''
-        select distinct chartNo from (
+        select distinct chartNo,sno from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
 				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
@@ -69,7 +79,7 @@ def SubjectPatientList(request):
         cursor.execute(query,[hospital,Disease,Disease,username])
     elif filter=='2':
         query = '''
-        select distinct chartNo from (
+        select distinct chartNo,sno from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
 				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
@@ -82,13 +92,14 @@ def SubjectPatientList(request):
         where checked<>0 order by chartNo
         '''
         cursor.execute(query,[hospital,Disease,Disease,username])
-    
+    sno=[]
     PatientListID=[]
     res = cursor.fetchall()
     for i in range(len(res)):
         PatientListID.append(str(res[i][0]))
+        sno.append(str(res[i][1]))
     
-    return JsonResponse({'PatientListID': PatientListID,'PID_previous_select':PID_previous_select})
+    return JsonResponse({'PatientListID': PatientListID,'sno':sno,'PID_previous_select':PID_previous_select})
 
 @csrf_exempt
 def Patient_num(request):

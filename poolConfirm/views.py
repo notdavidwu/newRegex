@@ -7,7 +7,8 @@ from itertools import chain
 @csrf_exempt
 def confirm(request):
     au = request.session.get('au')
-    return render(request, 'poolConfirm/confirm.html',{'au':au})
+    de_identification = request.session.get('de_identification')
+    return render(request, 'poolConfirm/confirm.html',{'au':au,'de_identification':de_identification})
 
 
 @csrf_exempt
@@ -19,7 +20,12 @@ def confirmpat(request):
     examID=''
     #examID = list(cursor.fetchall())
     for i,row in enumerate(cursor):
-        examID += '<tr><td><input type="radio" onclick="GetTime()" name="confirmPID" id='+str(i)+'><label for='+str(i)+'>'+str(row[0])+'</label></td></tr>'
+        examID += f'''
+        <tr><td>
+        <input type="radio" onclick="GetTime()" name="confirmPID" id={i}>
+        <label for={i}><p class="PatientListID">{str(row[0])}</p><p class="ID">{i}</p></label>
+        </td></tr>
+        '''
         
     return JsonResponse({'examID': examID})
 
