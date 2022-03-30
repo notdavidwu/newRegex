@@ -229,7 +229,7 @@ def load_DICOM(request):
     WindowNo = str(1) if (str(request.POST.get('WindowNo')) == 'None') else str(request.POST.get('WindowNo'))
     request.session['Category_' + WindowNo] = 'PET'
     SeriesIdIndex = request.session.get('SeriesIdIndex')
-    SeriesIdIndex.update({str(WindowNo): SeriesIDText})
+    SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
     
     tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
@@ -295,7 +295,7 @@ def load_RT_DICOM(request):
     WindowNo = str(1) if (str(request.POST.get('WindowNo')) == 'None') else str(request.POST.get('WindowNo'))
     request.session['Category_' + WindowNo] = 'RT'
     SeriesIdIndex = request.session.get('SeriesIdIndex')
-    SeriesIdIndex.update({str(WindowNo): SeriesIDText})
+    SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
 
 
@@ -352,7 +352,7 @@ def load_CT_DICOM(request):
     WindowNo = str(1) if (str(request.POST.get('WindowNo')) == 'None') else str(request.POST.get('WindowNo'))
     request.session['Category_' + WindowNo] = 'CT'
     SeriesIdIndex = request.session.get('SeriesIdIndex')
-    SeriesIdIndex.update({str(WindowNo): SeriesIDText})
+    SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
 
     fileExt = "*CT*.h5"
@@ -390,7 +390,7 @@ def load_MRI_DICOM(request):
     WindowNo = str(1) if (str(request.POST.get('WindowNo')) == 'None') else str(request.POST.get('WindowNo'))
     request.session['Category_' + WindowNo] = 'MRI'
     SeriesIdIndex = request.session.get('SeriesIdIndex')
-    SeriesIdIndex.update({str(WindowNo): SeriesIDText})
+    SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
 
     fileExt = "*MRI*.h5"
@@ -1026,9 +1026,11 @@ def insertLocation(request):
     #PID = 'null' if (str(request.POST.get('PID')) == '') else fernet.decrypt(request.POST.get('PID').encode()).decode()
     PID = 'null' if (str(request.POST.get('PID')) == '') else  request.POST.get('PID')
     string = request.POST.get('str').split(',')
-    query = '''select　* from Localization where  PID=%s and (username=%s or username='') and Disease=%s and seriesID in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by SD,LabelName,date ASC,seriesID ASC'''
+    query = '''
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
+    '''
     cursor = connections['default'].cursor()
-
     cursor.execute(query,
                    [PID, str(request.POST.get('username')), Disease, string[0], string[1],
                     string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
@@ -1037,8 +1039,8 @@ def insertLocation(request):
     for info in response:
         Type = str(info[3]).replace(' ', '')
 
-        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(str(info[19]))])
-
+        StudySeries = str(info[17])+'_'+str(info[19])
+        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
         if Type == 'PET':
             PET_H = request.session.get('PET_H_' + ind)
             PET_W = request.session.get('PET_W_' + ind)
@@ -1079,10 +1081,9 @@ def insertLocation(request):
         LabelRecord.append(info[12])
         StudyID.append(info[17])
         SeriesID.append(info[19])
-
+    print('c')
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
-
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,
@@ -1135,7 +1136,10 @@ def deleteLocation(request):
     # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
     string = request.POST.get('str').split(',')
     Study_Date = request.POST.get('Study_Date').split(',')
-    query = '''select　* from Localization where  PID=%s and (username=%s or username='') and Disease=%s and seriesID in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by SD,LabelName,date ASC,seriesID ASC'''
+    query = '''
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
+    '''
     cursor = connections['default'].cursor()
 
 
@@ -1150,7 +1154,8 @@ def deleteLocation(request):
     for info in response:
         Type = str(info[3]).replace(' ', '')
 
-        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(str(info[19]))])
+        StudySeries = str(info[17])+'_'+str(info[19])
+        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
 
         if Type == 'PET':
             PET_H = request.session.get('PET_H_' + ind)
@@ -1209,12 +1214,15 @@ def selectLocation(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
-
+    print()
     PID = request.POST.get('PID')
     string = request.POST.get('str').split(',')
     studyDate = request.POST.get('date').split(',')
     username = str(request.POST.get('username'))
-    query = '''select　* from Localization where  PID=%s and (username=%s or username='') and Disease=%s and seriesID in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by SD,LabelName ,date ASC,seriesID ASC'''
+    query = '''
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
+    '''
     cursor = connections['default'].cursor()
 
     cursor.execute(query,
@@ -1231,8 +1239,8 @@ def selectLocation(request):
 
     for info in response:
         Type = str(info[3]).replace(' ', '')
-
-        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(str(info[19]))])
+        StudySeries = str(info[17])+'_'+str(info[19])
+        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
 
         if Type == 'PET':
             PET_H = request.session.get('PET_H_' + ind)
@@ -1319,7 +1327,7 @@ def findSUV(request):
     SeriesID = request.POST.get('SeriesID')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(str(SeriesID))])
-
+    print(ind)
     if not (isNotPET):
         PET_H = request.session.get('PET_H_' + ind)
         PET_W = request.session.get('PET_W_' + ind)

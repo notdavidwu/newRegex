@@ -1017,7 +1017,7 @@
             }
         }
 
-
+        console.log(Con)
         for(var i =0;i<4;i++) {
             if(Con[i]==Con[name-1]){
                 var ind=i+1
@@ -1179,9 +1179,9 @@
         $('.loader').css('top',$("#frame1").height()/2)
         
 
-        var str=$('.SeriesID').eq(0).text()
+        var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
         for(var i =1;i<$('.SeriesID').length;i++){
-            str+=','+$('.SeriesID').eq(i).text()
+            str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
         }
         var Study_Date=$('.StudyDate').eq(0).text()
         for(var i =1;i<$('.StudyDate').length;i++){
@@ -1423,9 +1423,9 @@
     function selectLocation(){
         PID = $('#PIDText').text()
 
-        var str=$('.SeriesID').eq(0).text()
+        var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
         for(var i =1;i<$('.SeriesID').length;i++){
-            str+=','+$('.SeriesID').eq(i).text()
+            str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
         }
         var Study_Date=$('.StudyDate').eq(0).text()
         for(var i =1;i<$('.StudyDate').length;i++){
@@ -2064,7 +2064,7 @@
         $("[name='group1']").next("label").children('div').children('div').children('img').dblclick(function (e) {
             //if ($('#local').is(':checked')) {
             window_number=$("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
-            
+            let StudySeries = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyID').text()+'_'+$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text()
             if($('#trigger').is(':checked')==true) {
                 $.ajax({
                     type: 'post',
@@ -2074,7 +2074,7 @@
                         'y': $("[name='group1']:checked").next("label").children('div').children('div').children('.y').text(),
                         'z': $("[name='group1']:checked").next("label").children('div').children('div').children('.z').text(),
                         'PETWC': $("[name='group1']:checked").next("label").children('div').children('div').children('.PETWC').text(),
-                        'SeriesID':$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text(),
+                        'SeriesID':StudySeries,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
                     success: function (response) {
@@ -2181,6 +2181,7 @@
                         $('#tumor').css('left', e.pageX+50)
                     }
                 }
+                let StudySeries = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyID').text()+'_'+$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text()
                 $.ajax({
                     type: 'post',
                     url: '{% url "DICOM:findSUV" %}', // this is the mapping between the url and view
@@ -2188,7 +2189,7 @@
                         'x':$("[name='group1']:checked").next("label").children('div').children('div').children('.x').text(),
                         'y': $("[name='group1']:checked").next("label").children('div').children('div').children('.y').text(),
                         'z': $("[name='group1']:checked").next("label").children('div').children('div').children('.z').text(),
-                        'SeriesID':$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text(),
+                        'SeriesID':StudySeries,
                         'isNotPET':$('#LocalMax').children('input').is(':disabled'),
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
@@ -2213,9 +2214,9 @@
 
         $('#tumor').children('a').mousedown(function () {
             //if ($('#local').is(':checked')) {
-            var str=$('.SeriesID').eq(0).text()
+            var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
             for(var i =1;i<$('.SeriesID').length;i++){
-                str+=','+$('.SeriesID').eq(i).text()
+                str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
             }
             var Study_Date=$('.StudyDate').eq(0).text()
             for(var i =1;i<$('.StudyDate').length;i++){
@@ -2372,9 +2373,9 @@
         });
 
         $('#delete').on('click',function (){
-            var str=$('.SeriesID').eq(0).text()
+            var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
             for(var i =1;i<$('.SeriesID').length;i++){
-                str+=','+$('.SeriesID').eq(i).text()
+                str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
             }
             var Study_Date=$('.StudyDate').eq(0).text()
             for(var i =1;i<$('.StudyDate').length;i++){
