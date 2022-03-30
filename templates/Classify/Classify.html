@@ -121,82 +121,6 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    /*   Rightblock   */
-
-    /*
-
-     ul {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-         font-size: 20px;
-
-    }
-    ul.drop-down-menu {
-        border: #ccc 1px solid;
-        display: inline-block;
-        font-family: 'Open Sans', Arial, sans-serif;
-        font-size: 13px;
-        font-family:DFKai-sb;
-    }
-    ul.drop-down-menu li {
-        position: relative;
-        white-space: nowrap;
-        border-right: #ccc 1px solid;
-    }
-    ul.drop-down-menu > li:last-child {
-        border-right: none;
-    }
-    ul.drop-down-menu > li {
-        float: left;
-    }
-     ul.drop-down-menu a {
-        background-color: #fff;
-        color: #333;
-        display: block;
-        padding: 0 30px;
-        text-decoration: none;
-        line-height: 40px;
-         font-size: 20px;
-        font-family:DFKai-sb;
-
-    }
-    ul.drop-down-menu a:hover {
-        background-color: coral;
-        color: #fff;
-    }
-    ul.drop-down-menu li:hover > a {
-        background-color: coral;
-        color: #fff;
-    }
-    ul.drop-down-menu ul {
-        border: #ccc 1px solid;
-        position: absolute;
-        z-index: 99;
-        left: -1px;
-        top: 100%;
-       min-width: 18px;
-    }*//*
-    ul.drop-down-menu ul li {
-        border-bottom: #ccc 1px solid;
-    }
-    ul.drop-down-menu ul li:last-child {
-        border-bottom: none;
-    }
-    ul.drop-down-menu ul ul {
-        z-index: 999;
-        top: 10px;
-        left: 90%;
-    }
-     ul.drop-down-menu ul {
-        display: none;
-    }
-    ul.drop-down-menu li:hover > ul {
-        display: block;
-    }
-    */
-
-    /*   多層下拉   */
 
     .buttonright {
     display: inline-block;
@@ -649,42 +573,7 @@
                         $('.Tokenc7').eq(i).css('display','none')
                     }if(response.Token8[i]==null){
                         $('.Tokenc8').eq(i).css('display','none')
-                    }/*if(response.Token3[i]=='EndLine'){
-                        $('.Tokenc3').eq(i).css('display','none')
-                        $('.Tokenc4').eq(i).css('display','none')
-                        $('.Tokenc5').eq(i).css('display','none')
-                        $('.Tokenc6').eq(i).css('display','none')
-                        $('.Tokenc7').eq(i).css('display','none')
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token4[i]=='EndLine'){
-                        $('.Tokenc4').eq(i).css('display','none')
-                        $('.Tokenc5').eq(i).css('display','none')
-                        $('.Tokenc6').eq(i).css('display','none')
-                        $('.Tokenc7').eq(i).css('display','none')
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token5[i]=='EndLine'){
-                        $('.Tokenc5').eq(i).css('display','none')
-                        $('.Tokenc6').eq(i).css('display','none')
-                        $('.Tokenc7').eq(i).css('display','none')
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token6[i]=='EndLine'){
-                        $('.Tokenc6').eq(i).css('display','none')
-                        $('.Tokenc7').eq(i).css('display','none')
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token7[i]=='EndLine'){
-                        $('.Tokenc7').eq(i).css('display','none')
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token8[i]=='EndLine'){
-                        $('.Tokenc8').eq(i).css('display','none')
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }if(response.Token9[i]=='EndLine'){
-                        $('.Tokenc9').eq(i).css('display','none')
-                    }*/
+
                 }
             }
         })
@@ -730,35 +619,7 @@
 
 </script>
 <body onload="test()">
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-target="#navbarsExampleDefault"
-        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false" >Link</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
-                </div>
-            </li>
-            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
-            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
-            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
-            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
-            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
-        </ul>
-
-        {% include 'accounts/loginpartial.html' %}
-    </div>
-</nav>
+    {% include 'navBar.html' %}
 
 </body>
         <!--DIV-->

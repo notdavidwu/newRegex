@@ -601,37 +601,9 @@
 
 </script>
 <body >
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
-        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+    {% include 'navBar.html' %}
 
-    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false" >Link</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
-                </div>
-            </li>
-            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
-            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
-            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
-            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
-            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
-        </ul>
 
-        {% include 'accounts/loginpartial.html' %}
-    </div>
-</nav>
-
-</body>
 <div id="ImageSelect" id="Requirement" >
     <input type="checkbox" id="Imagecheckbox">
     <label for="Imagecheckbox" class="Image-label">篩選</label>
@@ -760,4 +732,5 @@
             <table class="form-control table table-dark table-hover center" id="tubeReport"></table>
         </form>
     </div>
+</body>
 </html>
