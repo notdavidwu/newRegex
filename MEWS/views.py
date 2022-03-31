@@ -16,9 +16,8 @@ import numpy as np
 import plotly.express as px
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import Input, Output
+
+from dash import Input, Output,dcc,html
 
 def SQL(sql, colname):
     cursor = connections['MEWS'].cursor()
@@ -43,8 +42,8 @@ chdf = connect()
 ##############################################################################################
 
 app = DjangoDash('MEWS',
-                 meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1'}],
-                 external_stylesheets=[dbc.themes.CYBORG]
+                 
+                 external_stylesheets=[dbc.themes.QUARTZ]
                  )
 
 app.title = 'AIC: MEWS'
@@ -94,18 +93,41 @@ def DateRange(df, start_date, end_date):
 
 ##############################################################################################
 
+def DateRangeDf(df, start_date, end_date):
+    if (start_date is None) and (end_date is None):
+        dff = df
+    elif (start_date is None) and (end_date is not None):
+        end_date = DateRangeEnd(end_date)
+        dff = df[df.index <= end_date]
+    elif (start_date is not None) and (end_date is None):
+        dff = df[start_date <= df.index]
+    elif (start_date is not None) and (end_date is not None):
+        end_date = DateRangeEnd(end_date)
+        dff = df[(start_date <= df.index) & (df.index <= end_date)]
+    else:
+        pass
+    return dff
+
+##############################################################################################
+
+def DateRangeEnd(end_date):
+    end = dt.strptime(str(end_date), '%Y-%m-%d') + datetime.timedelta(days=1)
+    return end
+
+##############################################################################################
+
 def img(df):
     fig = px.line()
     df1 = df[df['BP_V1'] > 0]
-    fig.add_scatter(x=df1.index.astype(str), y=df1['BP_V1'], name='BP', mode='lines+markers')
+    fig.add_scatter(x=df1.index, y=df1['BP_V1'], name='BP', mode='lines+markers')
     df2 = df[df['PULSE_V1'] > 0]
-    fig.add_scatter(x=df2.index.astype(str), y=df2['PULSE_V1'], name='PULSE', mode='lines+markers')
+    fig.add_scatter(x=df2.index, y=df2['PULSE_V1'], name='PULSE', mode='lines+markers')
     df3 = df[df['RESPIRATORY_V1'] > 0]
-    fig.add_scatter(x=df3.index.astype(str), y=df3['RESPIRATORY_V1'], name= 'RESPIRATORY', mode='lines+markers')
+    fig.add_scatter(x=df3.index, y=df3['RESPIRATORY_V1'], name= 'RESPIRATORY', mode='lines+markers')
     df4 = df[df['BT_V1'] > 0]
-    fig.add_scatter(x=df4.index.astype(str), y=df4['BT_V1'], name='BT', mode='lines+markers')
+    fig.add_scatter(x=df4.index, y=df4['BT_V1'], name='BT', mode='lines+markers')
     df5 = df[df['SPO2_V1'] > 0]
-    fig.add_scatter(x=df5.index.astype(str), y=df5['SPO2_V1'], name='SPO2', mode='lines+markers')
+    fig.add_scatter(x=df5.index, y=df5['SPO2_V1'], name='SPO2', mode='lines+markers')
     fig.update_layout(
         updatemenus=[
             dict(
@@ -286,17 +308,10 @@ def Color(RRT, Max):
 # Web: 標題
 def logo(app):
     title = html.H5(
-        'AIC: Test Web',
+        '',
         style={'marginTop': 5, 'marginLeft': '10px'},
     )
-
-    info_about_app = html.H6(
-        'Modified Early Warning Score(MEWS):'
-        'User interface.',
-        style={'marginLeft': '10px'},
-    )
-    
-    return dbc.Row([dbc.Col([dbc.Row([title]), dbc.Row([info_about_app])])])
+    return dbc.Row([dbc.Col([dbc.Row([title])])])
 
 ##############################################################################################
 
@@ -308,31 +323,31 @@ chartno_led = dbc.Card(
             style={
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
             [
                 daq.LEDDisplay(
                     id='chartno-led',
-                    size=24,
+                    size=28,
                     color='#fec036',
-                    style={'color': '#black'},
                     backgroundColor='#2b2b2b'
                 )
             ],
             style={
+                'display': 'flex',
+                'justify-content': 'space-around',
+                'align-items': 'center',
+                'height': '80px',
                 'text-align': 'center',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
-    ]
+    ],
+    style={'marginBottom': '3%'},
 )
 
 ##############################################################################################
@@ -346,23 +361,26 @@ button_date = dbc.Card(
                     [
                         dcc.DatePickerRange(
                             id='date-picker',
+                            clearable=True,
                             calendar_orientation='vertical',
                         ),
-                    ]
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-around',
+                           'align-items': 'center',
+                           'height': '75px',
+                          }
+                    
                 )
             ],
             style={
                 'text-align': 'center',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
-                'border-left': '1px solid rgb(216, 216, 216)',
-                'border-right': '1px solid rgb(216, 216, 216)',
-                'border-bottom': '1px solid rgb(216, 216, 216)',
             },
         )
     ],
+    style={'marginBottom': '3%'},
 )
 
 ##############################################################################################
@@ -398,21 +416,18 @@ button_ward = dbc.Card(
                     style={'display': 'flex',
                            'justify-content': 'space-around',
                            'align-items': 'center',
-                    }
+                           'height': '30px',
+                          }
                 )
             ],
             style={
                 'text-align': 'center',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
-                'border-left': '1px solid rgb(216, 216, 216)',
-                'border-right': '1px solid rgb(216, 216, 216)',
-                'border-bottom': '1px solid rgb(216, 216, 216)',
             },
         )
     ],
+    style={'marginBottom': '3%'},
 )
 
 ##############################################################################################
@@ -436,27 +451,24 @@ button_div = dbc.Card(
                             ],
                             style={'display': 'inline-block',
                                    'width': '190px',
-                                  }
+                            }
                          ),
                     ],
                     style={'display': 'flex',
-                           'justify-content': 'space-around',
+                           'justify-content': 'space-between',
                            'align-items': 'center',
-                          }
+                           'height': '10px',
+                    }
                 )
             ],
             style={
                 'text-align': 'center',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
-                'border-left': '1px solid rgb(216, 216, 216)',
-                'border-right': '1px solid rgb(216, 216, 216)',
-                'border-bottom': '1px solid rgb(216, 216, 216)',
             },
         )
     ],
+    style={'marginBottom': '3%'},
 )
 
 ##############################################################################################
@@ -480,25 +492,21 @@ button_chartno = dbc.Card(
                             ],
                             style={'display': 'inline-block',
                                    'width': '170px',
-                                  }
+                            }
                          )
 
                     ],
                     style={'display': 'flex',
-                           'justify-content': 'space-around',
-                           'align-items': 'center'
-                          }
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'height': '10px',
+                    }
                 )
             ],
             style={
                 'text-align': 'center',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
-                'border-left': '1px solid rgb(216, 216, 216)',
-                'border-right': '1px solid rgb(216, 216, 216)',
-                'border-bottom': '1px solid rgb(216, 216, 216)',
             },
         )
     ],
@@ -515,20 +523,6 @@ graphs = dbc.Card(
                     [
                         dcc.Graph(
                             id='mews-graph',
-                            figure={
-                                'layout': {
-                                    'margin': {'t': 30, 'r': 35, 'b': 40, 'l': 50},
-                                    'xaxis': {
-                                        'dtick': 5,
-                                        'gridcolor': '#636363',
-                                        'showline': False,
-                                    },
-                                    'yaxis': {'showgrid': False, 'showline': False},
-                                    'plot_bgcolor': 'black',
-                                    'paper_bgcolor': 'black',
-                                    'font': {'color': 'gray'},
-                                },
-                            },
                             config={'displayModeBar': False},
                         ),
                         html.Pre(id='update-on-click-data'),
@@ -536,10 +530,8 @@ graphs = dbc.Card(
                 ),
             ],
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         )
     ]
@@ -556,10 +548,8 @@ BP_Gauge = dbc.Card(
                 'display': 'inline-block',
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
@@ -580,7 +570,6 @@ BP_Gauge = dbc.Card(
                     className='m-auto',
                     style={
                         'display': 'flex',
-                        'backgroundColor': 'black',
                         'border-radius': '1px',
                         'border-width': '5px',
                     },
@@ -588,10 +577,8 @@ BP_Gauge = dbc.Card(
             ],
             className='d-flex',
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
     ],
@@ -609,10 +596,8 @@ PULSE_Gauge = dbc.Card(
                 'display': 'inline-block',
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
@@ -633,7 +618,6 @@ PULSE_Gauge = dbc.Card(
                     className='m-auto',
                     style={
                         'display': 'flex',
-                        'backgroundColor': 'black',
                         'border-radius': '1px',
                         'border-width': '5px',
                     },
@@ -641,10 +625,8 @@ PULSE_Gauge = dbc.Card(
             ],
             className='d-flex',
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
     ],
@@ -662,10 +644,8 @@ RESPIRATORY_Gauge = dbc.Card(
                 'display': 'inline-block',
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
@@ -686,7 +666,6 @@ RESPIRATORY_Gauge = dbc.Card(
                     className='m-auto',
                     style={
                         'display': 'flex',
-                        'backgroundColor': 'black',
                         'border-radius': '1px',
                         'border-width': '5px',
                     },
@@ -694,10 +673,8 @@ RESPIRATORY_Gauge = dbc.Card(
             ],
             className='d-flex',
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
     ],
@@ -715,10 +692,8 @@ BT_Gauge = dbc.Card(
                 'display': 'inline-block',
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
@@ -739,7 +714,6 @@ BT_Gauge = dbc.Card(
                     className='m-auto',
                     style={
                         'display': 'flex',
-                        'backgroundColor': 'black',
                         'border-radius': '1px',
                         'border-width': '5px',
                     },
@@ -747,10 +721,8 @@ BT_Gauge = dbc.Card(
             ],
             className='d-flex',
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
     ],
@@ -768,10 +740,8 @@ SPO2_Gauge = dbc.Card(
                 'display': 'inline-block',
                 'text-align': 'center',
                 'color': 'white',
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
         dbc.CardBody(
@@ -792,7 +762,6 @@ SPO2_Gauge = dbc.Card(
                     className='m-auto',
                     style={
                         'display': 'flex',
-                        'backgroundColor': 'black',
                         'border-radius': '1px',
                         'border-width': '5px',
                     },
@@ -800,14 +769,40 @@ SPO2_Gauge = dbc.Card(
             ],
             className='d-flex',
             style={
-                'backgroundColor': 'black',
                 'border-radius': '1px',
                 'border-width': '5px',
-                'border-top': '1px solid rgb(216, 216, 216)',
             },
         ),
     ],
     style={'height': '95%'},
+)
+
+##############################################################################################
+
+# 版面色系
+theme = {
+    'dark': True,
+    'detail': '#06FF00',
+    'primary': '#00EA64',
+    'secondary': '#6E6E6E',
+}
+button_ward = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=button_ward)]
+)
+BP_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=BP_Gauge)]
+)
+PULSE_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=PULSE_Gauge)]
+)
+RESPIRATORY_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=RESPIRATORY_Gauge)]
+)
+BT_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=BT_Gauge)]
+)
+SPO2_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=SPO2_Gauge)]
 )
 
 ##############################################################################################
@@ -826,39 +821,55 @@ app.layout = dbc.Container(
                     [
                         dbc.Row(dbc.Col(chartno_led,
                                         xs=sidebar_size,
+                                        sm=sidebar_size,
                                         md=sidebar_size,
                                         lg=sidebar_size,
-                                        width=sidebar_size)
+                                        width=sidebar_size,
+                                        style={'z-index': '99999'}
+                                       )
                         ),
                         dbc.Row(dbc.Col(button_date,
                                         xs=sidebar_size,
+                                        sm=sidebar_size,
                                         md=sidebar_size,
                                         lg=sidebar_size,
-                                        width=sidebar_size)
+                                        width=sidebar_size,
+                                        style={'z-index': '99998'}
+                                       )
                         ),
                         dbc.Row(
                                 dbc.Col(button_ward,
                                         xs=sidebar_size,
+                                        sm=sidebar_size,
                                         md=sidebar_size,
                                         lg=sidebar_size,
-                                        width=sidebar_size)
+                                        width=sidebar_size,
+                                        style={'z-index': '99997'}
+                                       )
                         ),
                         dbc.Row(dbc.Col(button_div,
                                         xs=sidebar_size,
+                                        sm=sidebar_size,
                                         md=sidebar_size,
                                         lg=sidebar_size,
-                                        width=sidebar_size)
+                                        width=sidebar_size,
+                                        style={'z-index': '99996'}
+                                       )
                         ),
                         dbc.Row(dbc.Col(button_chartno,
                                         xs=sidebar_size,
+                                        sm=sidebar_size,
                                         md=sidebar_size,
                                         lg=sidebar_size,
-                                        width=sidebar_size)
+                                        width=sidebar_size,
+                                        style={'z-index': '99995'}
+                                       )
                         ),
                     ]
                 ),
                 dbc.Col(graphs,
                         xs=graph_size,
+                        sm=graph_size,
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size)
@@ -872,26 +883,31 @@ app.layout = dbc.Container(
             [
                 dbc.Col(BP_Gauge,
                         xs=gauge_size,
+                        sm=gauge_size,
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
                 dbc.Col(PULSE_Gauge,
                         xs=gauge_size,
+                        sm=gauge_size,
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
                 dbc.Col(RESPIRATORY_Gauge,
                         xs=gauge_size,
+                        sm=gauge_size,
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
                 dbc.Col(BT_Gauge,
                         xs=gauge_size,
+                        sm=gauge_size,
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
                 dbc.Col(SPO2_Gauge,
                         xs=gauge_size,
+                        sm=gauge_size,
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
@@ -1045,16 +1061,7 @@ def update_chartno(on, start_date, end_date, ward, div):
         pass
     
     # 按鈕偵測: 日期
-    if (start_date is None) and (end_date is None):
-        dfff = dff
-    elif (start_date is None) and (end_date is not None):
-        dfff = dff[dff.index <= end_date]
-    elif (start_date is not None) and (end_date is None):
-        dfff = dff[start_date <= dff.index]
-    elif (start_date is not None) and (end_date is not None):
-        dfff = dff[(start_date <= dff.index) & (dff.index <= end_date)]
-    else:
-        pass
+    dfff = DateRangeDf(dff, start_date, end_date)
     
     return [{'label': i, 'value': i} for i in dfff['ChartNo'].unique()]
 
@@ -1077,16 +1084,22 @@ def update_chartno(chartno):
 # 篩選器: 圖表
 @app.callback(
     Output('mews-graph', 'figure'),
+    Input('date-picker', 'start_date'),
+    Input('date-picker', 'end_date'),
     Input('chartno-dropdown', 'value')
 )
-def update_graph(chartno):
+def update_graph(start_date, end_date, chartno):
+    # 按鈕偵測: 病歷號
     if chartno is None:
         chartno=chdf['ChartNo'][0]
         df = HisData(chartno)
-        fig = img(df)
+        #dff = DateRangeDf(df, None, None)
+        dff = DateRangeDf(df, start_date, end_date)
+        fig = img(dff)
     else:
         df = HisData(chartno)
-        fig = img(df)
+        dff = DateRangeDf(df, start_date, end_date)
+        fig = img(dff)
     return fig
 
 ##############################################################################################
@@ -1112,7 +1125,6 @@ def update_graph(chartno):
     Input('chartno-dropdown', 'value')
 )
 def display_click_data(clickData, chartno):
-    
     # 按鈕偵測: 病歷號
     if chartno is None:
         chartno = chdf['ChartNo'][0]

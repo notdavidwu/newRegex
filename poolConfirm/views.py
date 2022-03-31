@@ -45,6 +45,7 @@ def Disease(request):
 @csrf_exempt
 def confirmpat2(request):
     PID=request.POST.get('ID')
+    print(PID) 
     query = '''
         select a.chartNo,a.orderNo,a.eventDate, a.medType,b.typeName,c.eventTag,c.eventText,a.eventID,d.pdID
         from allEvents as a 
@@ -88,8 +89,9 @@ def confirmpat2(request):
                 <div class="menu"></div>
                 <p class="report2">{con[i][6]}</p>
             '''
-        print(object) 
+        
         objectArray.append(object)
+        print(eventID)
     return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray})
 @csrf_exempt
 def Phase(request):
@@ -97,14 +99,11 @@ def Phase(request):
     query = '''select eventTag, tagName from eventTag where eventNo=%s order by eventTag asc '''
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[eventNo])
-    EventID=[]
-    Event=[]
+    phase=''
     res = cursor.fetchall()
     for i in range(len(res)):
-        EventID.append(res[i][0])
-        Event.append(res[i][1])
-
-    return JsonResponse({'PhaseID': EventID,'PhaseName': Event})
+        phase += f"""<option value='{res[i][0]}'>{res[i][1]}</option>"""
+    return JsonResponse({'phase': phase})
 
 @csrf_exempt
 def deleteDefinition(request):
@@ -212,16 +211,10 @@ def searchNote(request):
     cursor = connections['dbDesigning'].cursor()
     cursor.execute(query,[chartNo,eventID])
     res = cursor.fetchall()
-    Disease=[]
-    EventGroup=[]
-    EventTag=[]
-    Interval = []
+    object=''
     for i in range(len(res)):
-        Disease.append(res[i][0].replace('  ',''))
-        EventGroup.append(res[i][1].replace('  ',''))
-        EventTag.append(res[i][2].replace('  ',''))
-        Interval.append(res[i][3])
-    return JsonResponse({'IND':IND,'Disease':Disease,'EventGroup':EventGroup,'EventTag':EventTag,'Interval':Interval})
+        object += f'''<p style="font-weight: bold">{res[i][0].replace('  ','')}: {res[i][1].replace('  ','')}—{res[i][2].replace('  ','')}—{res[i][3]}</p>'''
+    return JsonResponse({'IND':IND,'object':object})
 
 @csrf_exempt
 def searchPhaseAndInterval(request):

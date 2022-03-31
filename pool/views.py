@@ -28,7 +28,7 @@ def Disease(request):
             inner join diseaseGroup as b on a.disease=b.DiseaseNo
             where username like %s 
             '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[au])
     DiseaseNo = []
     Disease = []
@@ -46,17 +46,7 @@ def getPreviousAction(request):
     Filter = request.session.get('filter',0)
     return JsonResponse({'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
-@csrf_exempt
-def SubjectPatientList(request):
-    Disease=request.POST.get('Disease')
-    filter=request.POST.get('filter')
-    username=request.POST.get('username')
-    hospital=str(request.POST.get('hospital'))
-    request.session['diseaseCode']=Disease
-    request.session['filter']=filter
-    PID_previous_select = str(request.session.get('PID',0))
-    cursor = connections['default'].cursor()
-    print(len(hospital))
+def SQL(cursor,filter,hospital,Disease,username):
     if filter=='0':
         query = f"""
             select * from correlationPatientDisease as a
@@ -68,10 +58,7 @@ def SubjectPatientList(request):
             query += f"""and b.hospital = {hospital}　"""
         
         query += f"""order by a.chartNo"""
-        start = time.time()
         cursor.execute(query)
-        end = time.time()
-        print(format(end-start))
     elif filter=='1':
         query = f"""
         select * from (
@@ -89,10 +76,7 @@ def SubjectPatientList(request):
             ) as b on a.chartNo=b.PID
         ) as c where checked=0 order by chartNo
         """
-        start = time.time()
         cursor.execute(query)
-        end = time.time()
-        print(format(end-start))
     elif filter=='2':
         query = '''
         select a.PID,a.Disease,b.sno from Localization as a
@@ -100,14 +84,22 @@ def SubjectPatientList(request):
         where a.Disease=%s and a.username=%s and b.diseaseNo=%s
         order by b.sno
         '''
-        start = time.time()
         cursor.execute(query,[Disease,username,Disease])
-        end = time.time()
-        print(format(end-start))
+    return cursor
+@csrf_exempt
+def SubjectPatientList(request):
+    Disease=request.POST.get('Disease')
+    filter=request.POST.get('filter')
+    username=request.POST.get('username')
+    hospital=str(request.POST.get('hospital'))
+    request.session['diseaseCode']=Disease
+    request.session['filter']=filter
+    PID_previous_select = str(request.session.get('PID',0))
+    cursor = connections['AIC'].cursor()
+    cursor = SQL(cursor,filter,hospital,Disease,username)
     sno=[]
     PatientListID=[]
     res = cursor.fetchall()
-    start = time.time()
     object = ''
     for i in range(len(res)):
         PatientListID.append(str(res[i][0]))
@@ -131,7 +123,7 @@ def Patient_num(request):
     Disease=request.POST.get('Disease')
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))+'%'
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     query = f"""
         select count(distinct a.chartNo),'1' AS seq
         from correlationPatientDisease as a 
@@ -192,7 +184,7 @@ def PatientList(request):
         select top(1)* from ExamStudySeries_5 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
     '''
 
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[condition])
     PID = []
     MedExecTime = []
@@ -205,7 +197,7 @@ def PatientList(request):
     SeriesDes=[]
     res = cursor.fetchall()
     for j in range(len(res)):
-        cursor2 = connections['default'].cursor()
+        cursor2 = connections['AIC'].cursor()
         cursor2.execute(query2, [res[j][4],res[j][4]])
         res2 = cursor2.fetchall()
         if res2 != []:

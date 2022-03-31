@@ -1016,7 +1016,7 @@ def insertLocation(request):
     values(''' + PID + ",'" + SD + "','" + Item + "','" + current_time + "','" + username + "'," + SUV + "," + x + "," + y + "," + z + ",'" + LabelGroup + "','" + LabelName + "','" + LabelRecord + "'," + Click_X + "," + Click_Y + "," + Click_Z + "," + Disease + ","+ StudyID+","  + SeriesID + ''')
     '''
 
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query)
 
     string = request.POST.get('str').split(',')
@@ -1031,7 +1031,7 @@ def insertLocation(request):
     select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,
                    [PID, str(request.POST.get('username')), Disease, string[0], string[1],
                     string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
@@ -1098,7 +1098,7 @@ def deleteLocation(request):
     id=str(request.POST.get('id'))
     print(id)
     querySearch='''SELECT PID,SD,StudyID,seriesID FROM Localization WHERE id=%s'''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(querySearch,[id])
     info = cursor.fetchall()
     PID=str(info[0][0])
@@ -1125,11 +1125,11 @@ def deleteLocation(request):
                 pass
         shutil.rmtree(dir)
     query = '''delete from Localization where id=%s'''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
     print('done')
     query = '''delete from measureTumor where EventID=%s'''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
     print('done')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
@@ -1141,7 +1141,7 @@ def deleteLocation(request):
     select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
 
 
     PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
@@ -1224,7 +1224,7 @@ def selectLocation(request):
     select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
 
     cursor.execute(query,
                    [PID, username, Disease, string[0], string[1],
@@ -1351,21 +1351,6 @@ def findSUV(request):
 from django.db import connections
 
 
-@csrf_exempt
-def ImagePath(request):
-    condition = request.POST.get('PID')
-    query = '''select ChartNo,ExecDate,TypeName from AllExam left join MedTypeSet on  AllExam.MedType=MedTypeSet.MedType where ChartNo=''' + condition
-    cursor = connections['default'].cursor()
-    cursor.execute(query)
-    res = cursor.fetchall()
-    PID = res[0][0]
-    MedExecTime = str(res[0][1]).replace('-', '')
-    Item = res[0][2]
-    request.session['PID'] = PID
-    request.session['MedExecTime'] = MedExecTime
-    request.session['Item'] = Item
-    return JsonResponse({'PID': PID, 'MedExecTime': MedExecTime, 'Item': Item})
-
 
 @csrf_exempt
 def TextReport(request):
@@ -1376,7 +1361,7 @@ def TextReport(request):
     select TypeName,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText)　as ind from allEvents as a 
     inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[pid])
     sn = []
     examItem = []
@@ -1439,7 +1424,7 @@ def cancer(request):
             select DiseaseNo ,Disease
             from Disease 
             '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query)
     DiseaseNo = []
     Disease = []
@@ -1456,7 +1441,7 @@ def LabelGroup(request):
             from SubjectLabelGroup 
             where SubjectID=''' + str(request.POST.get('SubjectID')) + ''' group by SeqNo,LabelGroup
             '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query)
     GroupID = []
     LabelGroup = []
@@ -1474,7 +1459,7 @@ def LabelName(request):
             from SubjectLabelGroup as a left outer join SubjectLabelContent as b on a.LabelGroupID=b.LabelGroupID
 		　　where  SubjectID=''' + str(request.POST.get('SubjectID')) + ''' and a.SeqNo=''' + str(
         request.POST.get('LabelGroup'))
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query)
     LabelName = []
     res = cursor.fetchall()
@@ -1496,7 +1481,7 @@ def PatientImageInfo(request):
     as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
     as a　order by a.studyDate ASC,v2 ASC,v1 ASC
             '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query, [PID])
     res = cursor.fetchall()
     ChartNo = []
@@ -1703,7 +1688,7 @@ def UNet(request):
             VALUES 
             (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''
-        cursor = connections['default'].cursor()
+        cursor = connections['AIC'].cursor()
         cursor.execute(query, 
             [
                 id,
@@ -1761,7 +1746,7 @@ def SaveCoordinate(request):
             VALUES 
             (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query, [PID,date,'MRI',str(current_time),username,'0','0','0',variable,'MRI','slice coordinate','note: '+LabelRecord,'0','0',variable,Disease,StudyID,'',SeriesID])
     return JsonResponse({}, status=200)   
 
@@ -1770,7 +1755,7 @@ def getusers(request):
     username = str(request.POST.get('username'))
     '''get all users'''
     query = '''select username from auth_user order by is_superuser　DESC'''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query)
     users = []
     res = cursor.fetchall()
@@ -1779,7 +1764,7 @@ def getusers(request):
 
     '''is current user superuser?'''
     query = '''select is_superuser from auth_user where username=%s'''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[username])
     is_superuser = cursor.fetchall()[0][0]
     return JsonResponse({'users':users,'is_superuser':is_superuser}, status=200) 

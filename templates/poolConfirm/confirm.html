@@ -140,6 +140,8 @@
     .eventID{display: none}
     .pdID{display: none}
     .loader{display:none;position:absolute;top:40%;left:50%}
+    .loader2{display:none;position:absolute;top:50%;left:40%;transform: scale(2)}
+    .ball-grid-pulse div{background-color:#000000}
 </style>
 
 
@@ -225,10 +227,7 @@
                 },
                 success:function (response){
                     $(target).next('.phase').empty()
-                    for(var i=0;i<response.PhaseID.length;i++) {
-                        phase += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
-                    }
-                    $(target).next('.phase').append(phase)
+                    $(target).next('.phase').append(response.phase)
                 },complete:function(){
                     UpdateEventGroup(target)
                 }
@@ -237,7 +236,7 @@
     }
     
     function searchNote(IND,eventID){
-        let chartNo= $('input[name="confirmPID"]:checked').next('label').html() 
+        let chartNo= $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
@@ -248,17 +247,12 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                str=''
-                for(var j=0;j<response.Disease.length;j++) {
-                    str += '<p style="font-weight: bold">'+response.Disease[j]+': '+response.EventGroup[j]+'—'+response.EventTag[j]+'—'+response.Interval[j]+'</p>'
-                }
-                $('#timePID'+response.IND).next('label').children('.note').html(str)
-                
+                $('#timePID'+response.IND).next('label').children('.note').html(response.object)
             }
         })
         
     }
-    function searchPhaseAndInterval(sno){
+    function searchPhaseAndInterval(i,sno){
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
@@ -270,29 +264,34 @@
                 $('#sno_'+sno).children('.eventGroup').children('option[value='+response.eventNo+']').attr('selected','selected')
                 let eventNo = response.eventNo[0]
                 console.log(eventNo)
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
-                    data:{
-                        'eventNo':eventNo,
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-
-                        $('#sno_'+sno).children('.phase').empty()
-                        let phase=''
-                        for(var i=0;i<response.PhaseID.length;i++) {
-                            phase += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
+                if(eventNo!=0){
+                    $.ajax({
+                        type: 'post',
+                        url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+                        data:{
+                            'eventNo':eventNo,
+                            'csrfmiddlewaretoken': window.CSRF_TOKEN
+                        },
+                        success:function (response){
+    
+                            $('#sno_'+sno).children('.phase').empty()
+                            $('#sno_'+sno).children('.phase').append(response.phase)
                         }
-                        $('#sno_'+sno).children('.phase').append(phase)
-                    }
-                })
+                    })
+                }
+                if(i==total_num-1){
+                    $('#timetable').css('visibility','visible')
+                    $('.loader2').css('display','none')
+                }
+                
             },
             complete:function(response){
                 $('#sno_'+sno).children('.phase').children('option[value='+response.eventTag+']').attr('selected','selected')
                 $('#sno_'+sno).children('.IntervalNo').children('option[value='+response.seqNo+']').attr('selected','selected')
+                
             }
         })
+
     }
     function searchRecord(IND,eventID,selection,IntervalNoOption){
         $.ajax({
@@ -308,7 +307,7 @@
                     let id = 'timePID'+IND.toString()
                     addPhaseAndSeq(id,selection,IntervalNoOption,'append')
                     $('#timePID'+IND.toString()).next('label').children('.menu').children('div').eq(i).attr('id','sno_'+response.sno[i])
-                    searchPhaseAndInterval(response.sno[i])
+                    searchPhaseAndInterval(IND,response.sno[i])
                 }
                 $('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
                 
@@ -316,38 +315,42 @@
             }
         })
     }
+
     function GetTime(){
+        $('#timetable').css('visibility','hidden')
+        $('.loader2').css('display','inline')
         
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
-                type: 'post',
-                url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
-                data:{
-                    'ID':text,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    $('#timetable').css('visibility','hidden')
-                    $('#time').children('tbody').children('tr').remove()
-                    var HeavyDisease=[30001,30002]
-                    for(var i=0;i<response.objectArray.length;i++){
-                        if(response.MedType[i]==30001 || response.MedType[i]==30002){
-                            $('#time').append(response.objectArray[i])
-                            $('#timePID'+i).parents('td').css('background-color', '#33333a')
-                            $('#timePID'+i).next('label').css('color', 'red')
-                            setdisplay(i)
-                        }else{
-                            $('#time').append(response.objectArray[i])
-                            searchRecord(i,response.eventID[i],selection,IntervalNoOption)
-                            searchNote(i,response.eventID[i])
-                        }
+            type: 'post',
+            url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
+            data:{
+                'ID':text,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                
+                $('#time').children('tbody').children('tr').remove()
+                var HeavyDisease=[30001,30002]
+                for(var i=0;i<response.objectArray.length;i++){
+                    if(response.MedType[i]==30001 || response.MedType[i]==30002){
+                        $('#time').append(response.objectArray[i])
+                        $('#timePID'+i).parents('td').css('background-color', '#33333a')
+                        $('#timePID'+i).next('label').css('color', 'red')
+                        setdisplay(i)
+                    }else{
+                        $('#time').append(response.objectArray[i])
+                        searchRecord(i,response.eventID[i],selection,IntervalNoOption)
+                        searchNote(i,response.eventID[i])
                     }
-                },
-                complete:function(){
-                    $('#timetable').css('visibility','visible')
                 }
+                total_num = response.objectArray.length
+                
+                
+            }
         })
+        return true
     }
     function GetReport() {
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
@@ -460,7 +463,7 @@
 
     }
     $(document).ready(function (e) {
-        $('.loader').css('display','inline')
+        $('.loader1').css('display','inline')
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:Disease" %}', // this is the mapping between the url and view
@@ -495,7 +498,7 @@
                             $('.ID').css('display','inline')
                             $('.PatientListID').css('display','none')
                         }
-                        $('.loader').css('display','none')
+                        $('.loader1').css('display','none')
                     }
                 })
             }
@@ -528,7 +531,14 @@
                     $('#Report').append(response.examID) 
                 },
                 complete:function(){
-                    $('.loader').css('display','none')
+                    if("{{de_identification}}"=='False'){
+                        $('.ID').css('display','none')
+                        $('.PatientListID').css('display','inline')
+                    }else{
+                        $('.ID').css('display','inline')
+                        $('.PatientListID').css('display','none')
+                    }
+                    $('.loader1').css('display','none')
                 }
             })
         })
@@ -576,7 +586,7 @@
 </div>
 
 <div id="patient">
-    <div class="loader">
+    <div class="loader loader1">
         <div class="loader-inner pacman">
             <div></div>
             <div></div>
@@ -600,7 +610,21 @@
     <th class="header" id ="header_note">註記</th>
     <th class="header" id ="header_confirm">確認階段</th>
     </thead>
+    
 </table>
+</div>
+
+<div class="loader loader2">
+    <div class="loader-inner ball-grid-pulse">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+    <span class="tooltip">
+        <p>載入中，請稍後‧‧‧</p>
+    </span>
 </div>
 
 

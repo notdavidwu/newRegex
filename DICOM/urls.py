@@ -32,7 +32,6 @@ urlpatterns = [
     path('TextReport/', views.TextReport, name='TextReport'),
     path('load_DICOM1/', views.load_DICOM1, name='load_DICOM1'),
     path('load_DICOM/', views.load_DICOM, name='load_DICOM'),
-    path('ImagePath/', views.ImagePath, name='ImagePath'),
     path('LabelGroup/', views.LabelGroup, name='LabelGroup'),
     path('LabelName/', views.LabelName, name='LabelName'),
     path('findSUV/', views.findSUV, name='findSUV'),
