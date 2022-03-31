@@ -5,6 +5,9 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import pathlib
 import os
 import platform 
+import numpy as np
+import time
+from collections import OrderedDict
 def pool(request):
     au = request.session.get('au',0)
     if au == 0 : 
@@ -48,58 +51,80 @@ def SubjectPatientList(request):
     Disease=request.POST.get('Disease')
     filter=request.POST.get('filter')
     username=request.POST.get('username')
-    hospital=str(request.POST.get('hospital'))+'%'
+    hospital=str(request.POST.get('hospital'))
     request.session['diseaseCode']=Disease
     request.session['filter']=filter
     PID_previous_select = str(request.session.get('PID',0))
     cursor = connections['default'].cursor()
+    print(len(hospital))
     if filter=='0':
-        query = '''
-                select distinct a.chartNo,a.sno
-                from correlationPatientDisease as a 
-                    inner join allEvents as f on a.chartNo=f.chartNo
-                    inner join ExamStudySeries_5 as g on f.eventID=g.eventID
-                    where a.diseaseNo=%s and f.hospital like %s　order by a.chartNo
-        '''
-        cursor.execute(query,[Disease,hospital])
+        query = f"""
+            select * from correlationPatientDisease as a
+            inner join allEvents as b on a.chartNo=b.chartNo
+            inner join ExamStudySeries_5 as c on b.eventID=c.eventID
+            where a.diseaseNo = {Disease} 
+        """
+        if len(hospital)!=0:
+            query += f"""and b.hospital = {hospital}　"""
+        
+        query += f"""order by a.chartNo"""
+        start = time.time()
+        cursor.execute(query)
+        end = time.time()
+        print(format(end-start))
     elif filter=='1':
-        query = '''
-        select distinct chartNo,sno from (
-            select *,ISNULL(PID,0) as checked from (
-			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
-				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
-                ) as all_list
-                left outer join (
-                    select distinct PID from Localization where Disease=%s and username=%s
-                ) as located on all_list.chartNo=located.PID 
-            ) as list
-        where checked=0 order by chartNo
-        '''
-        cursor.execute(query,[hospital,Disease,Disease,username])
+        query = f"""
+        select * from (
+            select *,ISNULL(PID,0) as 'checked' from(
+                select a.* from correlationPatientDisease as a
+                inner join allEvents as b on a.chartNo=b.chartNo
+                inner join ExamStudySeries_5 as c on b.eventID=c.eventID
+                where a.diseaseNo = {Disease} """
+        if(len(hospital))!=0:
+            query += f"""and b.hospital=1"""
+        query += f"""
+            ) as a 
+            left join (
+                select distinct PID from Localization where Disease  = {Disease} and username = '{username}'
+            ) as b on a.chartNo=b.PID
+        ) as c where checked=0 order by chartNo
+        """
+        start = time.time()
+        cursor.execute(query)
+        end = time.time()
+        print(format(end-start))
     elif filter=='2':
         query = '''
-        select distinct chartNo,sno from (
-            select *,ISNULL(PID,0) as checked from (
-			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
-				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
-                ) as all_list
-                left outer join (
-                    select distinct PID from Localization where Disease=%s and username=%s
-                ) as located on all_list.chartNo=located.PID 
-            ) as list
-        where checked<>0 order by chartNo
+        select a.PID,a.Disease,b.sno from Localization as a
+        inner join correlationPatientDisease as b on a.PID=b.chartNo
+        where a.Disease=%s and a.username=%s and b.diseaseNo=%s
+        order by b.sno
         '''
-        cursor.execute(query,[hospital,Disease,Disease,username])
+        start = time.time()
+        cursor.execute(query,[Disease,username,Disease])
+        end = time.time()
+        print(format(end-start))
     sno=[]
     PatientListID=[]
     res = cursor.fetchall()
+    start = time.time()
+    object = ''
     for i in range(len(res)):
         PatientListID.append(str(res[i][0]))
-        sno.append(str(res[i][1]))
-    
-    return JsonResponse({'PatientListID': PatientListID,'sno':sno,'PID_previous_select':PID_previous_select})
+        sno.append(str(res[i][2]))
+    PatientListID=list(OrderedDict.fromkeys(PatientListID))    
+    sno=list(OrderedDict.fromkeys(sno)) 
+    for i in range(len(PatientListID)):
+        object += f"""
+            <tr><td>
+                <input type="radio" onclick="TimeReport()" name="Patient" id="Patient{i}">
+                <label for="Patient{i}">
+                    <p class="ID">{str(sno[i])}</p>
+                    <p class="PatientListID">{str(PatientListID[i])}</p>
+                </label>
+            </td></tr>
+        """
+    return JsonResponse({'PatientListID': PatientListID,'object':object,'PID_previous_select':PID_previous_select})
 
 @csrf_exempt
 def Patient_num(request):
@@ -107,48 +132,33 @@ def Patient_num(request):
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))+'%'
     cursor = connections['default'].cursor()
-    query = '''
-            select count(distinct a.chartNo)
-            from correlationPatientDisease as a 
-                inner join allEvents as f on a.chartNo=f.chartNo
-                inner join ExamStudySeries_5 as g on f.eventID=g.eventID
-                where a.diseaseNo=%s and hospital like %s
-    '''
-    cursor.execute(query,[Disease,hospital])
-    res = cursor.fetchall()
-    all = res
-    query = '''
-        select count(chartNo) from (
+    query = f"""
+        select count(distinct a.chartNo),'1' AS seq
+        from correlationPatientDisease as a 
+            inner join allEvents as f on a.chartNo=f.chartNo
+            inner join ExamStudySeries_5 as g on f.eventID=g.eventID
+            where a.diseaseNo={Disease} and hospital like '{hospital}'
+        UNION
+        select count(chartNo) ,'2' AS seq from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
-				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
+				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like '{hospital}'
+				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
                 ) as all_list
                 left outer join (
-                    select distinct PID from Localization where Disease=%s and username=%s
+                    select distinct PID from Localization where Disease={Disease} and username='{username}'
                 ) as located on all_list.chartNo=located.PID 
             ) as list
         where checked=0
-    '''
-    cursor.execute(query,[hospital,Disease,Disease,username])
+        UNION
+        select count(distinct PID) ,'3' AS seq from Localization where Disease={Disease} and username='{username}'
+        ORDER BY seq ASC
+    """
+    cursor.execute(query)
     res = cursor.fetchall()
-    unlabeled = res
-    query = '''
-        select count(chartNo) from (
-            select *,ISNULL(PID,0) as checked from (
-			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
-				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
-                ) as all_list
-                left outer join (
-                    select distinct PID from Localization where Disease=%s and username=%s
-                ) as located on all_list.chartNo=located.PID 
-            ) as list
-        where checked<>0
-    '''
-    cursor.execute(query,[hospital,Disease,Disease,username])
-    res = cursor.fetchall()
-    labeled = res
+    all = res[0][0]
+    unlabeled = res[1][0]
+    labeled = res[2][0]
     return JsonResponse({'all': all,'unlabeled':unlabeled,'labeled':labeled})
 
 

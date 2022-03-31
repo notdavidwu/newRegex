@@ -323,8 +323,9 @@
                             },
                             success:function (response){
                                 PatientListID=response.PatientListID
-                                sno=response.sno
                                 PID_previous_select=response.PID_previous_select
+                                object=response.object
+                            },complete:function(){
                                 $.ajax({
                                     type: 'post',
                                     url: '{% url "pool:Patient_num" %}', // this is the mapping between the url and view
@@ -338,16 +339,11 @@
                                         $('#filter option[value="0"]').text('全部'+'('+response.all+')')
                                         $('#filter option[value="1"]').text('尚未標註'+'('+response.unlabeled+')')
                                         $('#filter option[value="2"]').text('已標註'+'('+response.labeled+')')
-                                        for(var i=0;i<PatientListID.length;i++){
-                                            $('#SubjectPatient').children('table').append('' +
-                                                '<tr><td>' +
-                                                    '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
-                                                    '<label for="Patient'+i+'">'+
-                                                        '<p class="ID">'+sno[i]+'</p>'+
-                                                        '<p class="PatientListID">'+PatientListID[i]+'</p>'+
-                                                    '</label>' +
-                                                '</td></tr>')
-                                        }
+
+
+                                    },complete:function(){
+                                        $('#SubjectPatient').children('table').append(object)
+                                
                                         if("{{de_identification}}"=='False'){
                                             $('.ID').css('display','none')
                                             $('.PatientListID').css('display','inline')
@@ -365,8 +361,6 @@
                         })
                     }
                 })
-
-
             }
         })
         
@@ -385,7 +379,8 @@
                 },
                 success:function (response){
                     PatientListID = response.PatientListID
-                    sno = response.sno
+                    object=response.object
+                },complete:function(){
                     $.ajax({
                         type: 'post',
                         url: '{% url "pool:Patient_num" %}', // this is the mapping between the url and view
@@ -396,21 +391,13 @@
                             'hospital':JSON.parse(document.getElementById('hospital').textContent)
                         },
                         success:function (response){
-                            $('.loader').css('display','none')
+                            
                             $('#filter option[value="0"]').text('全部'+'('+response.all+')')
                             $('#filter option[value="1"]').text('尚未標註'+'('+response.unlabeled+')')
                             $('#filter option[value="2"]').text('已標註'+'('+response.labeled+')')
                             $('#PatientList').children('table').children('tbody').remove()
-                            for(var i=0;i<PatientListID.length;i++){
-                                $('#SubjectPatient').children('table').append('' +
-                                    '<tr><td>' +
-                                        '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
-                                        '<label for="Patient'+i+'">'+
-                                            '<p class="ID">'+sno[i]+'</p>'+
-                                            '<p class="PatientListID">'+PatientListID[i]+'</p>'+
-                                        '</label>' +
-                                    '</td></tr>')
-                            }
+                            $('#SubjectPatient').children('table').append(object)
+                    
                             if("{{de_identification}}"=='False'){
                                 $('.ID').css('display','none')
                                 $('.PatientListID').css('display','inline')
@@ -418,6 +405,7 @@
                                 $('.ID').css('display','inline')
                                 $('.PatientListID').css('display','none')
                             }
+                            $('.loader').css('display','none')
                         }
                     }) 
                 }
@@ -441,16 +429,9 @@
                     $('.loader').css('display','none')
                     $('#SubjectPatient').children('table').children('tr').remove()
                     $('#PatientList').children('table').children('tbody').remove()
-                    for(var i=0;i<response.PatientListID.length;i++){
-                        $('#SubjectPatient').children('table').append('' +
-                        '<tr><td>' +
-                            '<input type="radio" onclick="TimeReport()" name="Patient" id="Patient'+i+'">' +
-                            '<label for="Patient'+i+'">'+
-                                '<p class="ID">'+response.sno[i]+'</p>'+
-                                '<p class="PatientListID">'+response.PatientListID[i]+'</p>'+
-                            '</label>' +
-                        '</td></tr>')
-                    }
+                    
+                    $('#SubjectPatient').children('table').append(response.object)
+                    
                     if("{{de_identification}}"=='False'){
                         $('.ID').css('display','none')
                         $('.PatientListID').css('display','inline')
