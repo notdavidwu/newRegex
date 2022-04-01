@@ -13,10 +13,11 @@ from django.db import connections
 # python
 import pandas as pd
 import numpy as np
+import datetime
+from datetime import datetime as dt
 import plotly.express as px
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-
 from dash import Input, Output,dcc,html
 
 def SQL(sql, colname):
@@ -27,22 +28,30 @@ def SQL(sql, colname):
     return df
 
 def connect():
-    sql = '''
-            SELECT DISTINCT ChartNo, VisitNo, OccurDate, DivName, Ward, RRTWard
+    sql1 = '''
+            SELECT DISTINCT ChartNo, VisitNo, OccurDate, DivName, Ward, RRTWard, ICU
             FROM RRTFinish
             ORDER BY ChartNo, VisitNo, OccurDate
         '''
-    colname = ['ChartNo', 'VisitNo', 'OccurDate', 'DivName', 'Ward', 'RRTWard']
-    chdf = SQL(sql, colname)
+    colname1 = ['ChartNo', 'VisitNo', 'OccurDate', 'DivName', 'Ward', 'RRTWard', 'ICU']
+    chdf = SQL(sql1, colname1)
     chdf.set_index('OccurDate', inplace=True)
-    return chdf
+    
+    sql2 = '''
+        SELECT DISTINCT ChartNo, VisitNo, Ward, StartTime, EndTime
+        FROM RRTICUTime
+        ORDER BY ChartNo, VisitNo, StartTime
+      '''
+    colname2 = ['ChartNo', 'VisitNo', 'Ward', 'StartTime', 'EndTime']
+    icudf = SQL(sql2, colname2)
+    return chdf, icudf
 
-chdf = connect()
+chdf, icudf = connect()
 
 ##############################################################################################
 
 app = DjangoDash('MEWS',
-                 
+                 meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1'}],
                  external_stylesheets=[dbc.themes.QUARTZ]
                  )
 
@@ -116,7 +125,7 @@ def DateRangeEnd(end_date):
 
 ##############################################################################################
 
-def img(df):
+def img(df, chartno):
     fig = px.line()
     df1 = df[df['BP_V1'] > 0]
     fig.add_scatter(x=df1.index, y=df1['BP_V1'], name='BP', mode='lines+markers')
@@ -128,6 +137,37 @@ def img(df):
     fig.add_scatter(x=df4.index, y=df4['BT_V1'], name='BT', mode='lines+markers')
     df5 = df[df['SPO2_V1'] > 0]
     fig.add_scatter(x=df5.index, y=df5['SPO2_V1'], name='SPO2', mode='lines+markers')
+    
+    # 背景填色
+    if len(icudf[icudf['ChartNo'] == chartno]) == 0:
+        pass
+    else:
+        # 日期範圍
+        min_date = df.index.min()
+        max_date = df.index.max()
+        # 搜尋: ICU區間
+        icudff = icudf[icudf['ChartNo'] == chartno]
+        for i in range(len(icudff)):
+            start = icudff.iloc[i]['StartTime']
+            end = icudff.iloc[i]['EndTime']
+            if (end < min_date) or (max_date < start):
+                pass
+            else:
+                if (min_date < start) and (end < max_date):
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                elif (start < min_date) and (end < max_date):
+                    start = min_date
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                elif (min_date < start) and (max_date < end):
+                    end = max_date
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                elif (start < min_date) and (max_date < end):
+                    start = min_date
+                    end = max_date
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                else:
+                    pass
+    
     fig.update_layout(
         updatemenus=[
             dict(
@@ -1095,11 +1135,11 @@ def update_graph(start_date, end_date, chartno):
         df = HisData(chartno)
         #dff = DateRangeDf(df, None, None)
         dff = DateRangeDf(df, start_date, end_date)
-        fig = img(dff)
+        fig = img(dff, chartno)
     else:
         df = HisData(chartno)
         dff = DateRangeDf(df, start_date, end_date)
-        fig = img(dff)
+        fig = img(dff, chartno)
     return fig
 
 ##############################################################################################

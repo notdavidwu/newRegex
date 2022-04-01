@@ -62,7 +62,15 @@
       background: #555;
     }
     body{background:url("{% static 'image/texture.png' %}");-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow: hidden}
+    textarea {resize: none}
+    .ChartNo{display: none}
+    .OrderNo{display: none}
+    .eventID{display: none}
+    .pdID{display: none}
+    .loader{display:none;position:absolute;top:40%;left:50%}
+    .ball-grid-pulse div{background-color:#000000}
     @media (min-width: 0px) {
+        .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
         #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;min-width:150px;width: 15%;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
@@ -99,6 +107,7 @@
         #header_confirm{}
     }
     @media (min-width: 1200px) {
+        .loader2{display:none;position:absolute;top:52%;left:38%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt;}
         #Report tr{padding: 0;margin: 0}
         #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;width: 200px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
@@ -134,14 +143,7 @@
         #header_note{width:45%}
         #header_confirm{}
     }
-    textarea {resize: none}
-    .ChartNo{display: none}
-    .OrderNo{display: none}
-    .eventID{display: none}
-    .pdID{display: none}
-    .loader{display:none;position:absolute;top:40%;left:50%}
-    .loader2{display:none;position:absolute;top:50%;left:40%;transform: scale(2)}
-    .ball-grid-pulse div{background-color:#000000}
+
 </style>
 
 
