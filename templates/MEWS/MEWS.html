@@ -32,7 +32,9 @@
         <script src="{% static 'css_js/bootstrap-5.1.3-dist/js/bootstrap.min.js' %}"></script>
         <script src="{% static 'css_js/key_forbidden.js' %}"></script>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        
     </head>
+    
     <style>
         body{
             background:url("{% static 'image/texture.png' %}");
@@ -60,13 +62,19 @@
         #dashboard{
             position:absolute;
             top:55px;
-            width:100%;           
+            width:100%;
+            height:auto;
         }
+
     </style>
     <body >
+        
         {% include 'navBar.html' %}
-        <div id="dashboard">
-            {% plotly_app name='MEWS' ratio=1 %}
-        </div>
+        {% plotly_header %}
+        
+        {% plotly_direct   name='MEWS' %}
+        
+        {% plotly_footer %}
     </body >
+    
 </html>

@@ -945,14 +945,52 @@ def convertLocation(request):
     request.session['Click_X'] = z
     return JsonResponse({'x': x, 'y': y, 'z': z})
 
+@csrf_exempt
+def getAnnotationFactorGroup(request):
+    query ='''select factor from factorGroup order by id'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query)
+    res = cursor.fetchall()
+    factor=''
+    for i, object in enumerate(res):
+        factor += f'<option value={object[0]}>{object[0]}</option>'
+    return JsonResponse({'factor':factor})
 
+@csrf_exempt
+def getAnnotationFactorDetail(request):
+    factor_id = request.POST.get('factor_id')
+    query ='''select distinct detail from annotationFactor where factor=%s order by detail'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query,[factor_id])
+    res = cursor.fetchall()
+    detail=''
+    for i, object in enumerate(res):
+        detail += f'<option value="{object[0]}">'
+    return JsonResponse({'detail':detail})
+
+@csrf_exempt
+def insertAnnotationFactor(request):
+    a_id = request.POST.get('a_id')
+    factor = request.POST.getlist('factor[]')
+    detail = request.POST.getlist('detail[]')
+    detail = np.delete(np.array(detail),np.where(np.array(factor)=='請選擇')[0]).tolist()
+    factor = np.delete(np.array(factor),np.where(np.array(factor)=='請選擇')[0]).tolist()
+    factor = np.delete(np.array(factor),np.where(np.array(detail)=='')[0]).tolist()
+    detail = np.delete(np.array(detail),np.where(np.array(detail)=='')[0]).tolist()
+    delete_query = '''delete from annotationFactor where a_id=%s'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(delete_query,[a_id])
+    insert_query = '''insert into annotationFactor (a_id,factor,detail) values(%s,%s,%s)'''
+    cursor = connections['AIC'].cursor()
+    for perFactor, perDetail in zip(factor,detail):
+        cursor.execute(insert_query,[a_id,perFactor,perDetail])
+    return JsonResponse({})
 
 @csrf_exempt
 def insertLocation(request):
     Click_X = request.session.get('Click_X')
     Click_Y = request.session.get('Click_X')
     Click_Z = request.session.get('Click_X')
-
     x = float(request.POST.get('x'))
     y = float(request.POST.get('y'))
     z = float(request.POST.get('z'))
@@ -1000,35 +1038,30 @@ def insertLocation(request):
         Click_X = math.floor(Click_X)
         Click_Y = math.floor(Click_Y)
         Click_Z = math.floor(Click_Z)
-    # x, y, z = convert(x, y, z, Ori_W, Ori_H, Ori_D, plane, width, height, CT_tag)
 
-    x = str(x)
-    y = str(y)
-    z = str(z)
-    Click_X = str(Click_X)
-    Click_Y = str(Click_Y)
-    Click_Z = str(Click_Z)
+    x,y,z = str(x),str(y),str(z)
+    Click_X, Click_Y, Click_Z = str(Click_X), str(Click_Y), str(Click_Z)
     LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
     LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
     LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
-    query = '''
-    insert into　Localization (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,seriesID) 
-    values(''' + PID + ",'" + SD + "','" + Item + "','" + current_time + "','" + username + "'," + SUV + "," + x + "," + y + "," + z + ",'" + LabelGroup + "','" + LabelName + "','" + LabelRecord + "'," + Click_X + "," + Click_Y + "," + Click_Z + "," + Disease + ","+ StudyID+","  + SeriesID + ''')
-    '''
 
+    query = f'''
+    insert into　annotation (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,seriesID) 
+    output Inserted.id 
+    values({PID},'{SD}','{Item}','{current_time}','{username}',{SUV}, {x}, {y}, {z} ,'{LabelGroup}','{LabelName}','{LabelRecord}',{Click_X},{Click_Y},{Click_Z},{Disease},{StudyID},{SeriesID})
+    '''
     cursor = connections['AIC'].cursor()
     cursor.execute(query)
+    inserted_id = cursor.fetchone()[0]
 
-    string = request.POST.get('str').split(',')
-    Study_Date = request.POST.get('Study_Date').split(',')
+    string = request.POST.getlist('str[]')
+    Study_Date = request.POST.getlist('Study_Date[]')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-
     #PID = 'null' if (str(request.POST.get('PID')) == '') else fernet.decrypt(request.POST.get('PID').encode()).decode()
     PID = 'null' if (str(request.POST.get('PID')) == '') else  request.POST.get('PID')
-    string = request.POST.get('str').split(',')
     query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
     cursor = connections['AIC'].cursor()
@@ -1082,11 +1115,11 @@ def insertLocation(request):
         LabelRecord.append(info[12])
         StudyID.append(info[17])
         SeriesID.append(info[19])
-    print('c')
+
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
     return JsonResponse(
-        {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
+        {'inserted_id':inserted_id,'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,
          'indices': indices},
         status=200)
@@ -1094,10 +1127,8 @@ def insertLocation(request):
 
 @csrf_exempt
 def deleteLocation(request):
-
     id=str(request.POST.get('id'))
-    print(id)
-    querySearch='''SELECT PID,SD,StudyID,seriesID FROM Localization WHERE id=%s'''
+    querySearch='''SELECT PID,SD,StudyID,seriesID FROM annotation WHERE id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(querySearch,[id])
     info = cursor.fetchall()
@@ -1110,7 +1141,6 @@ def deleteLocation(request):
     else:
         dir= os.path.join('D:\\','image',PID,studyDate,studyID,seriesID,'segmentation',id)
     if os.path.isdir(dir):
-
         for ind in range(4):
             ind = str(ind)
             unet_contourList = request.session.get('unet_contour_'+ind)
@@ -1124,21 +1154,22 @@ def deleteLocation(request):
             except:
                 pass
         shutil.rmtree(dir)
-    query = '''delete from Localization where id=%s'''
+    query = '''delete from annotation where id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
-    print('done')
     query = '''delete from measureTumor where EventID=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
-    print('done')
+    query = '''delete from annotationFactor where a_id=%s'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query,[id])
+
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-    # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
-    string = request.POST.get('str').split(',')
-    Study_Date = request.POST.get('Study_Date').split(',')
+    string = request.POST.getlist('str[]')
+    Study_Date = request.POST.getlist('Study_Date[]')
     query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
     cursor = connections['AIC'].cursor()
@@ -1214,14 +1245,14 @@ def deleteLocation(request):
 def selectLocation(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-    # response = Localization.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
-    print()
+    # response = annotation.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
+
     PID = request.POST.get('PID')
-    string = request.POST.get('str').split(',')
-    studyDate = request.POST.get('date').split(',')
+    string = request.POST.getlist('str[]')
+    studyDate = request.POST.getlist('date[]')
     username = str(request.POST.get('username'))
     query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from Localization) as a 
+    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
     where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
     '''
     cursor = connections['AIC'].cursor()
@@ -1328,7 +1359,7 @@ def findSUV(request):
     SeriesID = request.POST.get('SeriesID')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(str(SeriesID))])
-    print(ind)
+
     if not (isNotPET):
         PET_H = request.session.get('PET_H_' + ind)
         PET_W = request.session.get('PET_W_' + ind)
@@ -1741,7 +1772,7 @@ def SaveCoordinate(request):
         view =  '(S)'
     query = ''' 
         INSERT INTO 
-            Localization 
+            annotation 
             (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
             VALUES 
             (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -1768,3 +1799,19 @@ def getusers(request):
     cursor.execute(query,[username])
     is_superuser = cursor.fetchall()[0][0]
     return JsonResponse({'users':users,'is_superuser':is_superuser}, status=200) 
+
+@csrf_exempt
+def getAnnotationFactor(request):
+    a_id = request.POST.get('a_id')
+    query='''select f_id, factor, detail from annotationFactor where a_id=%s'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query,[a_id])
+    print(a_id)
+    res = cursor.fetchall()
+    f_id,factor,detail = [],[],[]
+    for row in res :
+        f_id.append(row[0])
+        factor.append(row[1])
+        detail.append(row[2])
+    print(detail)
+    return JsonResponse({'f_id':f_id,'factor':factor,'detail':detail}, status=200) 

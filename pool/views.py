@@ -72,14 +72,14 @@ def SQL(cursor,filter,hospital,Disease,username):
         query += f"""
             ) as a 
             left join (
-                select distinct PID from Localization where Disease  = {Disease} and username = '{username}'
+                select distinct PID from annotation where Disease  = {Disease} and username = '{username}'
             ) as b on a.chartNo=b.PID
         ) as c where checked=0 order by chartNo
         """
         cursor.execute(query)
     elif filter=='2':
         query = '''
-        select a.PID,a.Disease,b.sno from Localization as a
+        select a.PID,a.Disease,b.sno from annotation as a
         inner join correlationPatientDisease as b on a.PID=b.chartNo
         where a.Disease=%s and a.username=%s and b.diseaseNo=%s
         order by b.sno
@@ -138,12 +138,12 @@ def Patient_num(request):
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
                 ) as all_list
                 left outer join (
-                    select distinct PID from Localization where Disease={Disease} and username='{username}'
+                    select distinct PID from annotation where Disease={Disease} and username='{username}'
                 ) as located on all_list.chartNo=located.PID 
             ) as list
         where checked=0
         UNION
-        select count(distinct PID) ,'3' AS seq from Localization where Disease={Disease} and username='{username}'
+        select count(distinct PID) ,'3' AS seq from annotation where Disease={Disease} and username='{username}'
         ORDER BY seq ASC
     """
     cursor.execute(query)

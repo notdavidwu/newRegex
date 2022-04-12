@@ -48,5 +48,9 @@ urlpatterns = [
     path('cancer/', views.cancer, name='cancer'),
     path('convert_MRI_coordinate/', views.convert_MRI_coordinate, name='convert_MRI_coordinate'),
     path('getusers/', views.getusers, name='getusers'),
+    path('insertAnnotationFactor/', views.insertAnnotationFactor, name='insertAnnotationFactor'),
+    path('getAnnotationFactorGroup/', views.getAnnotationFactorGroup, name='getAnnotationFactorGroup'),
+    path('getAnnotationFactorDetail/', views.getAnnotationFactorDetail, name='getAnnotationFactorDetail'),
+    path('getAnnotationFactor/', views.getAnnotationFactor, name='getAnnotationFactor'),
     
 ]

@@ -18,7 +18,9 @@ from datetime import datetime as dt
 import plotly.express as px
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-from dash import Input, Output,dcc,html
+#import dash_core_components as dcc
+#import dash_html_components as html
+from dash import dcc, html, Input, Output
 
 def SQL(sql, colname):
     cursor = connections['MEWS'].cursor()
@@ -28,20 +30,20 @@ def SQL(sql, colname):
     return df
 
 def connect():
-    sql1 = '''
-            SELECT DISTINCT ChartNo, VisitNo, OccurDate, DivName, Ward, RRTWard, ICU
+    sql1 =  '''
+            SELECT DISTINCT ChartNo, VisitNo, OccurDate, DivName, Ward, RRTWard, ICU, SPO2_V1, GCS_V
             FROM RRTFinish
             ORDER BY ChartNo, VisitNo, OccurDate
-        '''
-    colname1 = ['ChartNo', 'VisitNo', 'OccurDate', 'DivName', 'Ward', 'RRTWard', 'ICU']
+            '''
+    colname1 = ['ChartNo', 'VisitNo', 'OccurDate', 'DivName', 'Ward', 'RRTWard', 'ICU', 'SPO2_V1', 'GCS_V']
     chdf = SQL(sql1, colname1)
     chdf.set_index('OccurDate', inplace=True)
     
-    sql2 = '''
-        SELECT DISTINCT ChartNo, VisitNo, Ward, StartTime, EndTime
-        FROM RRTICUTime
-        ORDER BY ChartNo, VisitNo, StartTime
-      '''
+    sql2 =  '''
+            SELECT DISTINCT ChartNo, VisitNo, Ward, StartTime, EndTime
+            FROM RRTICUTime
+            ORDER BY ChartNo, VisitNo, StartTime
+            '''
     colname2 = ['ChartNo', 'VisitNo', 'Ward', 'StartTime', 'EndTime']
     icudf = SQL(sql2, colname2)
     return chdf, icudf
@@ -61,16 +63,16 @@ app.title = 'AIC: MEWS'
 
 sql = '''
         SELECT DISTINCT ChartNo, VisitNo, OccurDate,
-                BP_V1, Score1, PULSE_V1, Score2, RESPIRATORY_V1, Score3,
-                BT_V1, Score4, SPO2_V1, Score5,
-                GCS_V, Score6, Score, RRT
+                BP_V1, PULSE_V1, RESPIRATORY_V1,
+                BT_V1, SPO2_V1,
+                GCS_V, Score6_E, Score6_M, Score6_V, Score6, RRT
         FROM RRTFinish
         WHERE ChartNo=%s
         ORDER BY ChartNo, VisitNo, OccurDate
       '''
 colname = ['ChartNo', 'VisitNo', 'OccurDate',
-           'BP_V1', 'Score1', 'PULSE_V1', 'Score2', 'RESPIRATORY_V1', 'Score3',
-           'BT_V1', 'Score4', 'SPO2_V1', 'Score5','GCS_V', 'Score6', 'Score', 'RRT']
+           'BP_V1', 'PULSE_V1', 'RESPIRATORY_V1', 'BT_V1', 'SPO2_V1',
+           'GCS_V', 'Score6_E', 'Score6_M', 'Score6_V', 'Score6', 'RRT']
 
 def HisData(chartno):
     cursor = connections['MEWS'].cursor()
@@ -125,6 +127,22 @@ def DateRangeEnd(end_date):
 
 ##############################################################################################
 
+def Feature(df, SPO2, GCS):
+    # 按鈕偵測: SPO2指標
+    if SPO2:
+        df1 = df[df['SPO2_V1'] != 0]
+    else:
+        df1 = df
+    
+    # 按鈕偵測: GCS指標
+    if GCS:
+        df2 = df1[df1['GCS_V'] != '']
+    else:
+        df2 = df1
+    return df2
+
+##############################################################################################
+
 def img(df, chartno):
     fig = px.line()
     df1 = df[df['BP_V1'] > 0]
@@ -137,6 +155,8 @@ def img(df, chartno):
     fig.add_scatter(x=df4.index, y=df4['BT_V1'], name='BT', mode='lines+markers')
     df5 = df[df['SPO2_V1'] > 0]
     fig.add_scatter(x=df5.index, y=df5['SPO2_V1'], name='SPO2', mode='lines+markers')
+    df6 = df[df['GCS_V'] != '']
+    fig.add_scatter(x=df6.index, y=df6['Score6'], name='GCS', mode='lines+markers')
     
     # 背景填色
     if len(icudf[icudf['ChartNo'] == chartno]) == 0:
@@ -150,21 +170,26 @@ def img(df, chartno):
         for i in range(len(icudff)):
             start = icudff.iloc[i]['StartTime']
             end = icudff.iloc[i]['EndTime']
+            ward = icudff.iloc[i]['Ward']
             if (end < min_date) or (max_date < start):
                 pass
             else:
                 if (min_date < start) and (end < max_date):
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
+                                  layer='below', line_width=0, annotation_text=ward)
                 elif (start < min_date) and (end < max_date):
                     start = min_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
+                                  layer='below', line_width=0, annotation_text=ward)
                 elif (min_date < start) and (max_date < end):
                     end = max_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
+                                  layer='below', line_width=0, annotation_text=ward)
                 elif (start < min_date) and (max_date < end):
                     start = min_date
                     end = max_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, layer='below', line_width=0)
+                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
+                                  layer='below', line_width=0, annotation_text=ward)
                 else:
                     pass
     
@@ -173,42 +198,48 @@ def img(df, chartno):
             dict(
                 direction='right',
                 active=0,
-                x=0.08,
-                y=1.2,
+                x=0.1068,
+                y=1.21,
                 buttons=list([
                     dict(label='All',
                          method='update',
-                         args=[ {'visible': [True, True, True, True, True]},
+                         args=[ {'visible': [True, True, True, True, True, True]},
                                 {'showlegend' : True}
                               ]
                         ),
                     dict(label='BP', 
                          method='update', 
-                         args=[ {'visible': [True, False, False, False, False]}, 
+                         args=[ {'visible': [True, False, False, False, False, False]}, 
                                 {'showlegend' : True}
                               ]
                         ),
                     dict(label='PULSE', 
                          method='update', 
-                         args=[ {'visible': [False, True, False, False, False]}, 
+                         args=[ {'visible': [False, True, False, False, False, False]}, 
                                 {'showlegend' : True}
                               ]
                         ),
                     dict(label='RESPIRATORY', 
                          method='update', 
-                         args=[ {'visible': [False, False, True, False, False]}, 
+                         args=[ {'visible': [False, False, True, False, False, False]}, 
                                 {'showlegend' : True}
                               ]
                         ),
                     dict(label='BT', 
                          method='update', 
-                         args=[ {'visible': [False, False, False, True, False]}, 
+                         args=[ {'visible': [False, False, False, True, False, False]}, 
                                 {'showlegend' : True}
                               ]
                         ),
                     dict(label='SPO2', 
                          method='update', 
-                         args=[ {'visible': [False, False, False, False, True]}, 
+                         args=[ {'visible': [False, False, False, False, True, False]}, 
+                                {'showlegend' : True}
+                              ]
+                        ),
+                    dict(label='GCS', 
+                         method='update', 
+                         args=[ {'visible': [False, False, False, False, False, True]}, 
                                 {'showlegend' : True}
                               ]
                         ),
@@ -324,13 +355,13 @@ def Color(RRT, Max):
             if 94.5<Max[i]:
                 value = {'red':[0, 84.5],
                          '#ff7300':[84.5, 89.5],
-                         'yellow':[89.5, 94.5],
-                         'green':[94.5, Max[i]]
+                         '#deed07':[89.5, 94.5],
+                         '#23b000':[94.5, Max[i]]
                         }
             elif 89.5<Max[i]<94.5:
                 value = {'red':[0, 84.5],
                          '#ff7300':[84.5, 89.5],
-                         'yellow':[89.5, Max[i]]
+                         '#deed07':[89.5, Max[i]]
                         }
             elif 84.5<Max[i]<89.5:
                 value = {'red':[0, 84.5],
@@ -349,9 +380,15 @@ def Color(RRT, Max):
 def logo(app):
     title = html.H5(
         '',
-        style={'marginTop': 5, 'marginLeft': '10px'},
+        style={'marginTop': 55, 'marginLeft': '10px'},
     )
-    return dbc.Row([dbc.Col([dbc.Row([title])])])
+
+    info_about_app = html.H6(
+        ' '
+        '',
+        style={'marginLeft': '10px'},
+    )
+    return dbc.Row([dbc.Col([dbc.Row([title]), dbc.Row([info_about_app])])])
 
 ##############################################################################################
 
@@ -363,6 +400,7 @@ chartno_led = dbc.Card(
             style={
                 'text-align': 'center',
                 'color': 'white',
+                'z-index':'0',
                 'border-radius': '1px',
                 'border-width': '5px',
             },
@@ -443,18 +481,18 @@ button_ward = dbc.Card(
                                 ),
                             ],
                             style={'display': 'inline-block',
-                                   'width': '160px',
+                                   'width': '150px',
                             }
                         ),
                         html.Div(
                             [
                                 'ICU:',
-                                daq.BooleanSwitch(id='boolean-switch', on=False),
+                                daq.BooleanSwitch(id='ward-boolean-switch', on=False),
                             ],
                         ),
                     ],
                     style={'display': 'flex',
-                           'justify-content': 'space-around',
+                           'justify-content': 'space-between',
                            'align-items': 'center',
                            'height': '30px',
                           }
@@ -490,7 +528,7 @@ button_div = dbc.Card(
                                 ),
                             ],
                             style={'display': 'inline-block',
-                                   'width': '190px',
+                                   'width': '175px',
                             }
                          ),
                     ],
@@ -531,7 +569,7 @@ button_chartno = dbc.Card(
                                 )
                             ],
                             style={'display': 'inline-block',
-                                   'width': '170px',
+                                   'width': '145px',
                             }
                          )
 
@@ -561,12 +599,55 @@ graphs = dbc.Card(
             [
                 html.Div(
                     [
-                        dcc.Graph(
-                            id='mews-graph',
-                            config={'displayModeBar': False},
+                        dcc.Loading(
+                            id='loading-1',
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='mews-graph',
+                                            config={'displayModeBar': True},
+                                        ),
+                                    ],
+                                    style={
+                                        'marginBottom': '0.6%',
+                                    },
+                                )
+                            ],
+                            type='circle',
                         ),
-                        html.Pre(id='update-on-click-data'),
                     ],
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                'SPO2:',
+                                daq.BooleanSwitch(id='SPO2-boolean-switch', on=False),
+                            ],
+                            style={
+                                'display': 'flex',
+                                'justify-content': 'space-around',
+                                'width': '105px',
+                            },
+                        ),
+                        html.Div(
+                            [
+                                'GCS:',
+                                daq.BooleanSwitch(id='GCS-boolean-switch', on=False),
+                            ],
+                            style={
+                                'display': 'flex',
+                                'justify-content': 'space-around',
+                                'width': '95px',
+                            },
+                        ),
+                    ],
+                    style={
+                        'display': 'flex',
+                        'align-items': 'center',
+                        'marginBottom': '-1.45%',
+                    },
                 ),
             ],
             style={
@@ -574,7 +655,8 @@ graphs = dbc.Card(
                 'border-width': '5px',
             },
         )
-    ]
+    ],
+    style={'width': '99%'},
 )
 
 ##############################################################################################
@@ -603,8 +685,9 @@ BP_Gauge = dbc.Card(
                         style={
                             'align': 'center',
                             'display': 'flex',
-                            'marginTop': '5%',
-                            'marginBottom': '-10%',
+                            'marginTop': '8%',
+                            'marginBottom': '-25%',
+
                         },
                     ),
                     className='m-auto',
@@ -618,11 +701,13 @@ BP_Gauge = dbc.Card(
             className='d-flex',
             style={
                 'border-radius': '1px',
-                'border-width': '5px',
+                'justify-content': 'center',
             },
         ),
     ],
-    style={'height': '95%'},
+    style={'width': '95%',
+           'height': '370px',
+          },
 )
 
 ##############################################################################################
@@ -651,8 +736,8 @@ PULSE_Gauge = dbc.Card(
                         style={
                             'align': 'center',
                             'display': 'flex',
-                            'marginTop': '5%',
-                            'marginBottom': '-10%',
+                            'marginTop': '8%',
+                            'marginBottom': '-25%',
                         },
                     ),
                     className='m-auto',
@@ -666,11 +751,13 @@ PULSE_Gauge = dbc.Card(
             className='d-flex',
             style={
                 'border-radius': '1px',
-                'border-width': '5px',
+                'justify-content': 'center',
             },
         ),
     ],
-    style={'height': '95%'},
+    style={'width': '95%',
+           'height': '370px',
+          },
 )
 
 ##############################################################################################
@@ -699,8 +786,8 @@ RESPIRATORY_Gauge = dbc.Card(
                         style={
                             'align': 'center',
                             'display': 'flex',
-                            'marginTop': '5%',
-                            'marginBottom': '-10%',
+                            'marginTop': '8%',
+                            'marginBottom': '-25%',
                         },
                     ),
                     className='m-auto',
@@ -714,11 +801,13 @@ RESPIRATORY_Gauge = dbc.Card(
             className='d-flex',
             style={
                 'border-radius': '1px',
-                'border-width': '5px',
+                'justify-content': 'center',
             },
         ),
     ],
-    style={'height': '95%'},
+    style={'width': '95%',
+           'height': '370px',
+          },
 )
 
 ##############################################################################################
@@ -747,8 +836,8 @@ BT_Gauge = dbc.Card(
                         style={
                             'align': 'center',
                             'display': 'flex',
-                            'marginTop': '5%',
-                            'marginBottom': '-10%',
+                            'marginTop': '8%',
+                            'marginBottom': '-25%',
                         },
                     ),
                     className='m-auto',
@@ -762,11 +851,13 @@ BT_Gauge = dbc.Card(
             className='d-flex',
             style={
                 'border-radius': '1px',
-                'border-width': '5px',
+                'justify-content': 'center',
             },
         ),
     ],
-    style={'height': '95%'},
+    style={'width': '95%',
+           'height': '370px',
+          },
 )
 
 ##############################################################################################
@@ -795,8 +886,8 @@ SPO2_Gauge = dbc.Card(
                         style={
                             'align': 'center',
                             'display': 'flex',
-                            'marginTop': '5%',
-                            'marginBottom': '-10%',
+                            'marginTop': '8%',
+                            'marginBottom': '-25%',
                         },
                     ),
                     className='m-auto',
@@ -810,22 +901,121 @@ SPO2_Gauge = dbc.Card(
             className='d-flex',
             style={
                 'border-radius': '1px',
-                'border-width': '5px',
+                'justify-content': 'center',
             },
         ),
     ],
-    style={'height': '95%'},
+    style={'width': '95%',
+           'height': '370px',
+          },
 )
 
 ##############################################################################################
 
-# 版面色系
+# 測量計: GCS
+GCS_Gauge = dbc.Card(
+    children=[
+        dbc.CardHeader(
+            'MEWS: GCS ( E / M / V )',
+            style={
+                'display': 'inline-block',
+                'text-align': 'center',
+                'color': 'white',
+                'border-radius': '1px',
+                'border-width': '5px',
+            },
+        ),
+        dbc.CardBody(
+            [
+                html.Div(
+                    daq.Thermometer(
+                        id='GCS-E-thermometer',
+                        units='分',
+                        min=-1,
+                        max=4,
+                        showCurrentValue=True,
+                        style={
+                            'align': 'center',
+                            'display': 'flex',
+                            'marginTop': '-10%',
+                            'marginBottom': '-95%',
+                        },
+                    ),
+                    className='m-auto',
+                    style={
+                        'display': 'flex',
+                        'border-radius': '1px',
+                        'border-width': '5px',
+                    },
+                ),
+                html.Div(
+                    daq.Thermometer(
+                        id='GCS-M-thermometer',
+                        units='分',
+                        min=-1,
+                        max=4,
+                        showCurrentValue=True,
+                        style={
+                            'align': 'center',
+                            'display': 'flex',
+                            'marginTop': '-10%',
+                            'marginBottom': '-95%',
+                        },
+                    ),
+                    className='m-auto',
+                    style={
+                        'display': 'flex',
+                        'border-radius': '1px',
+                        'border-width': '5px',
+                    },
+                ),
+                html.Div(
+                    daq.Thermometer(
+                        id='GCS-V-thermometer',
+                        units='分',
+                        min=-1,
+                        max=4,
+                        showCurrentValue=True,
+                        style={
+                            'align': 'center',
+                            'display': 'flex',
+                            'marginTop': '-10%',
+                            'marginBottom': '-95%',
+                        },
+                    ),
+                    className='m-auto',
+                    style={
+                        'display': 'flex',
+                        'border-radius': '1px',
+                        'border-width': '1px',
+                    },
+                )
+            ],
+            className='d-flex',
+            style={
+                'border-radius': '1px',
+                'align-items': 'center',
+                'justify-content': 'space-around',
+            },
+        ),
+    ],
+    style={'width': '95%',
+           'height': '370px',
+          },
+)
+
+##############################################################################################
+
+# UI主題
 theme = {
     'dark': True,
     'detail': '#06FF00',
     'primary': '#00EA64',
     'secondary': '#6E6E6E',
 }
+graphs = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=graphs)]
+)
 button_ward = html.Div(
     children=[daq.DarkThemeProvider(theme=theme, children=button_ward)]
 )
@@ -844,13 +1034,17 @@ BT_Gauge = html.Div(
 SPO2_Gauge = html.Div(
     children=[daq.DarkThemeProvider(theme=theme, children=SPO2_Gauge)]
 )
+GCS_Gauge = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=GCS_Gauge)]
+)
 
 ##############################################################################################
 
 # Web介面
 sidebar_size = 12
 graph_size = 10
-gauge_size = 'auto'
+gauge_size = 2
+GCS_size = 2
 app.layout = dbc.Container(
     fluid=True,
     children=[
@@ -865,7 +1059,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99999'}
+                                        style={'z-index': '5'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_date,
@@ -874,7 +1068,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99998'}
+                                        style={'z-index': '4'}
                                        )
                         ),
                         dbc.Row(
@@ -884,7 +1078,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99997'}
+                                        style={'z-index': '3'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_div,
@@ -893,7 +1087,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99996'}
+                                        style={'z-index': '2'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_chartno,
@@ -902,10 +1096,11 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99995'}
+                                        style={'z-index': '1'}
                                        )
                         ),
-                    ]
+                    ],
+                    #width=2
                 ),
                 dbc.Col(graphs,
                         xs=graph_size,
@@ -916,7 +1111,7 @@ app.layout = dbc.Container(
             ],
             style={
                 'display': 'flex',
-                'marginBottom': '1%'
+                'marginBottom': '1%',
                    }
         ),
         dbc.Row(
@@ -951,13 +1146,24 @@ app.layout = dbc.Container(
                         md=gauge_size,
                         lg=gauge_size,
                         width=gauge_size),
+                dbc.Col(GCS_Gauge,
+                        xs=GCS_size,
+                        sm=GCS_size,
+                        md=GCS_size,
+                        lg=GCS_size,
+                        width=GCS_size),
             ],
-            justify='end',
+            justify='center',
             style={
                 'marginTop': '1%',
             },
         ),
+        dbc.Row(html.Pre(id='space')),
     ],
+    style={
+        'overflow-x': 'hidden',
+        'overflow-y': 'hidden',
+    }
 )
 
 ##############################################################################################
@@ -967,17 +1173,21 @@ app.layout = dbc.Container(
     Output('date-picker', 'min_date_allowed'),
     Output('date-picker', 'max_date_allowed'),
     Output('date-picker', 'initial_visible_month'),
-    Input('boolean-switch', 'on'),
+    Input('ward-boolean-switch', 'on'),
+    Input('SPO2-boolean-switch', 'on'),
+    Input('GCS-boolean-switch', 'on'),
     Input('ward-dropdown', 'value'),
     Input('div-dropdown', 'value'),
     Input('chartno-dropdown', 'value')
 )
-def update_chartno(on, ward, div, chartno):
+def update_chartno(on, SPO2, GCS, ward, div, chartno):
     # 按鈕偵測: ICU
     if on:
-        df = chdf[chdf['RRTWard'] == 1]
+        icudf = chdf[chdf['RRTWard'] == 1]
+        df = Feature(icudf, SPO2, GCS)
     else:
-        df = chdf[chdf['RRTWard'] == 0]
+        icudf = chdf[chdf['RRTWard'] == 0]
+        df = Feature(icudf, SPO2, GCS)
     
     # 按鈕偵測: 護理站
     if ward is None:
@@ -1009,18 +1219,22 @@ def update_chartno(on, ward, div, chartno):
 # 篩選器: 護理站選單
 @app.callback(
     Output('ward-dropdown', 'options'),
-    Input('boolean-switch', 'on'),
+    Input('ward-boolean-switch', 'on'),
+    Input('SPO2-boolean-switch', 'on'),
+    Input('GCS-boolean-switch', 'on'),
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'),
     Input('div-dropdown', 'value'),
     Input('chartno-dropdown', 'value')
 )
-def update_ward(on, start_date, end_date, div, chartno):
+def update_ward(on, SPO2, GCS, start_date, end_date, div, chartno):
     # 按鈕偵測: ICU
     if on:
-        df = chdf[chdf['RRTWard'] == 1]
+        icudf = chdf[chdf['RRTWard'] == 1]
+        df = Feature(icudf, SPO2, GCS)
     else:
-        df = chdf[chdf['RRTWard'] == 0]
+        icudf = chdf[chdf['RRTWard'] == 0]
+        df = Feature(icudf, SPO2, GCS)
     
     # 按鈕偵測: 日期, 科別
     start_date, end_date = DateRange(df, start_date, end_date)
@@ -1042,18 +1256,22 @@ def update_ward(on, start_date, end_date, div, chartno):
 # 篩選器: 科別選單
 @app.callback(
     Output('div-dropdown', 'options'),
-    Input('boolean-switch', 'on'),
+    Input('ward-boolean-switch', 'on'),
+    Input('SPO2-boolean-switch', 'on'),
+    Input('GCS-boolean-switch', 'on'),
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'),
     Input('ward-dropdown', 'value'),
     Input('chartno-dropdown', 'value')
 )
-def update_div(on, start_date, end_date, ward, chartno):
+def update_div(on, SPO2, GCS, start_date, end_date, ward, chartno):
     # 按鈕偵測: ICU
     if on:
-        df = chdf[chdf['RRTWard'] == 1]
+        icudf = chdf[chdf['RRTWard'] == 1]
+        df = Feature(icudf, SPO2, GCS)
     else:
-        df = chdf[chdf['RRTWard'] == 0]
+        icudf = chdf[chdf['RRTWard'] == 0]
+        df = Feature(icudf, SPO2, GCS)
         
     # 按鈕偵測: 日期, 護理站
     start_date, end_date = DateRange(df, start_date, end_date)
@@ -1075,18 +1293,22 @@ def update_div(on, start_date, end_date, ward, chartno):
 # 篩選器: 病歷號選單
 @app.callback(
     Output('chartno-dropdown', 'options'),
-    Input('boolean-switch', 'on'),
+    Input('ward-boolean-switch', 'on'),
+    Input('SPO2-boolean-switch', 'on'),
+    Input('GCS-boolean-switch', 'on'),
     Input('date-picker', 'start_date'),
     Input('date-picker', 'end_date'),
     Input('ward-dropdown', 'value'),
     Input('div-dropdown', 'value')
 )
-def update_chartno(on, start_date, end_date, ward, div):
+def update_chartno(on, SPO2, GCS, start_date, end_date, ward, div):
     # 按鈕偵測: ICU
     if on:
-        df = chdf[chdf['RRTWard'] == 1]
+        icudf = chdf[chdf['RRTWard'] == 1]
+        df = Feature(icudf, SPO2, GCS)
     else:
-        df = chdf[chdf['RRTWard'] == 0]
+        icudf = chdf[chdf['RRTWard'] == 0]
+        df = Feature(icudf, SPO2, GCS)
     
     # 按鈕偵測: 護理站, 科別
     if (ward is None) and (div is None):
@@ -1140,6 +1362,7 @@ def update_graph(start_date, end_date, chartno):
         df = HisData(chartno)
         dff = DateRangeDf(df, start_date, end_date)
         fig = img(dff, chartno)
+    
     return fig
 
 ##############################################################################################
@@ -1161,6 +1384,12 @@ def update_graph(start_date, end_date, chartno):
     Output('SPO2-gauge', 'value'),
     Output('SPO2-gauge', 'max'),
     Output('SPO2-gauge', 'color'),
+    Output('GCS-E-thermometer', 'value'),
+    Output('GCS-E-thermometer', 'color'),
+    Output('GCS-M-thermometer', 'value'),
+    Output('GCS-M-thermometer', 'color'),
+    Output('GCS-V-thermometer', 'value'),
+    Output('GCS-V-thermometer', 'color'),
     Input('mews-graph', 'clickData'),
     Input('chartno-dropdown', 'value')
 )
@@ -1190,6 +1419,9 @@ def display_click_data(clickData, chartno):
     # 按鈕偵測: 圖表
     if clickData is None:
         key = [0] * len(RRT)
+        key_E = 0
+        key_M = 0
+        key_V = 0
     else:
         data_time = clickData['points'][0]['x']
         
@@ -1205,6 +1437,9 @@ def display_click_data(clickData, chartno):
         # 刷新: 儀錶板重置
         if len(df[(chartno == df['ChartNo']) & (data_time == df.index)]) == 0:
             key = [0] * len(RRT)
+            key_E = 0
+            key_M = 0
+            key_V = 0
         else:
             # 數值抓取
             dff = df[data_time == df.index]
@@ -1215,10 +1450,35 @@ def display_click_data(clickData, chartno):
                     key.append(int(v))
                 else:
                     key.append(float(v))
+            key_E = dff['Score6_E'][0]
+            key_M = dff['Score6_M'][0]
+            key_V = dff['Score6_V'][0]
+            
+    # 量計樣式
+    key_GCS = [key_E, key_M, key_V]
+    color_GCS = []
+    for i in range(len(key_GCS)):
+        if key_GCS[i] == 0:
+            c = theme['primary']
+            color_GCS.append(c)
+        elif key_GCS[i] == 1:
+            c = 'yellow'
+            color_GCS.append(c)
+        elif key_GCS[i] == 2:
+            c = 'orange'
+            color_GCS.append(c)
+        elif key_GCS[i] == 3:
+            c = 'red'
+            color_GCS.append(c)
+        else:
+            pass
 
     return (key[0], Max[0], color[0],
             key[1], Max[1], color[1],
             key[2], Max[2], color[2],
             key[3], Max[3], color[3],
-            key[4], Max[4], color[4]
+            key[4], Max[4], color[4],
+            key_E, color_GCS[0],
+            key_M, color_GCS[1],
+            key_V, color_GCS[2],
            )

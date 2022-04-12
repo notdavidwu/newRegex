@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+from pickle import FALSE, TRUE
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
@@ -25,11 +26,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = FALSE
 
 ALLOWED_HOSTS = []
 
+import mimetypes
+mimetypes.add_type("text/css", ".css", True)
 
+COMPRESS_OFFLINE = True 
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,7 +60,8 @@ INSTALLED_APPS = [
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'channels',
     'channels_redis',
-    'MEWS.apps.MEWSConfig'
+    'MEWS.apps.MEWSConfig',
+    'compressor',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -79,6 +84,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_globals.middleware.Global',
+    'django_plotly_dash.middleware.BaseMiddleware',
 ]
 
 ROOT_URLCONF = 'djangoProject.urls'
@@ -222,7 +228,8 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'django_plotly_dash.finders.DashAssetFinder',
-    'django_plotly_dash.finders.DashComponentFinder'
+    'django_plotly_dash.finders.DashComponentFinder',
+    'compressor.finders.CompressorFinder'
 ]
 
 PLOTLY_COMPONENTS = [
@@ -242,6 +249,7 @@ TIME_ZONE = 'Asia/Taipei'
 ALLOWED_HOSTS = ['*']
 
 STATIC_URL = '/static/'
+COMPRESS_ROOT = '/static/'
 HERE = os.path.dirname(os.path.abspath(__file__))
 HERE = os.path.join(HERE, '../')
 STATICFILES_DIRS = (

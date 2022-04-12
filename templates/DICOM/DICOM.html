@@ -2,7 +2,7 @@
 
 {% load static%}
 {% block content %}
-
+{% load compress %}
 <!DOCTYPE html>
 <html lang="zh-Hant" >
 <head>
@@ -28,9 +28,13 @@
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-select-1.13.14/dist/css/bootstrap-select.css' %}">
+    
+    
     <!-- JS, Popper.js, and jQuery -->
 
     <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-select-1.13.14/dist/js/bootstrap-select.js' %}">
     <script src="{% static 'css_js/popper.min.js' %}"></script>
     <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
@@ -39,8 +43,8 @@
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'css_js/key_forbidden.js' %}"></script>
     <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
-  
     <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+    
     
 
     <title>DICOM</title>
@@ -346,11 +350,11 @@
     .data{font-size:12pt;line-height: 15px;display: block;color: #11171a;width: 100%;margin: 0;margin-bottom: 5px;text-align: center}
     .data1{font-size:10pt;line-height: 12px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center;word-break:break-all;word-wrap:break-word}
     #Disease{z-index: 2;position: fixed; height: 40px; top: 55px; width: 9.9%; margin: 0px; right: 20%;border-radius: 0px 0px 5px 5px;}
-    #tumor{height: 145px;display: none;position: fixed;z-index: 3;background-color:#CCCCCC ;width: 120px;padding: 5px;border-radius:10px; -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
-    #tumor input{border-radius:5px;margin-bottom: 5px ;width: 100%}
-    #tumor a{color:#FFFFFF}
+    #tumor{height: 150px;display: none;position: fixed;z-index: 10;background-color:#CCCCCC ;width: 400px;padding: 5px;border-radius:10px; -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #LabelRecord{border-radius:5px;margin-bottom: 5px ;width: 100%}
+    #tumor_comfirm{color:#FFFFFF;width: 100%;height:30px;line-height:15px}
     #tumor select{margin-bottom: 5px;}
-    #SUV_Localmax{border-collapse: collapse;  overflow: hidden;border-radius:5px; background-color: #FFFFFF;border: #0d0d0d 1px solid;width: 106px;text-align: center}
+    #SUV_Localmax{border-collapse: collapse;  overflow: hidden;border-radius:5px; background-color: #FFFFFF;width: 106px;text-align: center}
     .Localmax_SUV{display: inline;color: #11171a;width: 106px}
     input[name="localmax"] + label{width: 106px}
     input[name="localmax"]:checked ~label{background-color: #e78632}
@@ -364,8 +368,9 @@
     .examReport{display: none}
     input[name='Report']{display: inline}
     textarea {resize: none; width: 100% ;height: 100%;padding:10px;padding-right:35px;text-justify:inter-ideograph;text-align: justify;line-height:20px; }
-
-    
+    #basic{width: 120px;background:#FFFFFF;padding:5px;border-radius:10px;height:100%}
+    #factor{overflow-y:scroll;position:absolute;top:0;left:calc(120px + 5px);width: calc(100% - 135px);background:#FFFFFF;padding:5px;border-radius:10px;height:calc(100% - 10px);margin:5px}
+    #SUV_Localmax{border: 2px solid black;}
     @-webkit-keyframes load7 {
       0%,
       80%,
@@ -405,8 +410,14 @@
 
     .loader{position:absolute;top:50%;left:50%}
     #SaveCoordinate{display:none}
+    .addButton button{width:100%;height:20px;line-height:10px}
+    .menublock{width:100%;height:30px}
+    .factor{position:absolute;left:10px;width: 30%;height: 25px;padding-top: 0;margin:0;border-radius:5px;font-size:12pt;padding:0px}
+    .detail{position:absolute;left:calc(30% + 20px);width: calc(60% - 25px);height: 25px;padding-top: 0;margin:0;border-radius:5px;padding:0px}
+    #annotation_basic_info{display: block;padding-top:5px;padding-bottom:5px}
+    #annotation_basic_info div{font-weight:600}
+    .annotation_factor_delete{position:absolute;right:5px}
 </style>
-
 
 
 <script>
@@ -1006,17 +1017,11 @@
 
         scrolling=false
         let imageType = $('#frame'+name).children('label').children('div').children('div').children('.StudyDes').text()
-        var Con=[]
         if (imageType != 'MRI'){
-            for(var i =0;i<4;i++) {
-                Con.push($('.StudyDes').eq(i).text()+'_'+$('.StudyID').eq(i).text()+'_'+$('.StudyDate').eq(i).text()+'_'+$('.SeriesID').eq(i).text())
-            }
+            var Con = $('.StudyDate').map(function(){return $(this).prevAll('.StudyDes').text()+'_'+$(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()}).get()
         }else{
-            for(var i =0;i<4;i++) {
-                Con.push($('.StudyDes').eq(i).text()+'_'+$('.StudyID').eq(i).text()+'_'+$('.StudyDate').eq(i).text()+'_'+$('.SeriesID').eq(i).text()[1])
-            }
+            var Con = $('.StudyDate').map(function(){return $(this).prevAll('.StudyDes').text()+'_'+$(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()[1]}).get()
         }
-
 
         for(var i =0;i<4;i++) {
             if(Con[i]==Con[name-1]){
@@ -1126,10 +1131,7 @@
         var ly=$(event.target).next('label').children('.Localmax_y').text()
         var lz=$(event.target).next('label').children('.Localmax_z').text()
         var lsuv=$(event.target).next('label').children('.Localmax_SUV').text()
-        var Con=[]
-        for(var i =0;i<4;i++) {
-            Con.push($('.StudyID').eq(i).text()+$('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
-        }
+        var Con = $('.StudyDate').map(function(){return $(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()}).get()
         for(var i =0;i<4;i++) {
             if(Con[i]==Con[name-1]){
                 var ind=i+1
@@ -1178,15 +1180,6 @@
         $('#frame'+WindowNo).children("label").children('div').children('div').children('img').css('display','none')
         $('.loader').css('top',$("#frame1").height()/2)
         
-
-        var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
-        for(var i =1;i<$('.SeriesID').length;i++){
-            str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
-        }
-        var Study_Date=$('.StudyDate').eq(0).text()
-        for(var i =1;i<$('.StudyDate').length;i++){
-            Study_Date+=','+$('.StudyDate').eq(i).text()
-        }
         if(StudyDes=='PET'){
             loadDICOMurlname="{% url 'DICOM:load_DICOM' %}"
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.StudyDes').text('PET')
@@ -1392,16 +1385,13 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },success:function(){
                 $("#location_menu").css('display', 'none')
-                let SD=$("[name='location']:checked").next('label').children('.LocalSeriesID').text()
+                let SeriesID=$("[name='location']:checked").next('label').children('.LocalSeriesID').text()
                 let Date=$("[name='location']:checked").next('label').children('.LocalStudyDate').text()
                 let StudyID=$("[name='location']:checked").next('label').children('.LocalStudyID').text()
                 let ActualCoordinates=true
-                let Con=[]
+                var Con = $('.StudyDate').map(function(){return $(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()}).get()
                 for(var i =0;i<4;i++) {
-                    Con.push($('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
-                }
-                for(var i =0;i<4;i++) {
-                    if(Con[i]==Date+SD){
+                    if(Con[i]==Date+'_'+StudyID+'_'+SeriesID){
                         var ind=i+1
                         
                         frame=$("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.plane').text()
@@ -1423,14 +1413,8 @@
     function selectLocation(){
         PID = $('#PIDText').text()
 
-        var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
-        for(var i =1;i<$('.SeriesID').length;i++){
-            str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
-        }
-        var Study_Date=$('.StudyDate').eq(0).text()
-        for(var i =1;i<$('.StudyDate').length;i++){
-            Study_Date+=','+$('.StudyDate').eq(i).text()
-        }
+        str = $('.StudyID').map(function(){return $(this).text()+'_'+$(this).nextAll('.SeriesID').text()}).get()
+        Study_Date = $('.StudyDate').map(function(){return $(this).text()}).get()
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:selectLocation" %}', // this is the mapping between the url and view
@@ -1546,7 +1530,271 @@
         });
     }
 
+    function addMenu(){
+        let i = $('.menublock').length
+        let pannel = $(event.target).parent('div')
+        let option = ''
+        let addObject = '<div class=menublock id="annotation_detail_'+i+'">'+
+            '<select onchange="getAnnotationFactorDetail()" class="factor form-select form-select-sm"  aria-label=".form-select-sm example"><option>請選擇</option>'+annotationFactorObject+'</select>'+
+            '<input placeholder="請選擇或自行輸入"  autocomplete=true class="detail form-control" list="factorDetailList_'+i+'"><datalist id="factorDetailList_'+i+'"></datalist>'+
+            '<button type="button" class="btn-close annotation_factor_delete" aria-label="Close" onclick="deleteAnnotationFactor()"></button>'+
+            '</div>'
+        pannel.before(addObject)   
+    }
+    function addMenuCustom(pannel,f_id){
+        let i = pannel.prevAll('.menublock').length
+        let option = ''
+        let addObject = '<div class=menublock id="annotation_detail_f_id_'+f_id+'">'+
+            '<select onchange="getAnnotationFactorDetail()" class="factor form-select form-select-sm"  aria-label=".form-select-sm example"><option>請選擇</option>'+annotationFactorObject+'</select>'+
+            '<input placeholder="請選擇或自行輸入"  autocomplete=true class="detail form-control" list="factorDetailList_f_id_'+f_id+'"><datalist id="factorDetailList_f_id_'+f_id+'"></datalist>'+
+            '<button type="button" class="btn-close annotation_factor_delete" aria-label="Close" onclick="deleteAnnotationFactor()"></button>'+
+            '</div>'
+        pannel.before(addObject)   
+    }
+    function getAnnotationFactorDetail(){
+        let factor_id = $(event.target).val()
+        let target = $(event.target)
+        let objectID='factorDetailList_'+target.parents('.menublock').attr('id').split('annotation_detail_')[1]
+        $('#'+objectID).empty()
+        target.next('input').val('')
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:getAnnotationFactorDetail" %}', // this is the mapping between the url and view
+            data: {
+                'factor_id':factor_id,
+                'objectID':objectID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                let objectID = this.data.split('objectID=')[1]
+                $('#'+objectID).append(response.detail)
+            }
+        });
+    }
+
+    function annotation_submit(){
+        str = $('.StudyID').map(function(){return $(this).text()+'_'+$(this).nextAll('.SeriesID').text()}).get()
+        Study_Date = $('.StudyDate').map(function(){return $(this).text()}).get()
+        user_username = JSON.parse(document.getElementById('user_username').textContent);
+        height = $("[name='group1']:checked").next("label").children('.slider').height();
+        b = $("[name='group1']:checked").next("label").children('.slider').scrollTop();
+        count = Math.round(b / height);
+        LabelGroup = $('#LabelGroup').val();
+        LabelName = $('#LabelName').val();
+        LabelRecord = $('#LabelRecord').val();
+        $('#tumor').children('select').css('border-color', 'black')
+
+
+        if (LabelGroup != '輸入病灶') {
+            $('#tumor').css('display', 'none')
+            elementClicked = 'False'
+            let imageType = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text()
+            if(imageType != 'MRI'){
+                let object = $("[name='group1']:checked").next("label").children('div').children('div')
+                insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date)
+            }else{
+                var Con = $('.StudyDate').map(function(){return $(this).prevAll('.StudyDes').text()+'_'+$(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()[1]}).get()
+                win = $("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
+                for(var i =0;i<4;i++) {
+                    if(Con[i]==Con[win-1]){
+                        var ind=i+1
+                        var object = $("#frame"+ind.toString()).children('label').children('div').children('div')
+                        insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date)
+                    }
+                }
+            }
+        } else {
+            $('#tumor').children('select').css('border-color', 'red')
+        }
+    }
+    function insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date){
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:insertLocation" %}', // this is the mapping between the url and view
+            data: {
+                'PID':PID,
+                'SD':object.children('.StudyDate').text(),
+                'Item': Item,
+                'username': user_username,
+                'x': object.children('.x').text(),
+                'y': object.children('.y').text(),
+                'z': object.children('.z').text(),
+                'LabelGroup': LabelGroup,
+                'LabelName': LabelName,
+                'LabelRecord': LabelRecord,
+                'SUV':object.children('.SUV').val(),
+                'plane':object.children('.plane').text(),
+                'height':object.children('img').height(),
+                'width':object.children('img').width(),
+                'ActualCoordinates':false,
+                'Disease':$('#Disease').val(),
+                'StudyID':object.children('.StudyID').text(),
+                'SeriesID':object.children('.SeriesID').text(),
+                'WindowNo':object.children('.series').text(),
+                'str':str,
+                'Study_Date':Study_Date,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function (response) {
+                insertAnnotationFactor(response.inserted_id)
+                $('#textarea').children('tr').remove();
+                for (var i = 0; i < response.PID.length; i++) {
+                    $('#textarea').append('<tr><td ><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
+                        '<label  for=' + i + '>' +
+                        '<p class="deleteInfo">' + response.id[i] + '</p>' +
+                        '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
+                        '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
+                        '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
+                        '<p class="data1">' + response.LabelGroup[i] +'</p>'+
+                        '<p class="data1">' + response.LabelName[i] +'</p>'+
+                        '<p class="data1">' + response.LabelRecord[i] +'</p>'+
+                        '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
+                        '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
+                        '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
+                        '<p class="indices">' + response.indices[i] +'</p>'+
+                        '</label></td></tr>')
+                    if (response.indices[i]==0) {
+                        $('#' + i).next('label').css('background-color', '#BBBBBB')
+                    }else if(response.indices[i]==1) {
+                        $('#'+i).next('label').css('background-color','#A8D8B9')
+                    }else if(response.indices[i]==2){
+                        $('#'+i).next('label').css('background-color','#81C7D4')
+                    }else if(response.indices[i]==3){
+                        $('#'+i).next('label').css('background-color','#808F7C')
+                    }
+                }
+                $('.localizationform').scrollTop($('#textarea').height())
+            }
+        });
+    }
+    function insertAnnotationFactor(id){
+        let annotation_factor = $('.factor').map(function(){return $(this).val()}).get()
+        let annotation_factor_detail = $('.detail').map(function(){return $(this).val()}).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:insertAnnotationFactor" %}', // this is the mapping between the url and view
+            data: {
+                'a_id':id,
+                'factor':annotation_factor,
+                'detail':annotation_factor_detail,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            }
+        });
+    }
+
+    function getAnnotationFactorGroup(){
+        annotationFactorObject=''
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:getAnnotationFactorGroup" %}', // this is the mapping between the url and view
+            data: {
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                annotationFactorObject =  response.factor
+            }
+        });
+    }
+
+    function deleteAnnotation(){
+        str = $('.StudyID').map(function(){return $(this).text()+'_'+$(this).nextAll('.SeriesID').text()}).get()
+        Study_Date = $('.StudyDate').map(function(){return $(this).text()}).get()
+        let SD=$("[name='location']:checked").next('label').children('.LocalSeriesID').text()
+        let Date=$("[name='location']:checked").next('label').children('.LocalStudyDate').text()
+        let StudyID=$("[name='location']:checked").next('label').children('.LocalStudyID').text()
+        let ActualCoordinates=true
+        let strAry=($("[name='location']:checked").next('label').children('.info').text())
+        let a=strAry.split(',')
+        let x=a[0]
+        let y=a[1]
+        let z=a[2].split('--')[0]
+
+        var id=$('input[name="location"]:checked').next('label').children('.deleteInfo').text();
+
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:deleteLocation" %}', // this is the mapping between the url and view
+            data: {
+            'id':id,
+            'PID':PID,
+            'Disease':$('#Disease').val(),
+            'username':JSON.parse(document.getElementById('user_username').textContent),
+            'str':str,
+            'Study_Date':Study_Date,
+            'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success: function(response) {
+                $('#textarea').children('tr').remove();
+                    for (var i = 0; i < response.PID.length; i++) {
+                        $('#textarea').append('<tr><td><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
+                            '<label for=' + i + '>' +
+                            '<p class="deleteInfo">' + response.id[i] + '</p>' +
+                            '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
+                            '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
+                            '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
+                            '<p class="data1">' + response.LabelGroup[i] +'</p>'+
+                            '<p class="data1">' + response.LabelName[i] +'</p>'+
+                            '<p class="data1">' + response.LabelRecord[i] +'</p>'+
+                            '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
+                            '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
+                            '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
+                            '<p class="indices">' + response.indices[i] +'</p>'+
+                            '</label></td></tr>')
+
+                        if (response.indices[i]==0) {
+                            $('#' + i).next('label').css('background-color', '#BBBBBB')
+                        }else if(response.indices[i]==1) {
+                            $('#'+i).next('label').css('background-color','#A8D8B9')
+                        }else if(response.indices[i]==2){
+                            $('#'+i).next('label').css('background-color','#81C7D4')
+                        }else if(response.indices[i]==3){
+                            $('#'+i).next('label').css('background-color','#808F7C')
+                        }
+                    }
+                $("#location_menu").css('display', 'none')
+            },
+        });
+    }
+    
+    function editAnnotation(){
+        $('#annotation_factor_pannel').children('.menublock').remove()
+        let target_object = $('input[name="location"]:checked').next('label')
+        let a_id = target_object.children('.deleteInfo').text()
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:getAnnotationFactor" %}', // this is the mapping between the url and view
+            data: {
+                'a_id':a_id,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                let object_str = ''
+                for(var j=0; j<target_object.children('.data1').length-1; j++){
+                    object_str += '<div >'+target_object.children('.data1').eq(j).text()+'</div>'
+                }
+                object_str += '<div > SUV:'+target_object.children('.data').text()+'</div>'
+                $('#annotation_basic_info').empty()
+                $('#annotation_basic_info').append(object_str)
+                for(var i=0; i<response.f_id.length; i++){
+                    addMenuCustom($('#annotation_factor_pannel').children('.addButton'),response.f_id[i])
+                    $('#annotation_detail_f_id_'+response.f_id[i]).children('.factor').val(response.factor[i])
+                    $('#annotation_detail_f_id_'+response.f_id[i]).children('.detail').val(response.detail[i])
+                }
+            }
+        });
+    }
+
+    function deleteAnnotationFactor(){
+        $(event.target).parent('.menublock').remove()
+    }
+
+    function editAnnotationSubmit(){
+        let a_id = $('input[name="location"]:checked').next('label').children('.deleteInfo').text()
+        insertAnnotationFactor(a_id)
+    }
+
     $(document).ready(function (e) {
+        getAnnotationFactorGroup()
         if('{{de_identification}}'=='True'){
             $('.PID').css('display','none')
         }
@@ -1758,6 +2006,7 @@
                                 $('#frame1').children('label').children('div').children('div').children('.StudyID').text(
                                     $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
                                 )
+                                
                                 $('#frame1').children('label').children('div').children('div').children('.SeriesID').text(
                                     $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageSeriesID').html()
                                 )
@@ -1853,7 +2102,7 @@
                                             },
                                             success: function(response) {
                                                 for (var i = 0; i < response.DiseaseNo.length; i++) {
-                                                    $('#tumor').children('#cancer').append('<option data-id='+response.DiseaseNo[i]+'>'+response.Disease[i]+'</option>>')
+                                                    $('#cancer').append('<option data-id='+response.DiseaseNo[i]+'>'+response.Disease[i]+'</option>>')
                                                 }
                                             },
                                             complete:function(){
@@ -1891,15 +2140,15 @@
                         $('#LabelGroup').append('<option data-id=0>輸入病灶</option>>')
                         $('#LabelName').append('<option>輸入病灶</option>>')
                         for (var i = 0; i < response.GroupID.length; i++) {
-                            $('#tumor').children('#LabelGroup').append('<option data-id='+response.GroupID[i]+'>'+response.LabelGroup[i]+'</option>>')
+                            $('#LabelGroup').append('<option data-id='+response.GroupID[i]+'>'+response.LabelGroup[i]+'</option>>')
                         }
                         
                     },
                 });
             }else{
                 $('#LabelName').children('option').remove()
-                $('#tumor').children('#LabelGroup').append('<option>輸入病灶</option>>')
-                $('#tumor').children('#LabelName').append('<option>輸入病灶</option>>')
+                $('#LabelGroup').append('<option>輸入病灶</option>>')
+                $('#LabelName').append('<option>輸入病灶</option>>')
             }
         })        
 
@@ -1916,13 +2165,13 @@
                     success: function(response) {
                         $('#LabelName').children('option').remove()
                         for (var i = 0; i < response.LabelName.length; i++) {
-                            $('#tumor').children('#LabelName').append('<option>'+response.LabelName[i]+'</option>>')
+                            $('#LabelName').append('<option>'+response.LabelName[i]+'</option>>')
                         }
                     },
                 });
             }else{
                 $('#LabelName').children('option').remove()
-                $('#tumor').children('#LabelName').append('<option>輸入病灶</option>>')
+                $('#LabelName').append('<option>輸入病灶</option>>')
             }
         })
 
@@ -2135,10 +2384,8 @@
                         var ly=$('input[name="localmax"]:checked').next('label').children('.Localmax_y').text()
                         var lz=$('input[name="localmax"]:checked').next('label').children('.Localmax_z').text()
                         var lsuv=$('input[name="localmax"]:checked').next('label').children('.Localmax_SUV').text()
-                        var Con=[]
-                        for(var i =0;i<4;i++) {
-                            Con.push($('.StudyID').eq(i).text()+$('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
-                        }
+                        var Con = $('.StudyDate').map(function(){return $(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()}).get()
+
                         for(var i =0;i<4;i++) {
                             if(Con[i]==Con[name-1]){
                                 var ind=i+1
@@ -2214,258 +2461,11 @@
             //}
         });
 
-
-        $('#tumor').children('a').mousedown(function () {
-            //if ($('#local').is(':checked')) {
-            var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
-            for(var i =1;i<$('.SeriesID').length;i++){
-                str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
-            }
-            var Study_Date=$('.StudyDate').eq(0).text()
-            for(var i =1;i<$('.StudyDate').length;i++){
-                Study_Date+=','+$('.StudyDate').eq(i).text()
-            }
-            user_username = JSON.parse(document.getElementById('user_username').textContent);
-            height = $("[name='group1']:checked").next("label").children('.slider').height();
-            b = $("[name='group1']:checked").next("label").children('.slider').scrollTop();
-            count = Math.round(b / height);
-            LabelGroup = $('#LabelGroup').val();
-            LabelName = $('#LabelName').val();
-            LabelRecord = $('#LabelRecord').val();
-            $('#tumor').children('select').css('border-color', 'black')
-
-            if (LabelGroup != '輸入病灶') {
-                $('#tumor').css('display', 'none')
-                elementClicked = 'False'
-                let imageType = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text()
-                if(imageType != 'MRI'){
-                    $.ajax({
-                        type: 'post',
-                        url: '{% url "DICOM:insertLocation" %}', // this is the mapping between the url and view
-                        data: {
-                            'PID':PID,
-                            'SD': $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDate').text(),
-                            'Item': $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text(),
-                            'username': user_username,
-                            'x':$("[name='group1']:checked").next("label").children('div').children('div').children('.x').text(),
-                            'y': $("[name='group1']:checked").next("label").children('div').children('div').children('.y').text(),
-                            'z': $("[name='group1']:checked").next("label").children('div').children('div').children('.z').text(),
-                            'LabelGroup': LabelGroup,
-                            'LabelName': LabelName,
-                            'LabelRecord': LabelRecord,
-                            'SUV':$("[name='group1']:checked").next("label").children('div').children('div').children('.SUV').val(),
-                            'plane':$("[name='group1']:checked").next("label").children('div').children('div').children('.plane').text(),
-                            'height':$("[name='group1']:checked").next("label").children('div').children('div').children('img').height(),
-                            'width':$("[name='group1']:checked").next("label").children('div').children('div').children('img').width(),
-                            'ActualCoordinates':false,
-                            'Disease':$('#Disease').val(),
-                            'StudyID':$("[name='group1']:checked").next("label").children('div').children('div').children('.StudyID').text(),
-                            'SeriesID':$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text(),
-                            'WindowNo':$("[name='group1']:checked").next("label").children('div').children('div').children('.series').text(),
-                            'str':str,
-                            'Study_Date':Study_Date,
-                            'csrfmiddlewaretoken': window.CSRF_TOKEN
-                        },
-                        success: function (response) {
-                            $('#textarea').children('tr').remove();
-                            for (var i = 0; i < response.PID.length; i++) {
-                                $('#textarea').append('<tr><td ><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                                    '<label  for=' + i + '>' +
-                                    '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                                    '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                                    '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                                    '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                                    '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                                    '<p class="data1">' + response.LabelName[i] +'</p>'+
-                                    '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                                    '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                                    '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                                    '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                                    '<p class="indices">' + response.indices[i] +'</p>'+
-                                    '</label></td></tr>')
-    
-                                if (response.indices[i]==0) {
-                                    $('#' + i).next('label').css('background-color', '#BBBBBB')
-                                }else if(response.indices[i]==1) {
-                                    $('#'+i).next('label').css('background-color','#A8D8B9')
-                                }else if(response.indices[i]==2){
-                                    $('#'+i).next('label').css('background-color','#81C7D4')
-                                }else if(response.indices[i]==3){
-                                    $('#'+i).next('label').css('background-color','#808F7C')
-                                }
-                            }
-    
-                            $('.localizationform').scrollTop($('#textarea').height())
-                        },
-                    });
-                }else{
-                    var Con=[]
-                    for(var i =0;i<win_num;i++) {
-                        Con.push($('.StudyDes').eq(i).text()+'_'+$('.StudyID').eq(i).text()+'_'+$('.StudyDate').eq(i).text()+'_'+$('.SeriesID').eq(i).text()[1])
-                    }
-                    win = $("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
-                    for(var i =0;i<4;i++) {
-                        if(Con[i]==Con[win-1]){
-                            var ind=i+1
-                            $.ajax({
-                                type: 'post',
-                                url: '{% url "DICOM:insertLocation" %}', // this is the mapping between the url and view
-                                data: {
-                                    'PID':PID,
-                                    'SD': $("#frame"+ind.toString()).children('label').children('div').children('div').children('.StudyDate').text(),
-                                    'Item': Item,
-                                    'username': user_username,
-                                    'x':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.x').text(),
-                                    'y': $("#frame"+ind.toString()).children('label').children('div').children('div').children('.y').text(),
-                                    'z': $("#frame"+ind.toString()).children('label').children('div').children('div').children('.z').text(),
-                                    'LabelGroup': LabelGroup,
-                                    'LabelName': LabelName,
-                                    'LabelRecord': LabelRecord,
-                                    'SUV':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.SUV').val(),
-                                    'plane':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.plane').text(),
-                                    'height':$("#frame"+ind.toString()).children('label').children('div').children('div').children('img').height(),
-                                    'width':$("#frame"+ind.toString()).children('label').children('div').children('div').children('img').width(),
-                                    'ActualCoordinates':false,
-                                    'Disease':$('#Disease').val(),
-                                    'StudyID':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.StudyID').text(),
-                                    'SeriesID':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.SeriesID').text(),
-                                    'WindowNo':$("#frame"+ind.toString()).children('label').children('div').children('div').children('.series').text(),
-                                    'str':str,
-                                    'Study_Date':Study_Date,
-                                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                                },
-                                success: function (response) {
-                                    $('#textarea').children('tr').remove();
-                                    for (var i = 0; i < response.PID.length; i++) {
-                                        $('#textarea').append('<tr><td ><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                                            '<label  for=' + i + '>' +
-                                            '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                                            '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                                            '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                                            '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                                            '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                                            '<p class="data1">' + response.LabelName[i] +'</p>'+
-                                            '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                                            '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                                            '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                                            '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                                            '<p class="indices">' + response.indices[i] +'</p>'+
-                                            '</label></td></tr>')
-            
-                                        if (response.indices[i]==0) {
-                                            $('#' + i).next('label').css('background-color', '#BBBBBB')
-                                        }else if(response.indices[i]==1) {
-                                            $('#'+i).next('label').css('background-color','#A8D8B9')
-                                        }else if(response.indices[i]==2){
-                                            $('#'+i).next('label').css('background-color','#81C7D4')
-                                        }else if(response.indices[i]==3){
-                                            $('#'+i).next('label').css('background-color','#808F7C')
-                                        }
-                                    }
-            
-                                    $('.localizationform').scrollTop($('#textarea').height())
-                                },
-                            });
-                        }
-                    }
-                }
-            } else {
-                $('#tumor').children('select').css('border-color', 'red')
-            }
-            //}
-        });
-
-        $('#delete').on('click',function (){
-            var str=$('.StudyID').eq(0).text()+'_'+$('.SeriesID').eq(0).text()
-            for(var i =1;i<$('.SeriesID').length;i++){
-                str+=','+$('.StudyID').eq(i).text()+'_'+$('.SeriesID').eq(i).text()
-            }
-            var Study_Date=$('.StudyDate').eq(0).text()
-            for(var i =1;i<$('.StudyDate').length;i++){
-                Study_Date+=','+$('.StudyDate').eq(i).text()
-            }
-            let SD=$("[name='location']:checked").next('label').children('.LocalSeriesID').text()
-            let Date=$("[name='location']:checked").next('label').children('.LocalStudyDate').text()
-            let StudyID=$("[name='location']:checked").next('label').children('.LocalStudyID').text()
-            let ActualCoordinates=true
-            let strAry=($("[name='location']:checked").next('label').children('.info').text())
-            let a=strAry.split(',')
-            let x=a[0]
-            let y=a[1]
-            let z=a[2].split('--')[0]
-
-            var id=$('input[name="location"]:checked').next('label').children('.deleteInfo').text();
-
-            $.ajax({
-                type: 'post',
-                url: '{% url "DICOM:deleteLocation" %}', // this is the mapping between the url and view
-                data: {
-                'id':id,
-                'PID':PID,
-                'Disease':$('#Disease').val(),
-                'username':JSON.parse(document.getElementById('user_username').textContent),
-                'str':str,
-                'Study_Date':Study_Date,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success: function(response) {
-                    $('#textarea').children('tr').remove();
-                        for (var i = 0; i < response.PID.length; i++) {
-                            $('#textarea').append('<tr><td><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                                '<label for=' + i + '>' +
-                                '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                                '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                                '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                                '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                                '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                                '<p class="data1">' + response.LabelName[i] +'</p>'+
-                                '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                                '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                                '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                                '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                                '<p class="indices">' + response.indices[i] +'</p>'+
-                                '</label></td></tr>')
-
-                            if (response.indices[i]==0) {
-                                $('#' + i).next('label').css('background-color', '#BBBBBB')
-                            }else if(response.indices[i]==1) {
-                                $('#'+i).next('label').css('background-color','#A8D8B9')
-                            }else if(response.indices[i]==2){
-                                $('#'+i).next('label').css('background-color','#81C7D4')
-                            }else if(response.indices[i]==3){
-                                $('#'+i).next('label').css('background-color','#808F7C')
-                            }
-                        }
-                    $("#location_menu").css('display', 'none')
-                    let Con=[]
-                    for(var i =0;i<4;i++) {
-                        Con.push($('.StudyDate').eq(i).text()+$('.SeriesID').eq(i).text())
-                    }
-                    for(var i =0;i<4;i++) {
-                        if(Con[i]==Date+SD){
-                            var ind=i+1
-                            frame=$("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.plane').text()
-                            frameXYZ=checkPlaneXYZ(frame,x,y,z)
-                            //ajax_connect_view(ind)
-                            //$('#frame'+ind).children('label').children('.slider').scrollTop(b)
-                            ajax(ind,frameXYZ['x'],frameXYZ['y'],frameXYZ['z'],true,true)
-                            $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
-                            $('#frame'+ind).children('label').children('div').children('div').children('.x').text(x)
-                            $('#frame'+ind).children('label').children('div').children('div').children('.y').text(y)
-                            $('#frame'+ind).children('label').children('div').children('div').children('.z').text(z)
-                            let height=$('#frame'+ind).children('label').children('.slider').height();
-                            let num = Math.ceil($('#frame'+ind).children('label').children('.slider').children().height()/height)
-                            $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+1+'/'+num)
-                        }
-                    }
-                
-                },
-            });
-        })
         $('#frame1').on('mousedown',function (e){
             $(this).children('input').prop('checked',true)
             mouseover()
             $('#tumor').css('display', 'none');
+            $('#tumor').children('#factor').children('.menublock').remove()
             if(e.which==3){
                 right_function(e)
             }else if(e.which==1){
@@ -2476,6 +2476,7 @@
             $(this).children('input').prop('checked',true)
             mouseover()
             $('#tumor').css('display', 'none');
+            $('#tumor').children('#factor').children('.menublock').remove()
             if(e.which==3){
                 right_function(e)
             }else if(e.which==1){
@@ -2486,6 +2487,7 @@
             $(this).children('input').prop('checked',true)
             mouseover()
             $('#tumor').css('display', 'none');
+            $('#tumor').children('#factor').children('.menublock').remove()
             if(e.which==3){
                 right_function(e)
             }else if(e.which==1){
@@ -2496,12 +2498,14 @@
             $(this).children('input').prop('checked',true)
             mouseover()
             $("#tumor").css('display', 'none');
+            $('#tumor').children('#factor').children('.menublock').remove()
             if(e.which==3){
                 right_function(e)
             }else if(e.which==1){
                 $("#image_menu").css('display', 'none');
             }
         })
+
         $('#Disease').on('change',function(){
             selectLocation()
         })
@@ -2521,11 +2525,8 @@
                     $("#location_menu").css('top', y);
                 }
             }
-            if(e.which == 1){  //如果滑鼠左鍵點下，則隱藏右鍵選單
-                $("#location_menu").css('display','none');
-            }
         })
-
+        
         $('#CT-PET').mousedown(function(e){
             if(e.which == 1) {
                 $("#location_menu").css('display', 'none');
@@ -2536,16 +2537,20 @@
             if(e.which == 1) {
                 $("#location_menu").css('display', 'none');
                 $("#image_menu").css('display', 'none');
+
             }
         })
         $('.localizationform').mousedown(function(e){
             if(e.which == 1) {
                 $("#location_menu").css('display', 'none');
                 $("#image_menu").css('display', 'none');
+                $("#tumor").css('display', 'none');
+                $('#tumor').children('#factor').children('.menublock').remove()
             }
         })
+
+        
         $('body').keydown(function(event){
-            
             switch (event.keyCode){
                 case 35://End鍵
                     $("[name='group1']:checked").next("label").children('.slider').scrollTop($("[name='group1']:checked").next("label").children('.slider').children().height());
@@ -2582,6 +2587,13 @@
                 case 40://圖像下移
                     img_y=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top').slice(0,-2))
                     $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',img_y+5)
+                    break;
+                case 81:
+                    if(event.ctrlKey){
+                        $('#Topcheckbox').trigger( "click" )
+                    }else if(event.shiftKey){
+                        $('#Imagecheckbox').trigger( "click" )
+                    }
                     break;
             }
         })
@@ -2633,6 +2645,7 @@
             $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
         })
 
+        
     });
 //-------------------------------定位功能------------------------------------
 </script>
@@ -2885,21 +2898,28 @@
 </div>
 
 <div  id="tumor" >
-    <select id="cancer" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入癌別</option></select>
-    <select id="LabelGroup" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入病灶</option></select>
-    <select id="LabelName" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option>輸入病灶</option></select>
-    <input type="text"  id="LabelRecord" placeholder="病灶註解">
-    <div style="border-radius:5px;margin-bottom: 5px;margin-left: 2px;margin-right: 2px;overflow-x: hidden;overflow-y: scroll;max-height: 100px">
-    <table id="SUV_Localmax">
+    <div id="basic">
+        <select id="cancer" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入癌別</option></select>
+        <select id="LabelGroup" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入病灶</option></select>
+        <select id="LabelName" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option>輸入病灶</option></select>
+        <input type="text"  id="LabelRecord" placeholder="病灶註解">
+        <div style="border:1px solid #DDDDDD;border-radius:5px;margin-bottom: 5px;margin-left: 2px;margin-right: 2px;overflow-x: hidden;overflow-y: scroll;max-height: 100px">
+            <table id="SUV_Localmax">
 
-    </table>
+            </table>
+        </div>
+        <a class="btn btn-secondary" role="button" id="tumor_comfirm" onclick="annotation_submit()">確認</a>
     </div>
-    <a class="btn btn-secondary" style="width: 110px" role="button">確認</a>
-
+    <div id="factor">
+        <div class="addButton">
+            <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
+        </div>
+    </div>
 </div>
 
 <div id="location_menu">
-    <button type="button" class="btn btn-secondary deletebtn" data-bs-toggle="modal" data-bs-target="#deleteleModal">刪除</button>
+    <button type="button" class="btn btn-secondary deletebtn" id="editAnnotationBotton" data-bs-toggle="modal" data-bs-target="#editAnnotation" onclick="editAnnotation()">編輯</button>
+    <button type="button" class="btn btn-secondary deletebtn" data-bs-toggle="modal" data-bs-target="#deleteleModal" >刪除</button>
     <p class="btn btn-secondary deletebtn" id="segmentation" role="button" onclick="UNet()">Segmentation</p>
 </div>
 
@@ -2942,11 +2962,35 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete">刪除</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteAnnotation()">刪除</button>
         </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editAnnotation" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">修改</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div id="annotation_basic_info" class="modal-header">
+            
+        </div>
+        <div id="annotation_factor_pannel" class="modal-body">
+            <div class="addButton">
+                <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="editAnnotationSubmit()">提交</button>
+        </div>
+        </div>
+    </div>
+</div>
+
 
 <div class="modal fade" id="MEI_insert_Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 <div class="modal-dialog">
