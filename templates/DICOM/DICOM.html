@@ -1675,8 +1675,8 @@
         });
     }
     function insertAnnotationFactor(id){
-        let annotation_factor = $('.factor').map(function(){return $(this).val()}).get()
-        let annotation_factor_detail = $('.detail').map(function(){return $(this).val()}).get()
+        let annotation_factor = $('#tumor').children('#factor').children('.menublock').children('.factor').map(function(){return $(this).val()}).get()
+        let annotation_factor_detail = $('#tumor').children('#factor').children('.menublock').children('.detail').map(function(){return $(this).val()}).get()
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:insertAnnotationFactor" %}', // this is the mapping between the url and view
