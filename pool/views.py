@@ -28,7 +28,7 @@ def Disease(request):
             inner join diseaseGroup as b on a.disease=b.DiseaseNo
             where username like %s 
             '''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['default'].cursor()
     cursor.execute(query,[au])
     DiseaseNo = []
     Disease = []
@@ -146,6 +146,7 @@ def Patient_num(request):
         select count(distinct PID) ,'3' AS seq from annotation where Disease={Disease} and username='{username}'
         ORDER BY seq ASC
     """
+    print(query)
     cursor.execute(query)
     res = cursor.fetchall()
     all = res[0][0]

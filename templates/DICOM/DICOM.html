@@ -27,7 +27,6 @@
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-select-1.13.14/dist/css/bootstrap-select.css' %}">
     
     
     <!-- JS, Popper.js, and jQuery -->
@@ -50,6 +49,7 @@
     </head>
 
 <style>
+    html { overflow: hidden; }
         /* width */
     ::-webkit-scrollbar {
       width: 10px;
@@ -416,6 +416,14 @@
     #annotation_basic_info{display: block;padding-top:5px;padding-bottom:5px}
     #annotation_basic_info div{font-weight:600}
     .annotation_factor_delete{position:absolute;right:5px}
+    .modal-backdrop.show{opacity: 0}
+    #editAnnotation{
+        display:none;
+        position:absolute;
+        left:20%;
+        width:calc(10% + 300px);
+    }
+    .modal-dialog{width:100%}
 </style>
 
 
@@ -1756,9 +1764,13 @@
     }
     
     function editAnnotation(){
+        $('#location_menu').css('display','none')
+        $('#editAnnotation').css('display','flex')
         $('#annotation_factor_pannel').children('.menublock').remove()
         let target_object = $('input[name="location"]:checked').next('label')
         let a_id = target_object.children('.deleteInfo').text()
+        $('#annotation_basic_info').empty()
+        $('#annotation_basic_info').append('<p id="a_id">'+a_id+'</p>')
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:getAnnotationFactor" %}', // this is the mapping between the url and view
@@ -1767,12 +1779,13 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
+                
                 let object_str = ''
                 for(var j=0; j<target_object.children('.data1').length-1; j++){
                     object_str += '<div >'+target_object.children('.data1').eq(j).text()+'</div>'
                 }
                 object_str += '<div > SUV:'+target_object.children('.data').text()+'</div>'
-                $('#annotation_basic_info').empty()
+                
                 $('#annotation_basic_info').append(object_str)
                 for(var i=0; i<response.f_id.length; i++){
                     addMenuCustom($('#annotation_factor_pannel').children('.addButton'),response.f_id[i])
@@ -1788,7 +1801,9 @@
     }
 
     function editAnnotationSubmit(){
-        let a_id = $('input[name="location"]:checked').next('label').children('.deleteInfo').text()
+        
+        $('#editAnnotation').css('display','none')
+        let a_id = $('#annotation_basic_info').children('#a_id').text()
         insertAnnotationFactor(a_id)
     }
 
@@ -2644,312 +2659,356 @@
             $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
         })
 
-        
+        $('.editAnnotationExit').on('click',function(){
+            $('#editAnnotation').css('display','none')
+        })
     });
 //-------------------------------定位功能------------------------------------
 </script>
 
 <body onload="test()">
-{% include 'navBar.html' %}
-<div id="slideTopout">
-    <input type="checkbox" id="Topcheckbox">
-    <label for="Topcheckbox" class="Top-label">SETTING</label>
-    <form class="Topform">
-        <div class ="tool">
-            {% include 'DICOM/Setting.html' %}
-        </div>
-    </form>
-</div>
-<div id="slideout">
-    <input type="checkbox" id="mycheckbox">
-    <label for="mycheckbox" class="feedback-label">MENU</label>
-    <form class="form sc2">
-        <table id="textReport"></table>
-    </form>
-</div>
-
-<div id="ImageSelect">
-    <input type="checkbox" id="Imagecheckbox">
-    <label for="Imagecheckbox" class="Image-label">IMAGE</label>
-    <form class="Imageform sc2">
-        <table id="ImageReport">
-        </table>
-
-    </form>
-</div>
-
-<div id="localizationslideout">
-    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="Disease" ></select>
-    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="users" ></select>
-    <form class="localizationform sc2">
-
-            <table id="textarea" >
-                {{ user.username|json_script:"user_username" }}
-            </table>
-
-    </form>
-
-</div>
-
-
-
-<div id="CT-PET" >
-     <div id="frame1" >
-
-        <input type="radio" onclick="bb()" id="a1"  name="group1" value="1" checked>
-        <label for="a1" class="test" >
-
-            <div class="main" onwheel="myFunction(event)" >
-                <div class="loader">
-                    <div class="loader-inner square-spin">
-                        <div></div>
-                      </div><span class="tooltip">
-                        <p>square-spin</p></span>
-                  </div>
-                <div id="dicom1">
-
-                    <img class="img"  ondragstart="return false;"  />
-                    <p class="WW" style="">0</p>
-                    <p class="WC" style="">0</p>
-                    <p class="CTWC" style="">45</p>
-                    <p class="CTWW" style="">250</p>
-                    <p class="PETWC" style="">2.5</p>
-                    <p class="PETWW" style="">5</p>
-                    <p class="MRIWC" >0</p>
-                    <p class="MRIWW" >0</p>
-                    <p class="plane" style="">Axial</p>
-                    <p class="mode" style="">CT</p>
-                    <p class="CT_window" >45,250</p>
-                    <p class="ratio" style="">0</p>
-                    <p class="x" >0</p>
-                    <p class="y" >0</p>
-                    <p class="z" >0</p>
-                    <input type="text" class="SUV" value="0">
-                    <p class="series" style="">1</p>
-                    <p class="StudyID" style="">-9999</p>
-                    <p class="SeriesID" style="">-9999</p>
-                    <p class="StudyDes" style="">-9999</p>
-                    <p class="StudyDate" style="">-9999</p>
-                    <p class="Scale_rate" style="">1</p>
-                    <p class="variable" style="">0</p>
-                    <p class="thickness" style="">0/0</p>
-                    <p class="SeriesDes" style=""></p>
-                    <p class="PID" style="">{{ PID }}</p>
-                    <p class="LocalMax" style=""></p>
-                    <p class="LocalMax_disable" style=""></p>
-                </div>
-
+    {% include 'navBar.html' %}
+    <div id="slideTopout">
+        <input type="checkbox" id="Topcheckbox">
+        <label for="Topcheckbox" class="Top-label">SETTING</label>
+        <form class="Topform">
+            <div class ="tool">
+                {% include 'DICOM/Setting.html' %}
             </div>
-            <div class='slider demoScroll sc1 s1'  onscroll="ajax1(event)"  style="border: 1px #000000;margin: 0%;
-        width: 14px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
-         </label>
+        </form>
     </div>
-     <div id="frame2">
-
-        <input type="radio" onclick="bb()" id="a2" name="group1" value="1" >
-        <label for="a2" class="test" >
-
-            <div class="main" onwheel="myFunction(event)" >
-                <div class="loader">
-                    <div class="loader-inner square-spin">
-                        <div></div>
-                      </div><span class="tooltip">
-                        <p>square-spin</p></span>
-                  </div>
-                <div id="dicom2">
-    <!-- Main jumbotron for a primary marketing message or call to action -->
-                    <img class="img" ondragstart="return false;"  />
-                    <p class="WW" style="">0</p>
-                    <p class="WC" style="">0</p>
-                    <p class="CTWC" >45</p>
-                    <p class="CTWW" >250</p>
-                    <p class="PETWC" >2.5</p>
-                    <p class="PETWW" >5</p>
-                    <p class="MRIWC" >0</p>
-                    <p class="MRIWW" >0</p>
-                    <p class="plane" >Axial</p>
-                    <p class="mode" >CT</p>
-                    <p class="CT_window" >45,250</p>
-                    <p class="ratio" style="">0</p>
-                    <p class="x" >0</p>
-                    <p class="y" >0</p>
-                    <p class="z" >0</p>
-                    <input type="text" class="SUV" value="0">
-                    <p class="series" style="">2</p>
-                    <p class="StudyID" style="">-9999</p>
-                    <p class="SeriesID" style="">-9999</p>
-                    <p class="StudyDes" style="">-9999</p>
-                    <p class="StudyDate" style="">-9999</p>
-                    <p class="Scale_rate" style="">1</p>
-                    <p class="variable" style="">0</p>
-                    <p class="thickness" style="">0/0</p>
-                    <p class="SeriesDes" style=""></p>
-                    <p class="PID" style="">{{ PID }}</p>
-                    <p class="LocalMax" style=""></p>
-                    <p class="LocalMax_disable" style=""></p>
-                </div>
-            </div>
-            <div class='slider demoScroll sc1 s2'  onscroll="ajax2(event)" style="border: 1px #000000;margin: 0%;
-        width: 14px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
-
-         </label>
-     </div>
-     <div id="frame3" >
-
-        <input type="radio" onclick="bb()" id="a3" name="group1" value="1" >
-        <label for="a3" class="test" >
-
-            <div class="main" onwheel="myFunction(event)" >
-                <div class="loader">
-                    <div class="loader-inner square-spin">
-                        <div></div>
-                      </div><span class="tooltip">
-                        <p>square-spin</p></span>
-                  </div>
-                <div id="dicom3" >
-    <!-- Main jumbotron for a primary marketing message or call to action -->
-                    <img class="img" ondragstart="return false;"  />
-                    <p class="WW" style="">0</p>
-                    <p class="WC" style="">0</p>
-                    <p class="CTWC" >45</p>
-                    <p class="CTWW" >250</p>
-                    <p class="PETWC" >2.5</p>
-                    <p class="PETWW" >5</p>
-                    <p class="MRIWC" >0</p>
-                    <p class="MRIWW" >0</p>
-                    <p class="plane" >Axial</p>
-                    <p class="mode" >CT</p>
-                    <p class="CT_window" >45,250</p>
-                    <p class="ratio" style="">0</p>
-                    <p class="x" >0</p>
-                    <p class="y" >0</p>
-                    <p class="z" >0</p>
-                    <input type="text" class="SUV" value="0">
-                    <p class="series" style="">3</p>
-                    <p class="StudyID" style="">-9999</p>
-                    <p class="SeriesID" style="">-9999</p>
-                    <p class="StudyDes" style="">-9999</p>
-                    <p class="StudyDate" style="">-9999</p>
-                    <p class="Scale_rate" style="">1</p>
-                    <p class="variable" style="">0</p>
-                    <p class="thickness" style="">0/0</p>
-                    <p class="SeriesDes" style=""></p>
-                    <p class="PID" style="">{{ PID }}</p>
-                    <p class="LocalMax" style=""></p>
-                    <p class="LocalMax_disable" style=""></p>
-                </div>
-            </div>
-            <div class='slider demoScroll sc1 s3'  onscroll="ajax3(event)" style="border: 1px #000000;margin: 0%;
-        width: 14px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
-
-         </label>
+    <div id="slideout">
+        <input type="checkbox" id="mycheckbox">
+        <label for="mycheckbox" class="feedback-label">MENU</label>
+        <form class="form sc2">
+            <table id="textReport"></table>
+        </form>
     </div>
-    <div id="frame4" >
-        <input type="radio" onclick="bb()" id="a4" name="group1" value="1" >
-        <label for="a4" class="test" >
-
-            <div class="main" onwheel="myFunction(event)" >
-                <div class="loader">
-                    <div class="loader-inner square-spin">
-                        <div></div>
-                      </div><span class="tooltip">
-                        <p>square-spin</p></span>
-                  </div>
-                <div id="dicom4">
-                    <img class="img" ondragstart="return false;" />
-                    <p class="WW" style="">0</p>
-                    <p class="WC" style="">0</p>
-                    <p class="CTWC" >45</p>
-                    <p class="CTWW" >250</p>
-                    <p class="PETWC" >2.5</p>
-                    <p class="PETWW" >5</p>
-                    <p class="MRIWC" >0</p>
-                    <p class="MRIWW" >0</p>
-                    <p class="plane" >Axial</p>
-                    <p class="mode" >CT</p>
-                    <p class="CT_window" >45,250</p>
-                    <p class="ratio" style="">0</p>
-                    <p class="x" >0</p>
-                    <p class="y" >0</p>
-                    <p class="z" >0</p>
-                    <input type="text" class="SUV" value="0">
-                    <p class="series" style="">4</p>
-                    <p class="StudyID" style="">-9999</p>
-                    <p class="SeriesID" style="">-9999</p>
-                    <p class="StudyDes" style="">-9999</p>
-                    <p class="StudyDate" style="">-9999</p>
-                    <p class="Scale_rate" style="">1</p>
-                    <p class="variable" style="">0</p>
-                    <p class="thickness" style="">0/0</p>
-                    <p class="SeriesDes" style=""></p>
-                    <p class="PID" style="">{{ PID }}</p>
-                    <p class="LocalMax" style=""></p>
-                    <p class="LocalMax_disable" style=""></p>
-                </div>
-            </div>
-            <div class='slider demoScroll sc1 s4'  onscroll="ajax4(event)" style="border: 1px #000000;margin: 0%;
-        width: 14px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
-
-         </label>
-    </div>
-
-
-</div>
-
-<div  id="tumor" >
-    <div id="basic">
-        <select id="cancer" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入癌別</option></select>
-        <select id="LabelGroup" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入病灶</option></select>
-        <select id="LabelName" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option>輸入病灶</option></select>
-        <input type="text"  id="LabelRecord" placeholder="病灶註解">
-        <div style="border:1px solid #DDDDDD;border-radius:5px;margin-bottom: 5px;margin-left: 2px;margin-right: 2px;overflow-x: hidden;overflow-y: scroll;max-height: 100px">
-            <table id="SUV_Localmax">
-
-            </table>
-        </div>
-        <a class="btn btn-secondary" role="button" id="tumor_comfirm" onclick="annotation_submit()">確認</a>
-    </div>
-    <div id="factor">
-        <div class="addButton">
-            <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
-        </div>
-    </div>
-</div>
-
-<div id="location_menu">
-    <button type="button" class="btn btn-secondary deletebtn" id="editAnnotationBotton" data-bs-toggle="modal" data-bs-target="#editAnnotation" onclick="editAnnotation()">編輯</button>
-    <button type="button" class="btn btn-secondary deletebtn" data-bs-toggle="modal" data-bs-target="#deleteleModal" >刪除</button>
-    <p class="btn btn-secondary deletebtn" id="segmentation" role="button" onclick="UNet()">Segmentation</p>
-</div>
-
-<div id="image_menu">
-    <p class="btn btn-secondary resetbtn" id="reset" role="button">Reset</p>
-    <p class="btn btn-secondary resetbtn" id="enlarge" role="button">放大</p>
-    <p class="btn btn-secondary resetbtn" id="shrink" role="button">縮小</p>
     
-    <select class="resetbtn" onchange="Plane_menu()" id="Plane_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
-        <option value="Axial">Axial</option>
-        <option value="Coronal">Coronal</option>
-        <option value="Sagittal">Sagittal</option>
-    </select>
-    <select class="resetbtn" onchange="Mode_menu()" id="Mode_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
-        <option value="CT">CT</option>
-        <option value="PET">PET</option>
-        <option value="Fusion">Fusion</option>
-    </select>
-    <select class="resetbtn" onchange="CTWindow_menu()" id="CTWindow_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
-        <option value="45,250">Abdomen</option>
-        <option value="255,35" >Crane</option>
-        <option value="45,300">Pelvis</option>
-        <option value="45,440">Mediastinum</option>
-        <option value="500,4000">Bone</option>
-        <option value="-500,2000">Lung</option>
-    </select>
-    <button type="button" class="btn btn-secondary resetbtn" data-bs-toggle="modal" data-bs-target="#MEI_insert_Modal" id="SaveCoordinate">Save Coordinate</button>
+    <div id="ImageSelect">
+        <input type="checkbox" id="Imagecheckbox">
+        <label for="Imagecheckbox" class="Image-label">IMAGE</label>
+        <form class="Imageform sc2">
+            <table id="ImageReport">
+            </table>
     
-</div>
-
-<div class="modal fade" id="deleteleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        </form>
+    </div>
+    
+    <div id="localizationslideout">
+        <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="Disease" ></select>
+        <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="users" ></select>
+        <form class="localizationform sc2">
+    
+                <table id="textarea" >
+                    {{ user.username|json_script:"user_username" }}
+                </table>
+    
+        </form>
+    
+    </div>
+    
+    
+    
+    <div id="CT-PET" >
+         <div id="frame1" >
+    
+            <input type="radio" onclick="bb()" id="a1"  name="group1" value="1" checked>
+            <label for="a1" class="test" >
+    
+                <div class="main" onwheel="myFunction(event)" >
+                    <div class="loader">
+                        <div class="loader-inner square-spin">
+                            <div></div>
+                          </div><span class="tooltip">
+                            <p>square-spin</p></span>
+                      </div>
+                    <div id="dicom1">
+    
+                        <img class="img"  ondragstart="return false;"  />
+                        <p class="WW" style="">0</p>
+                        <p class="WC" style="">0</p>
+                        <p class="CTWC" style="">45</p>
+                        <p class="CTWW" style="">250</p>
+                        <p class="PETWC" style="">2.5</p>
+                        <p class="PETWW" style="">5</p>
+                        <p class="MRIWC" >0</p>
+                        <p class="MRIWW" >0</p>
+                        <p class="plane" style="">Axial</p>
+                        <p class="mode" style="">CT</p>
+                        <p class="CT_window" >45,250</p>
+                        <p class="ratio" style="">0</p>
+                        <p class="x" >0</p>
+                        <p class="y" >0</p>
+                        <p class="z" >0</p>
+                        <input type="text" class="SUV" value="0">
+                        <p class="series" style="">1</p>
+                        <p class="StudyID" style="">-9999</p>
+                        <p class="SeriesID" style="">-9999</p>
+                        <p class="StudyDes" style="">-9999</p>
+                        <p class="StudyDate" style="">-9999</p>
+                        <p class="Scale_rate" style="">1</p>
+                        <p class="variable" style="">0</p>
+                        <p class="thickness" style="">0/0</p>
+                        <p class="SeriesDes" style=""></p>
+                        <p class="PID" style="">{{ PID }}</p>
+                        <p class="LocalMax" style=""></p>
+                        <p class="LocalMax_disable" style=""></p>
+                    </div>
+    
+                </div>
+                <div class='slider demoScroll sc1 s1'  onscroll="ajax1(event)"  style="border: 1px #000000;margin: 0%;
+            width: 20px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
+             </label>
+        </div>
+         <div id="frame2">
+    
+            <input type="radio" onclick="bb()" id="a2" name="group1" value="1" >
+            <label for="a2" class="test" >
+    
+                <div class="main" onwheel="myFunction(event)" >
+                    <div class="loader">
+                        <div class="loader-inner square-spin">
+                            <div></div>
+                          </div><span class="tooltip">
+                            <p>square-spin</p></span>
+                      </div>
+                    <div id="dicom2">
+        <!-- Main jumbotron for a primary marketing message or call to action -->
+                        <img class="img" ondragstart="return false;"  />
+                        <p class="WW" style="">0</p>
+                        <p class="WC" style="">0</p>
+                        <p class="CTWC" >45</p>
+                        <p class="CTWW" >250</p>
+                        <p class="PETWC" >2.5</p>
+                        <p class="PETWW" >5</p>
+                        <p class="MRIWC" >0</p>
+                        <p class="MRIWW" >0</p>
+                        <p class="plane" >Axial</p>
+                        <p class="mode" >CT</p>
+                        <p class="CT_window" >45,250</p>
+                        <p class="ratio" style="">0</p>
+                        <p class="x" >0</p>
+                        <p class="y" >0</p>
+                        <p class="z" >0</p>
+                        <input type="text" class="SUV" value="0">
+                        <p class="series" style="">2</p>
+                        <p class="StudyID" style="">-9999</p>
+                        <p class="SeriesID" style="">-9999</p>
+                        <p class="StudyDes" style="">-9999</p>
+                        <p class="StudyDate" style="">-9999</p>
+                        <p class="Scale_rate" style="">1</p>
+                        <p class="variable" style="">0</p>
+                        <p class="thickness" style="">0/0</p>
+                        <p class="SeriesDes" style=""></p>
+                        <p class="PID" style="">{{ PID }}</p>
+                        <p class="LocalMax" style=""></p>
+                        <p class="LocalMax_disable" style=""></p>
+                    </div>
+                </div>
+                <div class='slider demoScroll sc1 s2'  onscroll="ajax2(event)" style="border: 1px #000000;margin: 0%;
+            width: 20px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
+    
+             </label>
+         </div>
+         <div id="frame3" >
+    
+            <input type="radio" onclick="bb()" id="a3" name="group1" value="1" >
+            <label for="a3" class="test" >
+    
+                <div class="main" onwheel="myFunction(event)" >
+                    <div class="loader">
+                        <div class="loader-inner square-spin">
+                            <div></div>
+                          </div><span class="tooltip">
+                            <p>square-spin</p></span>
+                      </div>
+                    <div id="dicom3" >
+        <!-- Main jumbotron for a primary marketing message or call to action -->
+                        <img class="img" ondragstart="return false;"  />
+                        <p class="WW" style="">0</p>
+                        <p class="WC" style="">0</p>
+                        <p class="CTWC" >45</p>
+                        <p class="CTWW" >250</p>
+                        <p class="PETWC" >2.5</p>
+                        <p class="PETWW" >5</p>
+                        <p class="MRIWC" >0</p>
+                        <p class="MRIWW" >0</p>
+                        <p class="plane" >Axial</p>
+                        <p class="mode" >CT</p>
+                        <p class="CT_window" >45,250</p>
+                        <p class="ratio" style="">0</p>
+                        <p class="x" >0</p>
+                        <p class="y" >0</p>
+                        <p class="z" >0</p>
+                        <input type="text" class="SUV" value="0">
+                        <p class="series" style="">3</p>
+                        <p class="StudyID" style="">-9999</p>
+                        <p class="SeriesID" style="">-9999</p>
+                        <p class="StudyDes" style="">-9999</p>
+                        <p class="StudyDate" style="">-9999</p>
+                        <p class="Scale_rate" style="">1</p>
+                        <p class="variable" style="">0</p>
+                        <p class="thickness" style="">0/0</p>
+                        <p class="SeriesDes" style=""></p>
+                        <p class="PID" style="">{{ PID }}</p>
+                        <p class="LocalMax" style=""></p>
+                        <p class="LocalMax_disable" style=""></p>
+                    </div>
+                </div>
+                <div class='slider demoScroll sc1 s3'  onscroll="ajax3(event)" style="border: 1px #000000;margin: 0%;
+            width: 20px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
+    
+             </label>
+        </div>
+        <div id="frame4" >
+            <input type="radio" onclick="bb()" id="a4" name="group1" value="1" >
+            <label for="a4" class="test" >
+    
+                <div class="main" onwheel="myFunction(event)" >
+                    <div class="loader">
+                        <div class="loader-inner square-spin">
+                            <div></div>
+                          </div><span class="tooltip">
+                            <p>square-spin</p></span>
+                      </div>
+                    <div id="dicom4">
+                        <img class="img" ondragstart="return false;" />
+                        <p class="WW" style="">0</p>
+                        <p class="WC" style="">0</p>
+                        <p class="CTWC" >45</p>
+                        <p class="CTWW" >250</p>
+                        <p class="PETWC" >2.5</p>
+                        <p class="PETWW" >5</p>
+                        <p class="MRIWC" >0</p>
+                        <p class="MRIWW" >0</p>
+                        <p class="plane" >Axial</p>
+                        <p class="mode" >CT</p>
+                        <p class="CT_window" >45,250</p>
+                        <p class="ratio" style="">0</p>
+                        <p class="x" >0</p>
+                        <p class="y" >0</p>
+                        <p class="z" >0</p>
+                        <input type="text" class="SUV" value="0">
+                        <p class="series" style="">4</p>
+                        <p class="StudyID" style="">-9999</p>
+                        <p class="SeriesID" style="">-9999</p>
+                        <p class="StudyDes" style="">-9999</p>
+                        <p class="StudyDate" style="">-9999</p>
+                        <p class="Scale_rate" style="">1</p>
+                        <p class="variable" style="">0</p>
+                        <p class="thickness" style="">0/0</p>
+                        <p class="SeriesDes" style=""></p>
+                        <p class="PID" style="">{{ PID }}</p>
+                        <p class="LocalMax" style=""></p>
+                        <p class="LocalMax_disable" style=""></p>
+                    </div>
+                </div>
+                <div class='slider demoScroll sc1 s4'  onscroll="ajax4(event)" style="border: 1px #000000;margin: 0%;
+            width: 20px;overflow-y:scroll" ><div  style="height:2000%" ></div></div>
+    
+             </label>
+        </div>
+    
+    
+    </div>
+    
+    <div  id="tumor" >
+        <div id="basic">
+            <select id="cancer" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入癌別</option></select>
+            <select id="LabelGroup" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option data-id="0">輸入病灶</option></select>
+            <select id="LabelName" style="width: 100%;" class="form-select form-select-sm" aria-label=".form-select-sm example"><option>輸入病灶</option></select>
+            <input type="text"  id="LabelRecord" placeholder="病灶註解">
+            <div style="border:1px solid #DDDDDD;border-radius:5px;margin-bottom: 5px;margin-left: 2px;margin-right: 2px;overflow-x: hidden;overflow-y: scroll;max-height: 100px">
+                <table id="SUV_Localmax">
+    
+                </table>
+            </div>
+            <a class="btn btn-secondary" role="button" id="tumor_comfirm" onclick="annotation_submit()">確認</a>
+        </div>
+        <div id="factor">
+            <div class="addButton">
+                <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="location_menu">
+        <button type="button" class="btn btn-secondary deletebtn" id="editAnnotationBotton" data-bs-toggle="modal" data-bs-target="#editAnnotation" onclick="editAnnotation()">編輯</button>
+        <button type="button" class="btn btn-secondary deletebtn" data-bs-toggle="modal" data-bs-target="#deleteleModal" >刪除</button>
+        <p class="btn btn-secondary deletebtn" id="segmentation" role="button" onclick="UNet()">Segmentation</p>
+    </div>
+    
+    <div id="image_menu">
+        <p class="btn btn-secondary resetbtn" id="reset" role="button">Reset</p>
+        <p class="btn btn-secondary resetbtn" id="enlarge" role="button">放大</p>
+        <p class="btn btn-secondary resetbtn" id="shrink" role="button">縮小</p>
+        
+        <select class="resetbtn" onchange="Plane_menu()" id="Plane_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
+            <option value="Axial">Axial</option>
+            <option value="Coronal">Coronal</option>
+            <option value="Sagittal">Sagittal</option>
+        </select>
+        <select class="resetbtn" onchange="Mode_menu()" id="Mode_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
+            <option value="CT">CT</option>
+            <option value="PET">PET</option>
+            <option value="Fusion">Fusion</option>
+        </select>
+        <select class="resetbtn" onchange="CTWindow_menu()" id="CTWindow_menu"  class="form-select form-select-sm resetbtn" aria-label=".form-select-sm example" >
+            <option value="45,250">Abdomen</option>
+            <option value="255,35" >Crane</option>
+            <option value="45,300">Pelvis</option>
+            <option value="45,440">Mediastinum</option>
+            <option value="500,4000">Bone</option>
+            <option value="-500,2000">Lung</option>
+        </select>
+        <button type="button" class="btn btn-secondary resetbtn" data-bs-toggle="modal" data-bs-target="#MEI_insert_Modal" id="SaveCoordinate">Save Coordinate</button>
+        
+    </div>
+    
+    <div class="modal fade" id="deleteleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">確認</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="InsertMessage" class="modal-body">
+                確定要刪除?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteAnnotation()">刪除</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="editAnnotation" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">修改</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div id="annotation_basic_info" class="modal-header">
+                
+            </div>
+            <div id="annotation_factor_pannel" class="modal-body">
+                <div class="addButton">
+                    <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="editAnnotationSubmit()">提交</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="modal fade" id="MEI_insert_Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
         <div class="modal-header">
@@ -2957,75 +3016,34 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div id="InsertMessage" class="modal-body">
-            確定要刪除?
+            <input type="text" class="form-control" id='MRI_LabelRecord' placeholder="註解">
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteAnnotation()">刪除</button>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="SaveCoordinate()">確定</button>
         </div>
         </div>
     </div>
-</div>
-
-<div class="modal fade" id="editAnnotation" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">修改</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div id="annotation_basic_info" class="modal-header">
-            
-        </div>
-        <div id="annotation_factor_pannel" class="modal-body">
-            <div class="addButton">
-                <button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="editAnnotationSubmit()">提交</button>
-        </div>
-        </div>
     </div>
-</div>
-
-
-<div class="modal fade" id="MEI_insert_Modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-<div class="modal-dialog">
-    <div class="modal-content">
-    <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">確認</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div id="text" >
+        <p id="PIDText">{{ PID }}</p>
+        <p id="StudyIDText">{{ StudyID }}</p>
+        <p id="SeriesIDText">{{ SeriesID }}</p>
+        <p id="MedExecTimeText">{{ MedExecTime }}</p>
+        <p id="ItemText">{{ Item }}</p>
+        <p id="SeriesDesText"> {{ SeriesDes }} </p>
+        <p id="DiseaseText">{{Disease}}</p>
+        <textarea id="T1" readonly></textarea>
+        <textarea id="T2" readonly></textarea>
+        <textarea id="T3" readonly></textarea>
+        <textarea id="T4" readonly></textarea>
     </div>
-    <div id="InsertMessage" class="modal-body">
-        <input type="text" class="form-control" id='MRI_LabelRecord' placeholder="註解">
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="SaveCoordinate()">確定</button>
-    </div>
-    </div>
-</div>
-</div>
-<div id="text" >
-    <p id="PIDText">{{ PID }}</p>
-    <p id="StudyIDText">{{ StudyID }}</p>
-    <p id="SeriesIDText">{{ SeriesID }}</p>
-    <p id="MedExecTimeText">{{ MedExecTime }}</p>
-    <p id="ItemText">{{ Item }}</p>
-    <p id="SeriesDesText"> {{ SeriesDes }} </p>
-    <p id="DiseaseText">{{Disease}}</p>
-    <textarea id="T1" readonly></textarea>
-    <textarea id="T2" readonly></textarea>
-    <textarea id="T3" readonly></textarea>
-    <textarea id="T4" readonly></textarea>
-</div>
-
-</body>
-
-</html>
-
-
-{% endblock %}
-
+    
+    </body>
+    
+    </html>
+    
+    
+    {% endblock %}
+    
+    

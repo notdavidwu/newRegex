@@ -1795,7 +1795,7 @@ def getusers(request):
 
     '''is current user superuser?'''
     query = '''select is_superuser from auth_user where username=%s'''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['default'].cursor()
     cursor.execute(query,[username])
     is_superuser = cursor.fetchall()[0][0]
     return JsonResponse({'users':users,'is_superuser':is_superuser}, status=200) 

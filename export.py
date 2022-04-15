@@ -152,24 +152,4 @@ for i in tqdm(range(len(PatientListID))):
             newPET = newPET.transpose(1,2,0)
             PET_mat={'Data':np.float64(newPET)}
             savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
-'''
-PID去examList尋找 PID DATE ITEM
-需要目的地影像的位置，存XML檔
-<Main>
-  <Image_Info>
-    <PatientID>269678</PatientID>
-    <SeriesDescription>p7421s0_wb_ctac.img: LOR-RAMLA</SeriesDescription>
-    <SeriesNumber>565280</SeriesNumber>
-    <SeriesDate>20170922</SeriesDate>
-    <SeriesTime>123642.00</SeriesTime>
-    <SliceThickness>4</SliceThickness>
-    <Pixel_Spacing>4</Pixel_Spacing>
-    <CT_Pixel_Spacing>1.171875</CT_Pixel_Spacing>
-  </Image_Info>
-  <Tumor_Area X="69" Y="71" Z="116" Area_size="7cm" UserName="esumi">
-    <Tumor_Center C_Type="LocalMax" UserName="esumi" memo="eee" X="74" Y="76" Z="121">0.724576370501408</Tumor_Center>
-  </Tumor_Area>
-</Main>
 
-
-'''

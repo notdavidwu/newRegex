@@ -170,8 +170,8 @@ def update_de_identificationSetting(request):
 def getAuthDiseaseLabeledUser(request):
     Disease=request.POST.get('disease')
     username=request.POST.get('username')
-    query = '''select distinct username from Localization where Disease=%s and username<>%s'''
-    cursor = connections['default'].cursor()
+    query = '''select distinct username from annotation where Disease=%s and username<>%s'''
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[Disease,username])
     res = cursor.fetchall()
     LabeledUser = []
@@ -185,15 +185,15 @@ def insertAuthDiseaseLabeledUser(request):
     export_user=request.POST.get('export_user')
     import_user=request.POST.get('import_user')
     query = '''
-        insert into Localization(PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
+        insert into annotation(PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
         SELECT a.* 
         from(
-            SELECT PID,SD,Item,date,%s as username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,%s as fromWhere,seriesID FROM Localization 
+            SELECT PID,SD,Item,date,%s as username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,%s as fromWhere,seriesID FROM annotation 
             WHERE Disease=%s and username=%s
-        ) as a left outer join Localization as b on a.PID=b.PID and a.SD=b.SD and a.Item=b.Item and a.date=b.date and a.username=b.username and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.StudyID=b.StudyID and a.seriesID=b.seriesID
+        ) as a left outer join annotation as b on a.PID=b.PID and a.SD=b.SD and a.Item=b.Item and a.date=b.date and a.username=b.username and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.StudyID=b.StudyID and a.seriesID=b.seriesID
         where b.PID is null
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[import_user,export_user,disease,export_user])
     return JsonResponse({})
 
@@ -204,8 +204,8 @@ def removeAuthDiseaseLabeledUser(request):
     import_user=request.POST.get('import_user')
     print(disease)
     query = '''
-        delete from  Localization  where username=%s and fromWhere=%s and Disease=%s
+        delete from  annotation  where username=%s and fromWhere=%s and Disease=%s
     '''
-    cursor = connections['default'].cursor()
+    cursor = connections['AIC'].cursor()
     cursor.execute(query,[import_user,export_user,disease])
     return JsonResponse({})
