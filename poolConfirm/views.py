@@ -4,7 +4,7 @@ from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-from itertools import chain
+
 
 @csrf_exempt
 def confirm(request):
