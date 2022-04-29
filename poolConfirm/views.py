@@ -415,6 +415,7 @@ def searchRecord(request):
             procedureID.append(row[3])
             eventID_F.append(row[4])
             PDID.append(row[5])
+            
     else:
         Record = 1
         EDID=[-1]
