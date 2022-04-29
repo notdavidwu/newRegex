@@ -22,7 +22,6 @@ urlpatterns = [
     path('confirmpat/', views.confirmpat,name='confirmpat'),
     path('confirmpat2/',views.confirmpat2,name='confirmpat2'),
     path('Phase/',views.Phase,name='Phase'),
-    path('ignore/',views.ignore,name='ignore'),
     path('Disease/', views.Disease, name='Disease'),
     path('updatePhase/', views.updatePhase, name='updatePhase'),
     path('updateInterval/', views.updateInterval, name='updateInterval'),
