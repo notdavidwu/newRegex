@@ -11,16 +11,14 @@ from django_plotly_dash import DjangoDash
 from django.db import connections
 
 # python
+import pymssql
 import pandas as pd
-import numpy as np
-import datetime
-from datetime import datetime as dt
 import plotly.express as px
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-#import dash_core_components as dcc
-#import dash_html_components as html
+import plotly.graph_objects as go
 from dash import dcc, html, Input, Output
+from plotly.subplots import make_subplots
 
 def SQL(sql, colname):
     cursor = connections['MEWS'].cursor()
@@ -31,28 +29,47 @@ def SQL(sql, colname):
 
 def connect():
     sql1 =  '''
-            SELECT DISTINCT ChartNo, VisitNo, OccurDate, DivName, Ward, RRTWard, ICU, SPO2_V1, GCS_V
-            FROM RRTFinish
-            ORDER BY ChartNo, VisitNo, OccurDate
+                SELECT DISTINCT Year
+                FROM HealthData.dbo.InPatientlenYear
+                ORDER BY Year
             '''
-    colname1 = ['ChartNo', 'VisitNo', 'OccurDate', 'DivName', 'Ward', 'RRTWard', 'ICU', 'SPO2_V1', 'GCS_V']
-    chdf = SQL(sql1, colname1)
-    chdf.set_index('OccurDate', inplace=True)
+    colname1 = ['Year']
+    ydf = SQL(sql1, colname1)
     
     sql2 =  '''
-            SELECT DISTINCT ChartNo, VisitNo, Ward, StartTime, EndTime
-            FROM RRTICUTime
-            ORDER BY ChartNo, VisitNo, StartTime
+                SELECT DISTINCT YEAR(OccurDate) AS Year, Ward
+                FROM RRTFinish_1321
+                WHERE RRTWard=0
+                ORDER BY Year, Ward
             '''
-    colname2 = ['ChartNo', 'VisitNo', 'Ward', 'StartTime', 'EndTime']
-    icudf = SQL(sql2, colname2)
-    return chdf, icudf
+    colname2 = ['Year', 'Ward']
+    wdf = SQL(sql2, colname2)
+    
+    sql3 =  '''
+                SELECT YEAR(StartTime) AS Year
+                FROM Web_RRTRecord
+                GROUP BY YEAR(StartTime)
+                ORDER BY Year
+            '''
+    colname3 = ['Year']
+    mydf = SQL(sql3, colname3)
+    
+    sql4 =   '''
+            SELECT DISTINCT YEAR(StartTime) AS Year
+            FROM ProgressTransfer_ICURRT
+            WHERE (StartTime between (SELECT MIN(StartTime) FROM RRTRecord) and (SELECT MAX(StartTime) FROM RRTRecord))
+            ORDER BY Year
+            '''
+    colname4 = ['Year']
+    unydf = SQL(sql4, colname4)
+    
+    return ydf, wdf, mydf, unydf
 
-chdf, icudf = connect()
+ydf, wdf, mydf, unydf = connect()
 
 ##############################################################################################
 
-app = DjangoDash('MEWS',
+app = DjangoDash('MEWSData',
                  meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1'}],
                  external_stylesheets=[dbc.themes.QUARTZ]
                  )
@@ -61,538 +78,230 @@ app.title = 'AIC: MEWS'
 
 ##############################################################################################
 
-sql = '''
-        SELECT DISTINCT ChartNo, VisitNo, OccurDate,
-                BP_V1, PULSE_V1, RESPIRATORY_V1,
-                BT_V1, SPO2_V1,
-                GCS_V, Score6_E, Score6_M, Score6_V, Score6, RRT
-        FROM RRTFinish
-        WHERE ChartNo=%s
-        ORDER BY ChartNo, VisitNo, OccurDate
-      '''
-colname = ['ChartNo', 'VisitNo', 'OccurDate',
-           'BP_V1', 'PULSE_V1', 'RESPIRATORY_V1', 'BT_V1', 'SPO2_V1',
-           'GCS_V', 'Score6_E', 'Score6_M', 'Score6_V', 'Score6', 'RRT']
-
-def HisData(chartno):
-    cursor = connections['MEWS'].cursor()
-    ID = [str(chartno)]
+def YearNum(year, on):
+    if on:
+        sql = '''
+              EXEC HealthData.InPatientYearVis @Year=%s
+              '''
+        colname = [str(year)+'年: 患者總住院天數', '總就醫人次 (Number of VisitNo)', '總就醫人數']
+    else:
+        sql = '''
+              EXEC HealthData.InPatientYearCh @Year=%s
+              '''
+        colname = [str(year)+'年: 患者總住院天數', '總就醫人數 (Number of ChartNo)', '總就醫人次']
+    ID = [year]   
+    cursor = connections['HealthData'].cursor()
     cursor.execute(sql, ID)
     row = cursor.fetchall()
-    df = pd.DataFrame(row, columns = colname)
-    df.set_index('OccurDate', inplace=True)
-    return df
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2]
 
 ##############################################################################################
 
-def DateRange(df, start_date, end_date):
-    if (start_date is None) and (end_date is None):
-        start = str(df.index.min())
-        end = str(df.index.max())
-    elif (start_date is None) and (end_date is not None):
-        start = str(df.index.min())
-        end = str(end_date)
-    elif (start_date is not None) and (end_date is None):
-        start = str(start_date)
-        end = str(df.index.max())
-    elif (start_date is not None) and (end_date is not None):
-        start = str(start_date)
-        end = str(end_date)
+def RRTNum(year1, year2, ward):
+    sql = '''
+          EXEC MEWS.RRTData @Date1=%s, @Date2=%s, @Ward=%s
+          '''
+    colname = ['RRT', 'num']
+    ID = [year1, year2, ward]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1]
+
+##############################################################################################
+
+def RRTWardNum(year, avg):
+    if avg:
+        sql = '''
+              EXEC MEWS.RRTWardAvgData @Date=%s
+              '''
     else:
-        pass
-    return start, end
+        sql = '''
+              EXEC MEWS.RRTWardData @Date=%s
+              '''
+    colname = ['Ward', '安全', '達三項', '可啟動', '系統啟動']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3], colname[4]
 
 ##############################################################################################
 
-def DateRangeDf(df, start_date, end_date):
-    if (start_date is None) and (end_date is None):
-        dff = df
-    elif (start_date is None) and (end_date is not None):
-        end_date = DateRangeEnd(end_date)
-        dff = df[df.index <= end_date]
-    elif (start_date is not None) and (end_date is None):
-        dff = df[start_date <= df.index]
-    elif (start_date is not None) and (end_date is not None):
-        end_date = DateRangeEnd(end_date)
-        dff = df[(start_date <= df.index) & (df.index <= end_date)]
+def RRTDivNum(year, avg):
+    if avg:
+        sql = '''
+              EXEC MEWS.RRTDivAvgData @Date=%s
+              '''
     else:
-        pass
-    return dff
+        sql = '''
+              EXEC MEWS.RRTDivData @Date=%s
+              '''
+    colname = ['DivName', '安全', '達三項', '可啟動', '系統啟動']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3], colname[4]
 
 ##############################################################################################
 
-def DateRangeEnd(end_date):
-    end = dt.strptime(str(end_date), '%Y-%m-%d') + datetime.timedelta(days=1)
-    return end
+def MatchNum(year):
+    sql = '''
+          EXEC MEWS.RRTMatchPercentage @Date=%s
+          '''
+    colname = ['State', 'num']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1]
 
 ##############################################################################################
 
-def Feature(df, SPO2, GCS):
-    # 按鈕偵測: SPO2指標
-    if SPO2:
-        df1 = df[df['SPO2_V1'] != 0]
+def MatchDiffNum(year):
+    sql = '''
+          EXEC MEWS.RRTMatch @Date=%s
+          '''
+    colname = ['diff', '安全', '達三項', '可啟動', '系統啟動']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3], colname[4]
+
+##############################################################################################
+
+def RRTTransferType(year, on):
+    if on:
+        age = 2
+        txt = '小兒'
     else:
-        df1 = df
+        age = 1
+        txt = '成人'
     
-    # 按鈕偵測: GCS指標
-    if GCS:
-        df2 = df1[df1['GCS_V'] != '']
-    else:
-        df2 = df1
-    return df2
-
-##############################################################################################
-
-def img(df, chartno):
-    fig = px.line()
-    df1 = df[df['BP_V1'] > 0]
-    fig.add_scatter(x=df1.index, y=df1['BP_V1'], name='BP', mode='lines+markers')
-    df2 = df[df['PULSE_V1'] > 0]
-    fig.add_scatter(x=df2.index, y=df2['PULSE_V1'], name='PULSE', mode='lines+markers')
-    df3 = df[df['RESPIRATORY_V1'] > 0]
-    fig.add_scatter(x=df3.index, y=df3['RESPIRATORY_V1'], name= 'RESPIRATORY', mode='lines+markers')
-    df4 = df[df['BT_V1'] > 0]
-    fig.add_scatter(x=df4.index, y=df4['BT_V1'], name='BT', mode='lines+markers')
-    df5 = df[df['SPO2_V1'] > 0]
-    fig.add_scatter(x=df5.index, y=df5['SPO2_V1'], name='SPO2', mode='lines+markers')
-    df6 = df[df['GCS_V'] != '']
-    fig.add_scatter(x=df6.index, y=df6['Score6'], name='GCS', mode='lines+markers')
-    
-    # 背景填色
-    if len(icudf[icudf['ChartNo'] == chartno]) == 0:
-        pass
-    else:
-        # 日期範圍
-        min_date = df.index.min()
-        max_date = df.index.max()
-        # 搜尋: ICU區間
-        icudff = icudf[icudf['ChartNo'] == chartno]
-        for i in range(len(icudff)):
-            start = icudff.iloc[i]['StartTime']
-            end = icudff.iloc[i]['EndTime']
-            ward = icudff.iloc[i]['Ward']
-            if (end < min_date) or (max_date < start):
-                pass
-            else:
-                if (min_date < start) and (end < max_date):
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
-                                  layer='below', line_width=0, annotation_text=ward)
-                elif (start < min_date) and (end < max_date):
-                    start = min_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
-                                  layer='below', line_width=0, annotation_text=ward)
-                elif (min_date < start) and (max_date < end):
-                    end = max_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
-                                  layer='below', line_width=0, annotation_text=ward)
-                elif (start < min_date) and (max_date < end):
-                    start = min_date
-                    end = max_date
-                    fig.add_vrect(x0=start, x1=end, fillcolor='LightSalmon', opacity=0.5, \
-                                  layer='below', line_width=0, annotation_text=ward)
-                else:
-                    pass
-    
-    fig.update_layout(
-        updatemenus=[
-            dict(
-                direction='right',
-                active=0,
-                x=0.1068,
-                y=1.21,
-                buttons=list([
-                    dict(label='All',
-                         method='update',
-                         args=[ {'visible': [True, True, True, True, True, True]},
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='BP', 
-                         method='update', 
-                         args=[ {'visible': [True, False, False, False, False, False]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='PULSE', 
-                         method='update', 
-                         args=[ {'visible': [False, True, False, False, False, False]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='RESPIRATORY', 
-                         method='update', 
-                         args=[ {'visible': [False, False, True, False, False, False]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='BT', 
-                         method='update', 
-                         args=[ {'visible': [False, False, False, True, False, False]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='SPO2', 
-                         method='update', 
-                         args=[ {'visible': [False, False, False, False, True, False]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                    dict(label='GCS', 
-                         method='update', 
-                         args=[ {'visible': [False, False, False, False, False, True]}, 
-                                {'showlegend' : True}
-                              ]
-                        ),
-                ]), 
-            ) 
-        ]
+    sql = '''
+            EXEC MEWS.RRTTransferType_EXEC @Date=%(Year)s, @Age=%(Age)s
+          '''
+    colname = [str(year)+'年: '+txt+'之病程轉入原因', '就醫人數', '就醫人次', 'RRT偵測筆數']
+    ID = {'Year': year, 'Age': age}
+    conn = pymssql.connect(
+        server='172.31.6.157',
+        user='E1339',
+        password='apple0218',
+        database='MEWS'
     )
-    fig.update_xaxes(rangeslider_visible=True)
-    return fig
+    cursor = conn.cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    conn.close()
+    return df, colname[1], colname[2], colname[3]
 
 ##############################################################################################
 
-def Color(RRT, Max):
-    color = []
-    for i in range(len(Max)):
-        if RRT[i]=='BP_V1':
-            if 199.5<Max[i]:
-                value = {'red':[0, 70.5],
-                         '#ff7300':[70.5, 80.5],
-                         'yellow':[80.5, 100.5],
-                         'green':[100.5, 199.5],
-                         '#ff7700':[199.5, Max[i]]
-                        }
-            elif 100.5<Max[i]<199.5:
-                value = {'red':[0, 70.5],
-                         '#ff7300':[70.5, 80.5],
-                         'yellow':[80.5, 100.5],
-                         'green':[100.5, Max[i]]
-                        }
-            elif 80.5<Max[i]<100.5:
-                value = {'red':[0, 70.5],
-                         '#ff7300':[70.5, 80.5],
-                         'yellow':[80.5, Max[i]]
-                        }
-            elif 70.5<Max[i]<80.5:
-                value = {'red':[0, 70.5],
-                         '#ff7300':[70.5, Max[i]]
-                        }
-            else:
-                value = {'red':[0, Max[i]]
-                        }
-                
-        elif RRT[i]=='PULSE_V1':
-            if 129.5<Max[i]:
-                value = {'#ff7300':[0, 40.5],
-                         'yellow':[40.5, 50.5],
-                         'green':[50.5, 100.5],
-                         'rgb(255, 255, 51)':[100.5, 110.5],
-                         '#ff7700':[110.5, 129.5],
-                         'red':[129.5, Max[i]]
-                        }
-            elif 110.5<Max[i]<129.5:
-                value = {'#ff7300':[0, 40.5],
-                         'yellow':[40.5, 50.5],
-                         'green':[50.5, 100.5],
-                         'rgb(255, 255, 51)':[100.5, 110.5],
-                         '#ff7700':[110.5, Max[i]]
-                        }
-            elif 100.5<Max[i]<110.5:
-                value = {'#ff7300':[0, 40.5],
-                         'yellow':[40.5, 50.5],
-                         'green':[50.5, 100.5],
-                         'rgb(255, 255, 51)':[100.5, Max[i]]
-                        }
-            elif 50.5<Max[i]<100.5:
-                value = {'#ff7300':[0, 40.5],
-                         'yellow':[40.5, 50.5],
-                         'green':[50.5, Max[i]]
-                        }
-            elif 40.5<Max[i]<50.5:
-                value = {'#ff7300':[0, 40.5],
-                         'yellow':[40.5, Max[i]]
-                        }
-            else:
-                value = {'#ff7300':[0, Max[i]]
-                        }
-                
-        elif RRT[i]=='RESPIRATORY_V1':
-            if 29.5<Max[i]:
-                value = {'#ff7300':[0, 8.5],
-                         'green':[8.5, 20.5],
-                         '#ff7700':[20.5, 29.5],
-                         'red':[29.5, Max[i]]
-                        }
-            elif 20.5<Max[i]<29.5:
-                value = {'#ff7300':[0, 8.5],
-                         'green':[8.5, 20.5],
-                         '#ff7700':[20.5, Max[i]]
-                        }
-            elif 8.5<Max[i]<20.5:
-                value = {'#ff7300':[0, 8.5],
-                         'green':[8.5, Max[i]]
-                        }
-            else:
-                value = {'#ff7300':[0, Max[i]]
-                        }
-        
-        elif RRT[i]=='BT_V1':
-            if 38.45<Max[i]:
-                value = {'#ff7300':[0, 35.05],
-                         'green':[35.05, 38.45],
-                         '#ff7700':[38.45, Max[i]]
-                        }
-            elif 35.05<Max[i]<38.45:
-                value = {'#ff7300':[0, 35.05],
-                         'green':[35.05, Max[i]]
-                        }
-            else:
-                value = {'#ff7300':[0, Max[i]]
-                        }
-        
-        if RRT[i]=='SPO2_V1':
-            if 94.5<Max[i]:
-                value = {'red':[0, 84.5],
-                         '#ff7300':[84.5, 89.5],
-                         '#deed07':[89.5, 94.5],
-                         '#23b000':[94.5, Max[i]]
-                        }
-            elif 89.5<Max[i]<94.5:
-                value = {'red':[0, 84.5],
-                         '#ff7300':[84.5, 89.5],
-                         '#deed07':[89.5, Max[i]]
-                        }
-            elif 84.5<Max[i]<89.5:
-                value = {'red':[0, 84.5],
-                         '#ff7300':[84.5, Max[i]]
-                        }
-            else:
-                value = {'red':[0, Max[i]]
-                        }
-        cvalue = {'gradient':True, 'ranges': value}
-        color.append(cvalue)
-    return color
+def RRTTransferNum(year):
+    if year is None:
+        year = '%'
+        yeartxt = 'All'
+    else:
+        yeartxt = year
+    
+    sql = '''
+          EXEC MEWS.RRTTransferYear @Date=%s, @Yeartxt=%s
+          '''
+    colname = ['Year', '就醫人數', '就醫人次', '筆數']
+    ID = [year, yeartxt]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3]
+
+##############################################################################################
+
+def RRTTransferNullNum(year1, year2):
+    sql = '''
+          EXEC MEWS.RRTTransferYearNull @Date1=%s, @Date2=%s
+          '''
+    colname = ['Match', '就醫人數', '就醫人次', '筆數']
+    ID = [year1, year2]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3]
+
+##############################################################################################
+
+def RRTTransferEndMiss(year):
+    sql = '''
+          EXEC MEWS.RRTTransferEndMiss @Date=%s
+          '''
+    colname = ['RRTType', '就醫人數', '就醫人次', '筆數']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3]
+
+##############################################################################################
+
+def RRTTransferEndType(year):
+    sql = '''
+          EXEC MEWS.RRTTransferEndType @Date=%s
+          '''
+    colname = ['EndType', '就醫人數', '就醫人次', '筆數']
+    ID = [year]
+    cursor = connections['MEWS'].cursor()
+    cursor.execute(sql, ID)
+    row = cursor.fetchall()
+    df = pd.DataFrame(row, columns=colname)
+    df.set_index(colname[0], inplace=True)
+    return df, colname[1], colname[2], colname[3]
 
 ##############################################################################################
 
 # Web: 標題
 def logo(app):
     title = html.H5(
-        '',
-        style={'marginTop': 55, 'marginLeft': '10px'},
+        'AIC: Test Web',
+        style={'marginTop': 5,
+               'marginLeft': '10px',
+               'width': '300px',
+              },
     )
 
     info_about_app = html.H6(
-        ' '
-        '',
-        style={'marginLeft': '10px'},
+        'Modified Early Warning Score(MEWS): '
+        'User interface.',
+        style={'marginLeft': '10px',
+               'width': '500px',
+              },
     )
+
     return dbc.Row([dbc.Col([dbc.Row([title]), dbc.Row([info_about_app])])])
 
 ##############################################################################################
 
-# LED: 病歷號
-chartno_led = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'ChartNo',
-            style={
-                'text-align': 'center',
-                'color': 'white',
-                'z-index':'0',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                daq.LEDDisplay(
-                    id='chartno-led',
-                    size=28,
-                    color='#fec036',
-                    backgroundColor='#2b2b2b'
-                )
-            ],
-            style={
-                'display': 'flex',
-                'justify-content': 'space-around',
-                'align-items': 'center',
-                'height': '80px',
-                'text-align': 'center',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-    ],
-    style={'marginBottom': '3%'},
-)
-
-##############################################################################################
-
-# button: date
-button_date = dbc.Card(
-    children=[
-        dbc.CardBody(
-            [
-                html.Div(
-                    [
-                        dcc.DatePickerRange(
-                            id='date-picker',
-                            clearable=True,
-                            calendar_orientation='vertical',
-                        ),
-                    ],
-                    style={'display': 'flex',
-                           'justify-content': 'space-around',
-                           'align-items': 'center',
-                           'height': '75px',
-                          }
-                    
-                )
-            ],
-            style={
-                'text-align': 'center',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        )
-    ],
-    style={'marginBottom': '3%'},
-)
-
-##############################################################################################
-
-# button: ward
-button_ward = dbc.Card(
-    children=[
-        dbc.CardBody(
-            [
-                html.Div(
-                    [
-                        html.Div(
-                            [
-                                '護理站:',
-                                dcc.Dropdown(
-                                    id='ward-dropdown',
-                                    multi=False,
-                                    searchable=True,
-                                    style={'color': '#1a1f61'},
-                                ),
-                            ],
-                            style={'display': 'inline-block',
-                                   'width': '150px',
-                            }
-                        ),
-                        html.Div(
-                            [
-                                'ICU:',
-                                daq.BooleanSwitch(id='ward-boolean-switch', on=False),
-                            ],
-                        ),
-                    ],
-                    style={'display': 'flex',
-                           'justify-content': 'space-between',
-                           'align-items': 'center',
-                           'height': '30px',
-                          }
-                )
-            ],
-            style={
-                'text-align': 'center',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        )
-    ],
-    style={'marginBottom': '3%'},
-)
-
-##############################################################################################
-
-# button: div
-button_div = dbc.Card(
-    children=[
-        dbc.CardBody(
-            [
-                html.Div(
-                    [
-                        '科別:',
-                         html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id='div-dropdown',
-                                    multi=False,
-                                    searchable=True,
-                                    style={'color': '#1a1f61'},
-                                ),
-                            ],
-                            style={'display': 'inline-block',
-                                   'width': '175px',
-                            }
-                         ),
-                    ],
-                    style={'display': 'flex',
-                           'justify-content': 'space-between',
-                           'align-items': 'center',
-                           'height': '10px',
-                    }
-                )
-            ],
-            style={
-                'text-align': 'center',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        )
-    ],
-    style={'marginBottom': '3%'},
-)
-
-##############################################################################################
-
-# button: chartno
-button_chartno = dbc.Card(
-    children=[
-        dbc.CardBody(
-            [
-                html.Div(
-                    [
-                        '病歷號:',
-                         html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id='chartno-dropdown',
-                                    multi=False,
-                                    searchable=True,
-                                    style={'color': '#1a1f61'},
-                                )
-                            ],
-                            style={'display': 'inline-block',
-                                   'width': '145px',
-                            }
-                         )
-
-                    ],
-                    style={'display': 'flex',
-                           'justify-content': 'space-between',
-                           'align-items': 'center',
-                           'height': '10px',
-                    }
-                )
-            ],
-            style={
-                'text-align': 'center',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        )
-    ],
-)
-
-##############################################################################################
-
-# 互動式圖表
+# 住院資訊
 graphs = dbc.Card(
     children=[
         dbc.CardBody(
@@ -605,14 +314,92 @@ graphs = dbc.Card(
                                 html.Div(
                                     [
                                         dcc.Graph(
-                                            id='mews-graph',
+                                            id='graph',
                                             config={'displayModeBar': True},
+                                             style={'height': '436px',
+                                                   }
                                         ),
                                     ],
-                                    style={
-                                        'marginBottom': '0.6%',
+                                    style={'marginBottom': '1%',
                                     },
                                 )
+                            ],
+                            type='circle',
+                        ),
+                        html.Div(
+                            [
+                                dcc.Slider(id='year-dropdown',
+                                           min=ydf['Year'].min(),
+                                           max=ydf['Year'].max(),
+                                           step=None,
+                                           value=ydf['Year'].max(),
+                                           marks={str(i): {'label' : str(i),
+                                                           'style':{'color': '#ffffff',
+                                                                    'font-size': '18px',
+                                                                   }
+                                                          }
+                                                  for i in ydf['Year'].unique()
+                                                 },
+                                           included=False
+                                )
+                            ],
+                        )
+                    ],
+                    style={'marginBottom': '2%',
+                                    },
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                'ChartNo',
+                                daq.BooleanSwitch(id='chvis-boolean-switch', on=True),
+                                'VisitNo',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '190px',
+                            },
+                        ),
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'marginBottom': '1%'
+                    }
+                ),
+            ],
+            style={'text-align': 'center',
+                   'border-radius': '1px',
+                   'border-width': '5px',
+            },
+        )
+    ],
+    style={'width': '99%'},
+)
+
+##############################################################################################
+
+# RRT分布
+graphs_RRT = dbc.Card(
+    children=[
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id='loading-2',
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='RRT-graph',
+                                        ),
+                                    ],
+                                    style={'marginBottom': '2%',
+                                    },
+                                ),
                             ],
                             type='circle',
                         ),
@@ -622,37 +409,50 @@ graphs = dbc.Card(
                     [
                         html.Div(
                             [
-                                'SPO2:',
-                                daq.BooleanSwitch(id='SPO2-boolean-switch', on=False),
+                                'Select Year:',
+                                 dcc.Dropdown(id='RRT-year-dropdown',
+                                              multi=False,
+                                              searchable=True,
+                                              style={'width': '90px',
+                                                     'color': '#1a1f61',
+                                                    }
+                                ),
                             ],
-                            style={
-                                'display': 'flex',
-                                'justify-content': 'space-around',
-                                'width': '105px',
-                            },
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '200px',
+                            }
                         ),
                         html.Div(
                             [
-                                'GCS:',
-                                daq.BooleanSwitch(id='GCS-boolean-switch', on=False),
+                                'Select Ward:',
+                                 dcc.Dropdown(id='RRT-ward-dropdown',
+                                              multi=False,
+                                              searchable=True,
+                                              style={'width': '90px',
+                                                     'color': '#1a1f61',
+                                                    }
+                                ),
                             ],
-                            style={
-                                'display': 'flex',
-                                'justify-content': 'space-around',
-                                'width': '95px',
-                            },
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '200px',
+                            }
                         ),
                     ],
-                    style={
-                        'display': 'flex',
-                        'align-items': 'center',
-                        'marginBottom': '-1.45%',
-                    },
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'width': '430px',
+                           'marginBottom': '1%',
+                    }
                 ),
             ],
-            style={
-                'border-radius': '1px',
-                'border-width': '5px',
+            style={'text-align': 'flex-start',
+                   'border-radius': '1px',
+                   'border-width': '5px',
             },
         )
     ],
@@ -661,347 +461,354 @@ graphs = dbc.Card(
 
 ##############################################################################################
 
-# 儀錶板: BP
-BP_Gauge = dbc.Card(
+# 護理站資訊
+graphs_ward = dbc.Card(
     children=[
-        dbc.CardHeader(
-            'MEWS: BP',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
         dbc.CardBody(
             [
                 html.Div(
-                    daq.Gauge(
-                        id='BP-gauge',
-                        units='mmHg',
-                        min=0,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '8%',
-                            'marginBottom': '-25%',
-
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
-                )
-            ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'justify-content': 'center',
-            },
-        ),
-    ],
-    style={'width': '95%',
-           'height': '370px',
-          },
-)
-
-##############################################################################################
-
-# 儀錶板: PULSE
-PULSE_Gauge = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'MEWS: PULSE',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                html.Div(
-                    daq.Gauge(
-                        id='PULSE-gauge',
-                        units='次',
-                        min=0,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '8%',
-                            'marginBottom': '-25%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
-                )
-            ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'justify-content': 'center',
-            },
-        ),
-    ],
-    style={'width': '95%',
-           'height': '370px',
-          },
-)
-
-##############################################################################################
-
-# 儀錶板: RESPIRATORY
-RESPIRATORY_Gauge = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'MEWS: RESPIRATORY',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                html.Div(
-                    daq.Gauge(
-                        id='RESPIRATORY-gauge',
-                        units='次',
-                        min=0,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '8%',
-                            'marginBottom': '-25%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
-                )
-            ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'justify-content': 'center',
-            },
-        ),
-    ],
-    style={'width': '95%',
-           'height': '370px',
-          },
-)
-
-##############################################################################################
-
-# 儀錶板: BT
-BT_Gauge = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'MEWS: BT',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                html.Div(
-                    daq.Gauge(
-                        id='BT-gauge',
-                        units='℃',
-                        min=0,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '8%',
-                            'marginBottom': '-25%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
-                )
-            ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'justify-content': 'center',
-            },
-        ),
-    ],
-    style={'width': '95%',
-           'height': '370px',
-          },
-)
-
-##############################################################################################
-
-# 儀錶板: SPO2
-SPO2_Gauge = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'MEWS: SPO2',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                html.Div(
-                    daq.Gauge(
-                        id='SPO2-gauge',
-                        units='%',
-                        min=0,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '8%',
-                            'marginBottom': '-25%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
-                )
-            ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'justify-content': 'center',
-            },
-        ),
-    ],
-    style={'width': '95%',
-           'height': '370px',
-          },
-)
-
-##############################################################################################
-
-# 測量計: GCS
-GCS_Gauge = dbc.Card(
-    children=[
-        dbc.CardHeader(
-            'MEWS: GCS ( E / M / V )',
-            style={
-                'display': 'inline-block',
-                'text-align': 'center',
-                'color': 'white',
-                'border-radius': '1px',
-                'border-width': '5px',
-            },
-        ),
-        dbc.CardBody(
-            [
-                html.Div(
-                    daq.Thermometer(
-                        id='GCS-E-thermometer',
-                        units='分',
-                        min=-1,
-                        max=4,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '-10%',
-                            'marginBottom': '-95%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
+                    [
+                        dcc.Loading(
+                            id='loading-3',
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='ward-graph',
+                                            config={'displayModeBar': True},
+                                             style={'height': '436px',
+                                                   }
+                                        ),
+                                    ],
+                                    style={'marginBottom': '1%',
+                                    },
+                                )
+                            ],
+                            type='circle',
+                        ),
+                        html.Div(
+                            [
+                                dcc.Slider(id='ward-year-dropdown',
+                                           min=ydf['Year'].min(),
+                                           max=ydf['Year'].max(),
+                                           step=None,
+                                           value=ydf['Year'].max(),
+                                           marks={str(i): {'label' : str(i),
+                                                           'style':{'color': '#ffffff',
+                                                                    'font-size': '18px',
+                                                                   }
+                                                          }
+                                                  for i in ydf['Year'].unique()
+                                                 },
+                                           included=False
+                                )
+                            ],
+                        )
+                    ],
+                    style={'marginBottom': '2%',
+                                    },
                 ),
                 html.Div(
-                    daq.Thermometer(
-                        id='GCS-M-thermometer',
-                        units='分',
-                        min=-1,
-                        max=4,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '-10%',
-                            'marginBottom': '-95%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '5px',
-                    },
+                    [
+                        html.Div(
+                            [
+                                'Ward',
+                                daq.BooleanSwitch(id='Ward-boolean-switch', on=False),
+                                'DivName',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '170px',
+                            },
+                        ),
+                        html.Div(
+                            [
+                                'Aggregate',
+                                daq.BooleanSwitch(id='avg-boolean-switch', on=True),
+                                'Mean',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '190px',
+                            },
+                        ),
+                        html.Div(
+                            [
+                                'Stack',
+                                daq.BooleanSwitch(id='draw-boolean-switch', on=False),
+                                'Group',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '150px',
+                            },
+                        ),
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'width': '600px',
+                           'marginBottom': '1%'
+                    }
+                ),
+            ],
+            style={'text-align': 'center',
+                   'border-radius': '1px',
+                   'border-width': '5px',
+            },
+        )
+    ],
+    style={'width': '99%'},
+)
+
+##############################################################################################
+
+# RRT 匹配分布
+graph_match = dbc.Card(
+    children=[
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id='loading-4',
+                            children=[
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            [
+                                                 dcc.Graph(
+                                                    id='Match-graph',
+                                                ),
+                                            ],
+                                            style={'width': '480px',
+                                                  }
+                                        ),
+                                        html.Div(
+                                            [
+                                                 dcc.Graph(
+                                                    id='Match-bar-graph',
+                                                ),
+                                            ],
+                                            style={'width': '1200px',
+                                                  }
+                                        ),
+                                    ],
+                                    style={'marginBottom': '2%',
+                                           'display': 'flex',
+                                           'justify-content': 'space-between',
+                                    },
+                                ),
+                            ],
+                            type='circle',
+                        ),
+                        
+                    ],
                 ),
                 html.Div(
-                    daq.Thermometer(
-                        id='GCS-V-thermometer',
-                        units='分',
-                        min=-1,
-                        max=4,
-                        showCurrentValue=True,
-                        style={
-                            'align': 'center',
-                            'display': 'flex',
-                            'marginTop': '-10%',
-                            'marginBottom': '-95%',
-                        },
-                    ),
-                    className='m-auto',
-                    style={
-                        'display': 'flex',
-                        'border-radius': '1px',
-                        'border-width': '1px',
-                    },
-                )
+                    [
+                        html.Div(
+                            [
+                                'Select Year:',
+                                dcc.Dropdown(id='Match-year-dropdown',
+                                             options=[{'label': i, 'value': i} for i in mydf['Year'].unique()],
+                                             multi=False,
+                                             searchable=True,
+                                             style={'width': '90px',
+                                                    'color': '#1a1f61',
+                                                   }
+                                ),
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '200px',
+                            }
+                        ),
+                        html.Div(
+                            [
+                                'Stack',
+                                daq.BooleanSwitch(id='Match-draw-boolean-switch', on=False),
+                                'Group',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '150px',
+                            },
+                        ),
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'width': '400px',
+                           'marginBottom': '1%',
+                    }
+                ),
             ],
-            className='d-flex',
-            style={
-                'border-radius': '1px',
-                'align-items': 'center',
-                'justify-content': 'space-around',
+            style={'text-align': 'flex-start',
+                   'border-radius': '1px',
+                   'border-width': '5px',
             },
-        ),
+        )
     ],
-    style={'width': '95%',
-           'height': '370px',
-          },
+    style={'width': '99%'},
+)
+
+##############################################################################################
+
+# HIS RRT病程分布
+graphs_RRTType = dbc.Card(
+    children=[
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id='loading-5',
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='RRTType-graph',
+                                            config={'displayModeBar': True},
+                                             style={'height': '436px',
+                                                   }
+                                        ),
+                                    ],
+                                    style={'marginBottom': '1%',
+                                    },
+                                )
+                            ],
+                            type='circle',
+                        ),
+                        html.Div(
+                            [
+                                dcc.Slider(id='RRTType-year-dropdown',
+                                           min=unydf['Year'].min(),
+                                           max=unydf['Year'].max(),
+                                           step=None,
+                                           value=unydf['Year'].max(),
+                                           marks={str(i): {'label' : str(i),
+                                                           'style':{'color': '#ffffff',
+                                                                    'font-size': '18px',
+                                                                   }
+                                                          }
+                                                  for i in unydf['Year'].unique()
+                                                 },
+                                           included=False
+                                )
+                            ],
+                        )
+                    ],
+                    style={'marginBottom': '2%',
+                                    },
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                'Aldult',
+                                daq.BooleanSwitch(id='RRTType-age-boolean-switch', on=False),
+                                'Children',
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '190px',
+                            },
+                        ),
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'marginBottom': '1%'
+                    }
+                ),
+            ],
+            style={'text-align': 'center',
+                   'border-radius': '1px',
+                   'border-width': '5px',
+            },
+        )
+    ],
+    style={'width': '99%'},
+)
+
+##############################################################################################
+
+# 不可預期: RRT分布
+graphs_ICURRT = dbc.Card(
+    children=[
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        dcc.Loading(
+                            id='loading-6',
+                            children=[
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='ICURRT-graph',
+                                        ),
+                                    ],
+                                    style={'marginBottom': '2%',
+                                    },
+                                ),
+                                html.Div(
+                                    [
+                                        dcc.Graph(
+                                            id='ICURRT2-graph',
+                                        ),
+                                    ],
+                                    style={'marginBottom': '2%',
+                                    },
+                                ),
+                            ],
+                            type='circle',
+                        ),
+                    ],
+                ),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                'Select Year:',
+                                 dcc.Dropdown(id='ICURRT-year-dropdown',
+                                              options=[{'label': i, 'value': i} for i in unydf['Year'].unique()],
+                                              multi=False,
+                                              searchable=True,
+                                              style={'width': '90px',
+                                                     'color': '#1a1f61',
+                                                    }
+                                ),
+                            ],
+                            style={'display': 'flex',
+                                   'justify-content': 'space-around',
+                                   'align-items': 'center',
+                                   'width': '200px',
+                            }
+                        ),
+                    ],
+                    style={'display': 'flex',
+                           'justify-content': 'space-between',
+                           'align-items': 'center',
+                           'width': '430px',
+                           'marginBottom': '1%',
+                    }
+                ),
+            ],
+            style={'text-align': 'flex-start',
+                   'border-radius': '1px',
+                   'border-width': '5px',
+            },
+        )
+    ],
+    style={'width': '99%'},
 )
 
 ##############################################################################################
@@ -1013,472 +820,549 @@ theme = {
     'primary': '#00EA64',
     'secondary': '#6E6E6E',
 }
+
 graphs = html.Div(
     children=[daq.DarkThemeProvider(theme=theme, children=graphs)]
 )
-button_ward = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=button_ward)]
+
+graphs_ward = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=graphs_ward)]
 )
-BP_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=BP_Gauge)]
+
+graph_match = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=graph_match)]
 )
-PULSE_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=PULSE_Gauge)]
+
+graphs_RRTType = html.Div(
+    children=[daq.DarkThemeProvider(theme=theme, children=graphs_RRTType)]
 )
-RESPIRATORY_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=RESPIRATORY_Gauge)]
-)
-BT_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=BT_Gauge)]
-)
-SPO2_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=SPO2_Gauge)]
-)
-GCS_Gauge = html.Div(
-    children=[daq.DarkThemeProvider(theme=theme, children=GCS_Gauge)]
-)
+
 
 ##############################################################################################
 
 # Web介面
-sidebar_size = 12
-graph_size = 10
-gauge_size = 2
-GCS_size = 2
+graph_size = 12
 app.layout = dbc.Container(
     fluid=True,
     children=[
         logo(app),
         dbc.Row(
             [
-                dbc.Col(
-                    [
-                        dbc.Row(dbc.Col(chartno_led,
-                                        xs=sidebar_size,
-                                        sm=sidebar_size,
-                                        md=sidebar_size,
-                                        lg=sidebar_size,
-                                        width=sidebar_size,
-                                        style={'z-index': '5'}
-                                       )
-                        ),
-                        dbc.Row(dbc.Col(button_date,
-                                        xs=sidebar_size,
-                                        sm=sidebar_size,
-                                        md=sidebar_size,
-                                        lg=sidebar_size,
-                                        width=sidebar_size,
-                                        style={'z-index': '4'}
-                                       )
-                        ),
-                        dbc.Row(
-                                dbc.Col(button_ward,
-                                        xs=sidebar_size,
-                                        sm=sidebar_size,
-                                        md=sidebar_size,
-                                        lg=sidebar_size,
-                                        width=sidebar_size,
-                                        style={'z-index': '3'}
-                                       )
-                        ),
-                        dbc.Row(dbc.Col(button_div,
-                                        xs=sidebar_size,
-                                        sm=sidebar_size,
-                                        md=sidebar_size,
-                                        lg=sidebar_size,
-                                        width=sidebar_size,
-                                        style={'z-index': '2'}
-                                       )
-                        ),
-                        dbc.Row(dbc.Col(button_chartno,
-                                        xs=sidebar_size,
-                                        sm=sidebar_size,
-                                        md=sidebar_size,
-                                        lg=sidebar_size,
-                                        width=sidebar_size,
-                                        style={'z-index': '1'}
-                                       )
-                        ),
-                    ],
-                    #width=2
-                ),
                 dbc.Col(graphs,
                         xs=graph_size,
                         sm=graph_size,
                         md=graph_size,
                         lg=graph_size,
-                        width=graph_size)
+                        width=graph_size,
+                       )
             ],
-            style={
-                'display': 'flex',
-                'marginBottom': '1%',
+            style={'display': 'flex',
+                   'marginBottom': '1%',
                    }
         ),
         dbc.Row(
             [
-                dbc.Col(BP_Gauge,
-                        xs=gauge_size,
-                        sm=gauge_size,
-                        md=gauge_size,
-                        lg=gauge_size,
-                        width=gauge_size),
-                dbc.Col(PULSE_Gauge,
-                        xs=gauge_size,
-                        sm=gauge_size,
-                        md=gauge_size,
-                        lg=gauge_size,
-                        width=gauge_size),
-                dbc.Col(RESPIRATORY_Gauge,
-                        xs=gauge_size,
-                        sm=gauge_size,
-                        md=gauge_size,
-                        lg=gauge_size,
-                        width=gauge_size),
-                dbc.Col(BT_Gauge,
-                        xs=gauge_size,
-                        sm=gauge_size,
-                        md=gauge_size,
-                        lg=gauge_size,
-                        width=gauge_size),
-                dbc.Col(SPO2_Gauge,
-                        xs=gauge_size,
-                        sm=gauge_size,
-                        md=gauge_size,
-                        lg=gauge_size,
-                        width=gauge_size),
-                dbc.Col(GCS_Gauge,
-                        xs=GCS_size,
-                        sm=GCS_size,
-                        md=GCS_size,
-                        lg=GCS_size,
-                        width=GCS_size),
+                dbc.Col(graphs_RRT,
+                        xs=graph_size,
+                        sm=graph_size,
+                        md=graph_size,
+                        lg=graph_size,
+                        width=graph_size,
+                        style={'z-index': '99999'},
+                       )
             ],
-            justify='center',
-            style={
-                'marginTop': '1%',
-            },
+            style={'display': 'flex',
+                   'marginBottom': '1%',
+                   }
         ),
-        dbc.Row(html.Pre(id='space')),
+        dbc.Row(
+            [
+                dbc.Col(graphs_ward,
+                        xs=graph_size,
+                        sm=graph_size,
+                        md=graph_size,
+                        lg=graph_size,
+                        width=graph_size,
+                        style={'z-index': '99998'},
+                       )
+            ],
+            style={'display': 'flex',
+                   'marginBottom': '1%',
+                   }
+        ),
+        dbc.Row(
+            [
+                dbc.Col(graph_match,
+                        xs=graph_size,
+                        sm=graph_size,
+                        md=graph_size,
+                        lg=graph_size,
+                        width=graph_size,
+                        style={'z-index': '99997'},
+                       )
+            ],
+            style={'display': 'flex',
+                   'marginBottom': '1%',
+                   }
+        ),
+        dbc.Row(
+            [
+                dbc.Col(graphs_RRTType,
+                        xs=graph_size,
+                        sm=graph_size,
+                        md=graph_size,
+                        lg=graph_size,
+                        width=graph_size,
+                        style={'z-index': '99996'},
+                       )
+            ],
+            style={'display': 'flex',
+                   'marginBottom': '1%',
+                   }
+        ),
+        dbc.Row(
+            [
+                dbc.Col(graphs_ICURRT,
+                        xs=graph_size,
+                        sm=graph_size,
+                        md=graph_size,
+                        lg=graph_size,
+                        width=graph_size,
+                        style={'z-index': '99995'},
+                       )
+            ],
+            style={'display': 'flex',
+                   'marginBottom': '1%',
+                   }
+        ),
     ],
-    style={
-        'overflow-x': 'hidden',
-        'overflow-y': 'hidden',
+    style={#'overflow-x': 'hidden',
+           #'overflow-y': 'hidden',
     }
 )
 
 ##############################################################################################
 
-# 篩選器: 月曆
+# 篩選器: 住院
 @app.callback(
-    Output('date-picker', 'min_date_allowed'),
-    Output('date-picker', 'max_date_allowed'),
-    Output('date-picker', 'initial_visible_month'),
-    Input('ward-boolean-switch', 'on'),
-    Input('SPO2-boolean-switch', 'on'),
-    Input('GCS-boolean-switch', 'on'),
-    Input('ward-dropdown', 'value'),
-    Input('div-dropdown', 'value'),
-    Input('chartno-dropdown', 'value')
+    Output('graph', 'figure'), 
+    Input('year-dropdown', 'value'),
+    Input('chvis-boolean-switch', 'on'),
 )
-def update_chartno(on, SPO2, GCS, ward, div, chartno):
-    # 按鈕偵測: ICU
-    if on:
-        icudf = chdf[chdf['RRTWard'] == 1]
-        df = Feature(icudf, SPO2, GCS)
+def update_graph(year, on):
+    if year is None:
+        year = ydf['Year'].max()
+        df, col1, col2 = YearNum(year, on)
     else:
-        icudf = chdf[chdf['RRTWard'] == 0]
-        df = Feature(icudf, SPO2, GCS)
-    
-    # 按鈕偵測: 護理站
+        df, col1, col2 = YearNum(year, on)
+
+    fig = px.bar(df, x=df.index, y=col1, hover_data=[col1, col2])
+    fig.update_traces(text=df[col1],
+                      textposition='auto',
+                      textfont_size=15,
+                      selector=dict(type='bar'),
+                     )
+    fig.update_layout(hovermode='x unified',
+                      hoverlabel=dict(font_size=15),
+                      modebar_remove=['resetscale', 'lasso'],
+                     )
+    fig.update_xaxes(rangeslider_visible=True)
+    return fig
+
+##############################################################################################
+
+# 篩選器: 年份選單
+@app.callback(
+    Output('RRT-year-dropdown', 'options'),
+    Input('RRT-ward-dropdown', 'value'),
+)
+def update_graph(ward):
     if ward is None:
-        dff = df
+        df = wdf
     else:
-        dff = df[df['Ward'] == ward]
-    
-    # 按鈕偵測: 科別
-    if div is None:
-        dfff = dff
-    else:
-        dfff = dff[dff['DivName'] == div]
-    
-    # 按鈕偵測: 病歷號
-    if chartno is None:
-        dffff = dfff
-    else:
-        dffff = dfff[dfff['ChartNo'] == chartno]
-    
-    # 日期範圍
-    min_date = dffff.index.min().date()
-    max_date = dffff.index.max().date()
-    start_date = min_date
-    
-    return min_date, max_date, start_date
+        df = wdf[wdf['Ward']==ward]
+
+    return [{'label': i, 'value': i} for i in df['Year'].unique()]
 
 ##############################################################################################
 
 # 篩選器: 護理站選單
 @app.callback(
-    Output('ward-dropdown', 'options'),
-    Input('ward-boolean-switch', 'on'),
-    Input('SPO2-boolean-switch', 'on'),
-    Input('GCS-boolean-switch', 'on'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
-    Input('div-dropdown', 'value'),
-    Input('chartno-dropdown', 'value')
+    Output('RRT-ward-dropdown', 'options'), 
+    Input('RRT-year-dropdown', 'value'),
 )
-def update_ward(on, SPO2, GCS, start_date, end_date, div, chartno):
-    # 按鈕偵測: ICU
-    if on:
-        icudf = chdf[chdf['RRTWard'] == 1]
-        df = Feature(icudf, SPO2, GCS)
+def update_graph(year):
+    if year is None:
+        df = wdf
     else:
-        icudf = chdf[chdf['RRTWard'] == 0]
-        df = Feature(icudf, SPO2, GCS)
-    
-    # 按鈕偵測: 日期, 科別
-    start_date, end_date = DateRange(df, start_date, end_date)
-    if div is None:
-        dff = df[(start_date <= df.index) & (df.index <= end_date)]
-    else:
-        dff = df[(start_date <= df.index) & (df.index <= end_date) & (df['DivName'] == div)]
-    
-    # 按鈕偵測: 病歷號
-    if chartno is None:
-        dfff = dff
-    else:
-        dfff = dff[dff['ChartNo'] == chartno]
-        
-    return [{'label': i, 'value': i} for i in np.sort(dfff['Ward'].unique(), axis=-1)]
+        df = wdf[wdf['Year']==year]
+
+    return [{'label': i, 'value': i} for i in df['Ward'].unique()]
 
 ##############################################################################################
 
-# 篩選器: 科別選單
+# 篩選器: RRT分布
 @app.callback(
-    Output('div-dropdown', 'options'),
-    Input('ward-boolean-switch', 'on'),
-    Input('SPO2-boolean-switch', 'on'),
-    Input('GCS-boolean-switch', 'on'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
-    Input('ward-dropdown', 'value'),
-    Input('chartno-dropdown', 'value')
+    Output('RRT-graph', 'figure'),
+    Input('RRT-year-dropdown', 'value'),
+    Input('RRT-ward-dropdown', 'value'),
 )
-def update_div(on, SPO2, GCS, start_date, end_date, ward, chartno):
-    # 按鈕偵測: ICU
-    if on:
-        icudf = chdf[chdf['RRTWard'] == 1]
-        df = Feature(icudf, SPO2, GCS)
+def update_graph_RRT(year, ward):
+    if year is None:
+        year1 = wdf['Year'].min()
+        year2 = wdf['Year'].max()
     else:
-        icudf = chdf[chdf['RRTWard'] == 0]
-        df = Feature(icudf, SPO2, GCS)
-        
-    # 按鈕偵測: 日期, 護理站
-    start_date, end_date = DateRange(df, start_date, end_date)
+        year1 = year
+        year2 = year
+    
     if ward is None:
-        dff = df[(start_date <= df.index) & (df.index <= end_date)]
+        ward = '%'
+        wardname = 'all Ward'
+        df, col1 = RRTNum(year1, year2, ward)
+        dff = df[df.index!='0~4分: 安全']
     else:
-        dff = df[(start_date <= df.index) & (df.index <= end_date) & (df['Ward'] == ward)]
-    
-    # 按鈕偵測: 病歷號
-    if chartno is None:
-        dfff = dff
-    else:
-        dfff = dff[dff['ChartNo'] == chartno]
-    
-    return [{'label': i, 'value': i} for i in np.sort(dfff['DivName'].unique(), axis=-1)]
+        wardname = ward
+        df, col1 = RRTNum(year1, year2, ward)
+        dff = df[df.index!='0~4分: 安全']
 
-##############################################################################################
-
-# 篩選器: 病歷號選單
-@app.callback(
-    Output('chartno-dropdown', 'options'),
-    Input('ward-boolean-switch', 'on'),
-    Input('SPO2-boolean-switch', 'on'),
-    Input('GCS-boolean-switch', 'on'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
-    Input('ward-dropdown', 'value'),
-    Input('div-dropdown', 'value')
-)
-def update_chartno(on, SPO2, GCS, start_date, end_date, ward, div):
-    # 按鈕偵測: ICU
-    if on:
-        icudf = chdf[chdf['RRTWard'] == 1]
-        df = Feature(icudf, SPO2, GCS)
-    else:
-        icudf = chdf[chdf['RRTWard'] == 0]
-        df = Feature(icudf, SPO2, GCS)
+    c1 = []
+    for i in range(len(df)):
+        if df.index[i]=='0~4分: 安全':
+            c1.append('green')
+        elif df.index[i]=='3~4分: 達三項':
+            c1.append('#ede500')
+        elif df.index[i]=='5~6分: 可啟動':
+            c1.append('#ff9d00')
+        elif df.index[i]=='7分以上: 系統啟動':
+            c1.append('red')
+        else:
+            pass
+        
+    c2 = []
+    for i in range(len(dff)):
+        if dff.index[i]=='0~4分: 安全':
+            c2.append('green')
+        elif dff.index[i]=='3~4分: 達三項':
+            c2.append('#ede500')
+        elif dff.index[i]=='5~6分: 可啟動':
+            c2.append('#ff9d00')
+        elif dff.index[i]=='7分以上: 系統啟動':
+            c2.append('red')
+        else:
+            pass
+            
+    col = df.index.unique()
     
-    # 按鈕偵測: 護理站, 科別
-    if (ward is None) and (div is None):
-        dff = df
-    elif (ward is None) and (div is not None):
-        dff = df[df['DivName'] == div]
-    elif (ward is not None) and (div is None):
-        dff = df[df['Ward'] == ward]
-    elif (ward is not None) and (div is not None):
-        dff = df[(df['Ward'] == ward) & (df['DivName'] == div)]
-    else:
-        pass
-    
-    # 按鈕偵測: 日期
-    dfff = DateRangeDf(dff, start_date, end_date)
-    
-    return [{'label': i, 'value': i} for i in dfff['ChartNo'].unique()]
-
-##############################################################################################
-
-# 篩選器: LED
-@app.callback(
-    Output('chartno-led', 'value'),
-    Input('chartno-dropdown', 'value')
-)
-def update_chartno(chartno):
-    if chartno is None:
-        chartno = chdf['ChartNo'][0]
-    else:
-        pass
-    return chartno
-
-##############################################################################################
-
-# 篩選器: 圖表
-@app.callback(
-    Output('mews-graph', 'figure'),
-    Input('date-picker', 'start_date'),
-    Input('date-picker', 'end_date'),
-    Input('chartno-dropdown', 'value')
-)
-def update_graph(start_date, end_date, chartno):
-    # 按鈕偵測: 病歷號
-    if chartno is None:
-        chartno=chdf['ChartNo'][0]
-        df = HisData(chartno)
-        #dff = DateRangeDf(df, None, None)
-        dff = DateRangeDf(df, start_date, end_date)
-        fig = img(dff, chartno)
-    else:
-        df = HisData(chartno)
-        dff = DateRangeDf(df, start_date, end_date)
-        fig = img(dff, chartno)
-    
+    fig = make_subplots(1, 2, specs=[[{'type':'domain'}, {'type':'domain'}]],
+                       )
+    fig.add_trace(go.Pie(labels=df.index, values=df[col1],
+                         name='全數據分布',
+                         marker_colors=c1,
+                         pull=[0, 0.1, 0.1, 0.1],
+                        ),
+                  1, 1)
+    fig.add_trace(go.Pie(labels=dff.index, values=dff[col1],
+                         name='偵測數據分布',
+                         marker_colors=c2
+                        ),
+                  1, 2)
+    fig.update_layout(uniformtext_minsize=12,
+                      uniformtext_mode='hide',
+                      hoverlabel=dict(font_size=15),
+                      title_text=(str(year1)+'/1/1~'+str(year2)+'/12/31: Data Distribution of '+str(wardname))
+                     )
     return fig
 
 ##############################################################################################
 
-# 篩選器: 儀錶板
+# 篩選器: 護理站/科別分布
 @app.callback(
-    Output('BP-gauge', 'value'),
-    Output('BP-gauge', 'max'),
-    Output('BP-gauge', 'color'),
-    Output('PULSE-gauge', 'value'),
-    Output('PULSE-gauge', 'max'),
-    Output('PULSE-gauge', 'color'),
-    Output('RESPIRATORY-gauge', 'value'),
-    Output('RESPIRATORY-gauge', 'max'),
-    Output('RESPIRATORY-gauge', 'color'),
-    Output('BT-gauge', 'value'),
-    Output('BT-gauge', 'max'),
-    Output('BT-gauge', 'color'),
-    Output('SPO2-gauge', 'value'),
-    Output('SPO2-gauge', 'max'),
-    Output('SPO2-gauge', 'color'),
-    Output('GCS-E-thermometer', 'value'),
-    Output('GCS-E-thermometer', 'color'),
-    Output('GCS-M-thermometer', 'value'),
-    Output('GCS-M-thermometer', 'color'),
-    Output('GCS-V-thermometer', 'value'),
-    Output('GCS-V-thermometer', 'color'),
-    Input('mews-graph', 'clickData'),
-    Input('chartno-dropdown', 'value')
+    Output('ward-graph', 'figure'), 
+    Input('ward-year-dropdown', 'value'),
+    Input('Ward-boolean-switch', 'on'),
+    Input('avg-boolean-switch', 'on'),
+    Input('draw-boolean-switch', 'on'),
 )
-def display_click_data(clickData, chartno):
-    # 按鈕偵測: 病歷號
-    if chartno is None:
-        chartno = chdf['ChartNo'][0]
-        df = HisData(chartno)
+def update_graph(year, on, avg, draw):
+    if year is None:
+        year = ydf['Year'].max()
     else:
-        df = HisData(chartno)
+        pass
     
-    # 錶面樣式: 儀錶板
-    RRT = ['BP_V1', 'PULSE_V1', 'RESPIRATORY_V1', 'BT_V1', 'SPO2_V1']
-    Max = []
-    for i in range(len(RRT)):
-        k = df[RRT[i]].max()
-        if k%1 == 0:
-            if k == 0:
-                k = 100
-                Max.append(k)
-            else:
-                Max.append(int(k))
-        else:
-            Max.append(float(k))
-    color = Color(RRT, Max)
-
-    # 按鈕偵測: 圖表
-    if clickData is None:
-        key = [0] * len(RRT)
-        key_E = 0
-        key_M = 0
-        key_V = 0
+    if on:
+        name = 'Division'
+        df, col1, col2, col3, col4 = RRTDivNum(year, avg)
     else:
-        data_time = clickData['points'][0]['x']
-        
-        # 補值: 秒
-        if len(data_time) == 16:
-            data_time = data_time + ':00'
-            data_time = pd.Timestamp(data_time)
-        elif len(data_time) == 19:
-            data_time = pd.Timestamp(data_time)
-        else:
-            pass
-        
-        # 刷新: 儀錶板重置
-        if len(df[(chartno == df['ChartNo']) & (data_time == df.index)]) == 0:
-            key = [0] * len(RRT)
-            key_E = 0
-            key_M = 0
-            key_V = 0
-        else:
-            # 數值抓取
-            dff = df[data_time == df.index]
-            key = []
-            for i in range(len(RRT)):
-                v = dff[RRT[i]][0]
-                if v%1 == 0:
-                    key.append(int(v))
-                else:
-                    key.append(float(v))
-            key_E = dff['Score6_E'][0]
-            key_M = dff['Score6_M'][0]
-            key_V = dff['Score6_V'][0]
-            
-    # 量計樣式
-    key_GCS = [key_E, key_M, key_V]
-    color_GCS = []
-    for i in range(len(key_GCS)):
-        if key_GCS[i] == 0:
-            c = theme['primary']
-            color_GCS.append(c)
-        elif key_GCS[i] == 1:
-            c = 'yellow'
-            color_GCS.append(c)
-        elif key_GCS[i] == 2:
-            c = 'orange'
-            color_GCS.append(c)
-        elif key_GCS[i] == 3:
-            c = 'red'
-            color_GCS.append(c)
-        else:
-            pass
+        name = 'Ward'
+        df, col1, col2, col3, col4 = RRTWardNum(year, avg)
 
-    return (key[0], Max[0], color[0],
-            key[1], Max[1], color[1],
-            key[2], Max[2], color[2],
-            key[3], Max[3], color[3],
-            key[4], Max[4], color[4],
-            key_E, color_GCS[0],
-            key_M, color_GCS[1],
-            key_V, color_GCS[2],
-           )
+    if draw:
+        bar = 'group'
+    else:
+        bar = 'stack'
+
+    data = [go.Bar(name=col1, x=df.index, y=df[col1], marker_color='green'),
+            go.Bar(name=col2, x=df.index, y=df[col2], marker_color='yellow'),
+            go.Bar(name=col3, x=df.index, y=df[col3], marker_color='#ff9d00'),
+            go.Bar(name=col4, x=df.index, y=df[col4], marker_color='red'),
+           ]
+    fig = go.Figure(data=data)
+    fig.update_layout(title_text=(str(year)+': Data Distribution of '+str(name)),
+                      barmode=bar,
+                      hovermode='x unified',
+                      hoverlabel=dict(font_size=15,
+                                     ),
+                      modebar_remove=['resetscale', 'lasso'],
+                     )
+    return fig
+
+##############################################################################################
+
+# 篩選器: RRT匹配比例
+@app.callback(
+    Output('Match-graph', 'figure'),
+    Input('Match-year-dropdown', 'value'),
+)
+def update_graph_RRT(year):
+    if year is None:
+        year = '%'
+        year1 = mydf['Year'].min()
+        year2 = mydf['Year'].max()
+        df, col = MatchNum(year)
+    else:
+        year1 = year
+        year2 = year
+        df, col = MatchNum(year)
+
+    c = []
+    for i in range(len(df)):
+        if df.index[i] == 'Match':
+            c.append('green')
+        elif df.index[i] == 'Discrepancy':
+            c.append('red')
+        else:
+            pass
+            
+    data = [go.Pie(labels=df.index, values=df[col],
+                   name='RRT匹配比例',
+                   marker_colors=c,
+                  ),
+           ]
+    fig = go.Figure(data=data)
+    fig.update_layout(uniformtext_minsize=12,
+                      uniformtext_mode='hide',
+                      hoverlabel=dict(font_size=15),
+                      title_text=(str(year1)+'/1/1~'+str(year2)+'/12/31: Percentage of RRTRecord')
+                     )
+    return fig
+
+##############################################################################################
+
+# 篩選器: RRT匹配分布
+@app.callback(
+    Output('Match-bar-graph', 'figure'),
+    Input('Match-year-dropdown', 'value'),
+    Input('Match-draw-boolean-switch', 'on'),
+)
+def update_graph_RRT(year, on):
+    if year is None:
+        year = '%'
+        year1 = mydf['Year'].min()
+        year2 = mydf['Year'].max()
+        df, col1, col2, col3, col4 = MatchDiffNum(year)
+    else:
+        year1 = year
+        year2 = year
+        df, col1, col2, col3, col4 = MatchDiffNum(year)
+        
+    if on:
+        bar = 'group'
+    else:
+        bar = 'stack'
+
+    data = [go.Bar(name=col1, x=df.index, y=df[col1], marker_color='green'),
+            go.Bar(name=col2, x=df.index, y=df[col2], marker_color='yellow'),
+            go.Bar(name=col3, x=df.index, y=df[col3], marker_color='#ff9d00'),
+            go.Bar(name=col4, x=df.index, y=df[col4], marker_color='red'),
+           ]
+    fig = go.Figure(data=data)
+    fig.update_layout(title_text=(str(year1)+'/1/1~'+str(year2)+'/12/31: Duration Between Nursing Date and RRT Date (Minute Unit)'),
+                      hovermode='x unified',
+                      barmode=bar,
+                      hoverlabel=dict(font_size=15,
+                                     ),
+                      modebar_remove=['resetscale', 'lasso'],
+                     )
+    fig.update_xaxes(rangeslider_visible=True)
+    return fig
+
+##############################################################################################
+
+# 篩選器: HIS RRT病程分布
+@app.callback(
+    Output('RRTType-graph', 'figure'), 
+    Input('RRTType-year-dropdown', 'value'),
+    Input('RRTType-age-boolean-switch', 'on'),
+)
+def update_graph(year, on):
+    if year is None:
+        year = unydf['Year'].max()
+    else:
+        pass
+    
+    df, col1, col2, col3 = RRTTransferType(year, on)
+
+    fig = px.bar(df, x=df.index, y=col3, hover_data=[col1, col2])
+    fig.update_traces(text=df[col3],
+                      textposition='auto',
+                      textfont_size=15,
+                      selector=dict(type='bar'),
+                     )
+    fig.update_layout(hovermode='x unified',
+                      hoverlabel=dict(font_size=15),
+                      modebar_remove=['resetscale', 'lasso'],
+                     )
+    return fig
+
+##############################################################################################
+
+# 篩選器: 不可預期ICURRT
+@app.callback(
+    Output('ICURRT-graph', 'figure'),
+    Input('ICURRT-year-dropdown', 'value'),
+)
+def update_graph_RRT(year):
+    if year is None:
+        year1 = unydf['Year'].min()
+        year2 = unydf['Year'].max()
+        title = str(year1)+'~'+str(year2)
+    else:
+        year1 = year
+        year2 = year
+        title = str(year)
+    
+    df1, col11, col12, col13 = RRTTransferNum(year)
+    df2, col21, col22, col23 = RRTTransferNullNum(year1, year2)
+
+    c1 = []
+    for i in range(len(df1)):
+        if df1.index[i]=='other':
+            c1.append('#adadad')
+        else:
+            c1.append('#05b511')
+    
+    c2 = []
+    for i in range(len(df2)):
+        if df2.index[i]=='Match':
+            c2.append('green')
+        elif df2.index[i]=='Miss':
+            c2.append('red')
+        else:
+            pass
+    
+    if year is None:
+        text = [col11+': '+str(df1[col11][0])+', '+col12+': '+str(df1[col12][0])
+                ]
+    else:
+        text = [col11+': '+str(df1[col11][0])+', '+col12+': '+str(df1[col12][0]),
+                col11+': '+str(df1[col11][1])+', '+col12+': '+str(df1[col12][1])
+                ]
+        
+    fig = make_subplots(1, 2, specs=[[{'type':'domain'}, {'type':'domain'}]],
+                       )
+    fig.add_trace(go.Pie(labels=df1.index, values=df1[col13],
+                         name='不可預期數據之分布',
+                         marker_colors=c1,
+                         hovertext=text,
+                        ),
+                  1, 1)
+    fig.add_trace(go.Pie(labels=df2.index, values=df2[col23],
+                         name='不可預期數據之偵測分布',
+                         marker_colors=c2,
+                         hovertext=[col21+': '+str(df2[col21][0])+', '+col22+': '+str(df2[col22][0]),
+                                    col21+': '+str(df2[col21][1])+', '+col22+': '+str(df2[col22][1])
+                                   ],
+                        ),
+                  1, 2)
+    fig.update_layout(uniformtext_minsize=12,
+                      uniformtext_mode='hide',
+                      hoverlabel=dict(font_size=15),
+                      title_text=(title+': 不可預期進ICU患者之RRT偵測數據分布')
+                     )
+    return fig
+
+##############################################################################################
+
+# 篩選器: 不可預期ICURRT 判斷Error
+@app.callback(
+    Output('ICURRT2-graph', 'figure'),
+    Input('ICURRT-year-dropdown', 'value'),
+)
+def update_graph_RRT(year):
+    if year is None:
+        year = '%'
+        year1 = unydf['Year'].min()
+        year2 = unydf['Year'].max()
+        title = str(year1)+'~'+str(year2)
+    else:
+        year1 = year
+        year2 = year
+        title = str(year)
+    
+    df1, col11, col12, col13 = RRTTransferEndMiss(year)
+    df2, col21, col22, col23 = RRTTransferEndType(year)
+
+    c1 = []
+    for i in range(len(df1)):
+        if df1.index[i]=='Fail':
+            c1.append('#ff2626')
+        elif df1.index[i]=='Success':
+            c1.append('#05b511')
+        else:
+            pass
+    
+    c2 = []
+    for i in range(len(df2)):
+        if df2.index[i]=='RRT到場處理':
+            c2.append('green')
+        elif df2.index[i]=='啟動但RRT未到場':
+            c2.append('#ffdd00')
+        elif df2.index[i]=='未啟動':
+            c2.append('red')
+        else:
+            pass
+    
+    if len(df2.index)==2:
+        text = [col21+': '+str(df2[col21][0])+', '+col22+': '+str(df2[col22][0]),
+                col21+': '+str(df2[col21][1])+', '+col22+': '+str(df2[col22][1])
+                ]
+    elif len(df2.index)==3:
+        text = [col21+': '+str(df2[col21][0])+', '+col22+': '+str(df2[col22][0]),
+                col21+': '+str(df2[col21][1])+', '+col22+': '+str(df2[col22][1]),
+                col21+': '+str(df2[col21][2])+', '+col22+': '+str(df2[col22][2])
+                ]
+    else:
+        pass
+        
+    fig = make_subplots(1, 2, specs=[[{'type':'domain'}, {'type':'domain'}]],
+                       )
+    fig.add_trace(go.Pie(labels=df1.index, values=df1[col13],
+                         name='RRT偵測成功率分布',
+                         marker_colors=c1,
+                         hovertext=[col11+': '+str(df1[col11][0])+', '+col12+': '+str(df1[col12][0]),
+                                    col11+': '+str(df1[col11][1])+', '+col12+': '+str(df1[col12][1]),
+                                   ],
+                        ),
+                  1, 1)
+    fig.add_trace(go.Pie(labels=df2.index, values=df2[col23],
+                         name='RRT處理結果',
+                         marker_colors=c2,
+                         hovertext=text,
+                        ),
+                  1, 2)
+    fig.update_layout(uniformtext_minsize=12,
+                      uniformtext_mode='hide',
+                      hoverlabel=dict(font_size=15),
+                      title_text=(title+': 不可預期進ICU患者之HisRRT偵測失誤比例 (Conditional Exclusion: DNR, RRT EndReason is NULL)')
+                     )
+    return fig

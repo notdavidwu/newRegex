@@ -449,14 +449,21 @@
     {% include 'navBar.html' %}
     {{ user.username|json_script:"user_username" }}
     {{ user.last_name|json_script:"hospital" }}
-    
-    <select class="form-select" aria-label="Default select example" id="Disease"></select>
-    <select class="form-select" aria-label="Default select example" id='filter'>
-        <option value='0'>全部</option>
-        <option value='1'>尚未標註</option>
-        <option value='2'>已標註</option>
-    </select>
-   
+    <div id="subjectFilter">
+        <select class="form-select" aria-label="Default select example" id="Disease"></select>
+        <select class="form-select" aria-label="Default select example" id='filter'>
+            <option value='0'>全部</option>
+            <option value='1'>尚未標註</option>
+            <option value='2'>已標註</option>
+        </select>
+    </div>
+    <div id="imageFilter">
+        <select class="form-select" aria-label="Default select example" id='filter'>
+            <option value='0'>全部</option>
+            <option value='1'>尚未標註</option>
+            <option value='2'>已標註</option>
+        </select>
+    </div>
     <div id="SubjectPatient">
         <table>
             <div class="loader">

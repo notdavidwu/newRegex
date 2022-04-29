@@ -16,10 +16,10 @@ Cursor is a key element
 Using Cursor and query can control database 
 '''
 connect = pymssql.connect(
-    host='172.31.6.157',
-    user='TEST',
-    password='81218',
-    database='AICH'
+    host='172.31.6.22',
+    user='E1306',
+    password='izumo203203',
+    database='AIC'
 )
 
 root=r'\\172.31.6.6\share1\NFS\image'
@@ -42,10 +42,11 @@ cursor = connect.cursor(as_dict=True)
 for i in tqdm(range(len(PatientListID))):
     #取得標記資料
     query = '''
-    select * from Localization where PID=%(var1)s and username=%(var2)s and Disease=%(var3)s 
+    select distinct [PID],[SD],[x],[y],[z],[LabelGroup],[LabelName],[StudyID],[seriesID] 
+	from annotation where PID=%(var1)s and Disease=%(var3)s 
      and CONVERT(date,[date]) >= %(var4)s　and　CONVERT(date,[date]) <= %(var5)s
     '''
-    cursor.execute(query, {'var1': PatientListID[i],'var2':user,'var3':diseaseNo,'var4':date1,'var5':date2})
+    cursor.execute(query, {'var1': PatientListID[i],'var3':diseaseNo,'var4':date1,'var5':date2})
 
     SD = []
 
@@ -57,8 +58,16 @@ for i in tqdm(range(len(PatientListID))):
 
 
         query = '''
-        select PID ,SD,StudyID,seriesID from Localization where PID=%(var1)s and username=%(var2)s and Disease=%(var3)s and CONVERT(date,[date]) >= %(var4)s　and　CONVERT(date,[date]) <= %(var5)s group by PID,SD,StudyID,seriesID''' #取得影像位置資料
-        cursor.execute(query, {'var1': PatientListID[i],'var2':user,'var3':diseaseNo,'var4':date1,'var5':date2})
+            select distinct PID ,SD,StudyID,seriesID 
+            from annotation 
+            where PID=%(var1)s 
+            and Disease=%(var3)s 
+            and CONVERT(date,[date]) >= %(var4)s　
+            and　CONVERT(date,[date]) <= %(var5)s 
+            group by PID,SD,StudyID,seriesID
+
+        ''' #取得影像位置資料
+        cursor.execute(query, {'var1': PatientListID[i],'var3':diseaseNo,'var4':date1,'var5':date2})
         res = cursor.fetchall()
 
         for j in range(len(res)):
@@ -98,9 +107,23 @@ for i in tqdm(range(len(PatientListID))):
 
 
             query = '''
-            select * from Localization where PID=%(var1)s and username=%(var2)s and Disease=%(var3)s and StudyID=%(var4)s and seriesID=%(var5)s
+            select distinct
+            [PID]
+            ,[SD]
+            ,[x]
+            ,[y]
+            ,[z]
+            ,[SUV]
+            ,[LabelGroup]
+            ,[LabelName]
+            ,[Disease]
+            ,[StudyID]
+            ,[seriesID] 
+            from annotation 
+            where PID=%(var1)s 
+            and Disease=%(var3)s and StudyID=%(var4)s and seriesID=%(var5)s
             '''
-            cursor.execute(query, {'var1': PID,'var2':user,'var3':diseaseNo,'var4':StudyID,'var5':seriesID})
+            cursor.execute(query, {'var1': PID,'var3':diseaseNo,'var4':StudyID,'var5':seriesID})
             data = cursor.fetchall()
             #print('PID:',PID,' user:',user,' diseaseNo:',diseaseNo,' StudyID:',StudyID,' seriesID:',seriesID)
             Main = ET.Element('Main')
@@ -123,15 +146,15 @@ for i in tqdm(range(len(PatientListID))):
             CT_Pixel_Spacing.text =str(CT_tag[0].PixelSpacing[0])
             for ind, row in enumerate(data):
                 Tumor_Area = ET.SubElement(Main, 'Tumor_Area')
-                Tumor_Area.set('X', str(row['Click_X']))
-                Tumor_Area.set('Y', str(row['Click_Y']))
-                Tumor_Area.set('Z', str(row['Click_Z']))
+                Tumor_Area.set('X', str(row['x']))
+                Tumor_Area.set('Y', str(row['y']))
+                Tumor_Area.set('Z', str(row['z']))
                 Tumor_Area.set('Area_size', '7cm')
-                Tumor_Area.set('UserName', str(row['username']))
+                Tumor_Area.set('UserName', str(user))
                 Tumor_Center = ET.SubElement(Tumor_Area, 'Tumor_Center')
                 Tumor_Center.set('C_Type', 'LocalMax')
-                Tumor_Center.set('UserName', str(row['username']))
-                Tumor_Center.set('memo', str(row['LabelName'][0:5]).replace(' ','_')+'_'+str(row['LabelRecord']).replace(' ','_')+'_'+str(ind))
+                Tumor_Center.set('UserName', str(user))
+                Tumor_Center.set('memo', str(row['LabelName'][0:5]).replace(' ','_')+'_'+str(ind))
                 Tumor_Center.set('X', str(math.floor(float(row['x']))))
                 Tumor_Center.set('Y', str(math.floor(float(row['y']))))
                 Tumor_Center.set('Z', str(math.floor(float(row['z']))))

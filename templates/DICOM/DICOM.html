@@ -2565,50 +2565,52 @@
 
         
         $('body').keydown(function(event){
-            switch (event.keyCode){
-                case 35://End鍵
-                    $("[name='group1']:checked").next("label").children('.slider').scrollTop($("[name='group1']:checked").next("label").children('.slider').children().height());
-                    break;
-                case 36://Home鍵
-                    $("[name='group1']:checked").next("label").children('.slider').scrollTop(0);
-                    break;
-                case 45://Insert鍵 (中間圖像)
-                    $("[name='group1']:checked").next("label").children('.slider').scrollTop($("[name='group1']:checked").next("label").children('.slider').children().height()/2);
-                    break;
-                case 33://PgUp鍵 (放大圖像)
-                    var scale_rate = parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text())+0.1
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('transform','scale('+scale_rate+')')
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
-                    break;
-                case 34://PgDn鍵 (縮小圖像)
-                    var scale_rate = parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text())-0.1
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('transform','scale('+scale_rate+')')
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
-                    break;
-                case 37://圖像左移
-                    img_x=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').css('margin-left').slice(0,-2))
-                    $("[name='group1']:checked").next("label").children('div').children('div').css('margin-left',img_x-5)
+            if($('#tumor').css('display')=='none'){
+                switch (event.keyCode){
+                    case 35://End鍵
+                        $("[name='group1']:checked").next("label").children('.slider').scrollTop($("[name='group1']:checked").next("label").children('.slider').children().height());
+                        break;
+                    case 36://Home鍵
+                        $("[name='group1']:checked").next("label").children('.slider').scrollTop(0);
+                        break;
+                    case 45://Insert鍵 (中間圖像)
+                        $("[name='group1']:checked").next("label").children('.slider').scrollTop($("[name='group1']:checked").next("label").children('.slider').children().height()/2);
+                        break;
+                    case 33://PgUp鍵 (放大圖像)
+                        var scale_rate = parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text())+0.1
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('transform','scale('+scale_rate+')')
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
+                        break;
+                    case 34://PgDn鍵 (縮小圖像)
+                        var scale_rate = parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text())-0.1
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('transform','scale('+scale_rate+')')
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.Scale_rate').text(scale_rate)
+                        break;
+                    case 37://圖像左移
+                        img_x=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').css('margin-left').slice(0,-2))
+                        $("[name='group1']:checked").next("label").children('div').children('div').css('margin-left',img_x-5)
 
-                    break;
-                case 38://圖像上移
-                    img_y=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top').slice(0,-2))
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',img_y-5)
-                    break;
-                case 39://圖像右移
-                    img_x=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').css('margin-left').slice(0,-2))
-                    $("[name='group1']:checked").next("label").children('div').children('div').css('margin-left',img_x+5)
-                    break;
-                case 40://圖像下移
-                    img_y=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top').slice(0,-2))
-                    $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',img_y+5)
-                    break;
-                case 81:
-                    if(event.ctrlKey){
-                        $('#Topcheckbox').trigger( "click" )
-                    }else if(event.shiftKey){
-                        $('#Imagecheckbox').trigger( "click" )
-                    }
-                    break;
+                        break;
+                    case 38://圖像上移
+                        img_y=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top').slice(0,-2))
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',img_y-5)
+                        break;
+                    case 39://圖像右移
+                        img_x=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').css('margin-left').slice(0,-2))
+                        $("[name='group1']:checked").next("label").children('div').children('div').css('margin-left',img_x+5)
+                        break;
+                    case 40://圖像下移
+                        img_y=parseFloat($("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top').slice(0,-2))
+                        $("[name='group1']:checked").next("label").children('div').children('div').children('.img').css('margin-top',img_y+5)
+                        break;
+                    case 81:
+                        if(event.ctrlKey){
+                            $('#Topcheckbox').trigger( "click" )
+                        }else if(event.shiftKey){
+                            $('#Imagecheckbox').trigger( "click" )
+                        }
+                        break;
+                }
             }
         })
         $(window).on('resize', function(){

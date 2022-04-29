@@ -13,27 +13,11 @@
 
     <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
 
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-grid.rtl.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-reboot.rtl.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.css' %}">
-    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
     <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
     <!-- JS, Popper.js, and jQuery -->
     <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
-    <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.js' %}"></script>
-    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
-    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'css_js/key_forbidden.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
     <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
@@ -70,10 +54,11 @@
     .loader{display:none;position:absolute;top:40%;left:50%}
     .ball-grid-pulse div{background-color:#000000}
     @media (min-width: 0px) {
+        body{overflow-x: auto}
         .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
-        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;min-width:150px;width: 15%;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;min-width:150px;width: 150px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
         #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;text-align: center}
         input[name='confirmPID']{display: none}
         input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
@@ -81,32 +66,32 @@
 
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
-        input[name='timePID']:checked ~label{background-color: #ffdf7e}
-        #timetable{position: absolute;top:105px;width:85%;left:max( calc(15% ) , 150px );height:calc(50% + 18px);overflow-y: scroll;overflow-x: hidden}
-
+        input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
+        #timetable{position: absolute;top:105px;width:calc(1200px - 150px );left:150px;height:calc(50% + 18px);overflow-y: scroll;overflow-x: hidden}
         #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
-        #title{margin-top:55px;height:50px;width: 89%;left:max( calc(15% ) , 150px );position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title{margin-top:55px;height:50px;width: calc(1200px - 150px);left:150px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: calc(100% - 100px)}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{font-size:12pt;float: left;width: 15%;padding-left: 20px;height: auto}
         .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
         .note{font-size:12pt;float: left;width: 40%;padding-left: 20px;height: auto;word-break:break-all;}
         .menu{width: 20%;right:0;position:absolute;padding-top:5px}
-        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:0px;border-style:dashed;border-width:2px;border-radius:0}
-        .eventGroup{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
-        .phase{float: left;margin: 0;width: 60%;margin-left:  10px;height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;margin-left:  10px;top:0;width: calc(40% - 25px);padding-top: 0}
+        .add{width:calc(95%);height:20px;line-height:14px;padding:0;margin-left:0px;border-style:dashed;border-width:2px;border-radius:0}
+        
+        .phase{float: left;margin: 0;width: 65%;height: auto;padding-top: 0}
+        .IntervalNo{float:left;margin: 0;top:0;width: 30%;padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
-        #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 100% - 149px);position: absolute;left:max( calc(14.9% ) , 149px );font-size: 12pt;padding:20px}/*Report 放的框框*/
+        #text{outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 1200px - 150px);position: absolute;left:150px ;font-size: 12pt;padding:20px}/*Report 放的框框*/
         p{height: 100%;align-items: center;vertical-align: center}
-        #Disease{position: absolute;top: 55px;height: 100px;;min-width:150px;width: 15%;background-color: #11171a}
+        #Disease{position: absolute;top: 55px;height: 100px;;min-width:150px;width: 150px;background-color: #11171a}
         #Disease select{width:92%;height: 40px;margin: 5px;font-size: 11pt}
         #header_date{width:18%}
-        #header_note{width:45%}
+        #header_note{width:60%}
         #header_confirm{}
     }
     @media (min-width: 1200px) {
+        body{overflow-x: hidden}
         .loader2{display:none;position:absolute;top:52%;left:38%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt;}
         #Report tr{padding: 0;margin: 0}
@@ -118,7 +103,7 @@
 
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
-        input[name='timePID']:checked ~label{background-color: #ffdf7e}
+        input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;opacity:0.8;}
         #timetable{position: absolute;top:105px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 90px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
         #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
@@ -128,10 +113,10 @@
         .type2{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
         .note{width: 40%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;}
         .menu{width: 25%;right:0;position:absolute;padding-top:5px}
-        .add{width:calc(100% - 20px);height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
-        .eventGroup{float: left;margin: 0;width: 33%;margin-left:  10px;height: auto;padding-top: 0}
-        .phase{float: left;margin: 0;width: 33%;margin-left:  10px;height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(30% - 25px);padding-top: 0}
+        .add{width:92%;height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
+        
+        .phase{float: left;margin: 0;width: calc(65%);height: auto;padding-top: 0}
+        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(30%);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
         #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
@@ -143,7 +128,71 @@
         #header_note{width:45%}
         #header_confirm{}
     }
-
+    .checkPannel{
+        position:absolute;
+        display:none;
+        border-radius:10px;
+        z-index:10;
+        height:555px;
+        width:400px;
+        left:70%;
+        top:calc(50% - 200px);
+        background-color:#FFFFFF;
+        border:1px solid #AAAAAA;
+    }
+    #processing{width:100%;height:250px;border-bottom:1px solid #AAAAAA}
+    #destination{width:100%;height:250px;border-top:1px solid #AAAAAA}
+    #menu{
+        padding-bottom:5px;
+        padding-left:5px;
+        padding-right:5px;
+        position: fixed;
+        z-index: 5;
+        max-height: 85vh;
+        display: none;
+        margin: 0;
+        width: 100px;
+        background-color: #FFFFFF; 
+        border-radius: 5px 5px 5px 5px;
+        border:1px solid #CCCCCC;
+    }
+    .resetbtn {
+        font-size:10pt;
+        margin:0;
+        margin-top: 5px;
+        width: 100%;
+        max-height: 85vh; 
+        border-radius: 5px 5px 5px 5px
+    }
+    .row{margin:0px}
+    .col-md-6{padding:2px}
+    .col-md-12{padding:2px}
+    .ascriptionContentHeader{
+        width:100%;
+        text-align:center;
+        border-bottom:1px solid #AAAAAA
+    }
+    .ascriptionHeader{
+        border-radius:10px 10px 0px 0px;
+        width:100%;
+        height:30px;
+        background-color:#DDDDDD;
+        text-align:center;
+        line-height:30px;
+    }
+    .close{position:absolute;right:5px;margin-top:3px}
+    .item{margin:2px;width:calc(100% - 4px);border:1px solid #AAAAAA;border-radius:5px;}
+    .content{height:50px;text-align:center;padding-top:5px}
+    #ascriptionPhase , #desPhase{height:150px;width:100%}
+    #ascription select{pointer-events:none}
+    .inductionEventID{display:none}
+    #ascriptionSubmit{height:20px;line-height:8px;width:calc(100% - 8px);position:absolute;bottom:5px;margin-left:4px}
+    #cancerRegistCheck{width:500px}
+    input[name='test']{display: none}/*radio  消失*/
+    input[name='test'] +label{background:url("{% static 'image/texture.png' %}");width: 100%;}/*點擊顏色變長*/
+    input[name='test']:checked ~label{background-color: #ffdf7e;color:black;}
+    .accordion{left:-8px;position:absolute;width:5px;height:100%;z-index:5}
+    .collapseItem{padding-left:20px;}
 </style>
 
 
@@ -170,13 +219,15 @@
         //    console.log(3)
         //}
         $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
-        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)    
+        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
+        $('#timePID'+i).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
+
     }
-    function addPhaseAndSeq(pannel,selection,IntervalNoOption,appendOrPrepend){
+    function addPhaseAndSeq(pannel,medType,IntervalNoOption,appendOrPrepend){
+        let selection = getClinicalProcedures(medType)
         let addObject = '<div class=menublock id="sno_-1">'+
             '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
-            '<select onchange="searchPhase()" class="eventGroup form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
-            '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+'</select>'+
+            '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
             '</div>'
         if(appendOrPrepend=='append'){
             $('#'+pannel).next('label').children('.menu').append(addObject)
@@ -184,6 +235,23 @@
             $('#'+pannel).next('label').children('.menu').children('.addButton').before(addObject)
         }           
     }
+
+    function getClinicalProcedures(medType){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getClinicalProcedures" %}', // this is the mapping between the url and view
+            data:{
+                'medType':medType,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            async:false,
+            success:function (response){
+                selection = response.selection
+            }
+        })
+        return selection
+    }
+
     function addMenu(){
         let id = $(event.target).parents('label').prevAll('input').attr('id')
         let IND = id.split('timePID')[1]
@@ -191,52 +259,6 @@
         setdisplay(IND)
     }
 
-    function searchPhase(){
-        var target = $(event.target)
-        var sno = target.parents('.menublock').attr('id').split('sno_')[1]
-        var eventNo = target.val()
-        var eventID = target.parents('.menu').prevAll('.eventID').html()
-        let phase = ''
-        var IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
-        if(eventNo==0){
-            $.ajax({
-                type: 'post',
-                url: '{% url "poolConfirm:deleteDefinition" %}', // this is the mapping between the url and view
-                data:{
-                    'sno':sno,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    if(target.parents('.menublock').parents('.menu').children('.menublock').length !=1 ){
-                        if(eventNo==0){
-                            target.parents('#sno_'+response.sno).remove()
-                            setdisplay(IND)
-                        }
-                    }else{
-                        target.next('.phase').empty()
-                        target.parents('.menublock').attr('id','sno_-1')
-                    }
-                    searchNote(IND,eventID)
-                }
-            })
-        }else{
-            $.ajax({
-                type: 'post',
-                url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
-                data:{
-                    'eventNo':eventNo,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    $(target).next('.phase').empty()
-                    $(target).next('.phase').append(response.phase)
-                },complete:function(){
-                    UpdateEventGroup(target)
-                }
-            })
-        }
-    }
-    
     function searchNote(IND,eventID){
         let chartNo= $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
         $.ajax({
@@ -265,7 +287,7 @@
             success:function (response){
                 $('#sno_'+sno).children('.eventGroup').children('option[value='+response.eventNo+']').attr('selected','selected')
                 let eventNo = response.eventNo[0]
-                console.log(eventNo)
+
                 if(eventNo!=0){
                     $.ajax({
                         type: 'post',
@@ -295,35 +317,57 @@
         })
 
     }
-    function searchRecord(IND,eventID,selection,IntervalNoOption){
+    function searchRecord(IND,eventID,medType,IntervalNoOption,total){
+        let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:searchRecord" %}', // this is the mapping between the url and view
             data:{
                 'IND':IND,
+                'chartNo':chartNo,
                 'eventID':eventID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
                 for(var i =0 ;i<response.Record;i++){
                     let id = 'timePID'+IND.toString()
-                    addPhaseAndSeq(id,selection,IntervalNoOption,'append')
-                    $('#timePID'+IND.toString()).next('label').children('.menu').children('div').eq(i).attr('id','sno_'+response.sno[i])
-                    searchPhaseAndInterval(IND,response.sno[i])
+                    addPhaseAndSeq(id,medType,IntervalNoOption,'append')
+                    let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
+                    
+                    $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).attr('id',RecordedID)
+                    $(`#${RecordedID}`).children('.phase').children('option[value='+response.procedureID[i]+']').attr('selected','selected')
+                    $(`#${RecordedID}`).children('.IntervalNo').children('option[value='+response.caSeqNo[i]+']').attr('selected','selected') 
+
+                    //檢查是不是癌登尚未確認的資料
+                    if(response.eventID[i]==null){
+                        $(`#timePID${IND}`).attr('class','sno_'+response.EDID[i])
+                        $(`#timePID${IND}`).parent().css('background-color','#4D5139')
+                        $(`#timePID${IND}`).parent().css('color','#FFFFFF')
+                    }
+
+
                 }
                 $('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
-                
+
+                if(IND==(total-1)){
+                    $('#timetable').css('visibility','visible')
+                    $('.loader2').css('display','none')
+                }
                 setdisplay(IND)
             }
         })
+        
+        
     }
 
     function GetTime(){
+        
         $('#timetable').css('visibility','hidden')
         $('.loader2').css('display','inline')
-        
+        ascriptionClose(detect=true)
+        cancerRegistCheckClose()
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
-        IntervalNoOption='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
+        IntervalNoOption='<option value="0">?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
@@ -335,136 +379,372 @@
                 
                 $('#time').children('tbody').children('tr').remove()
                 var HeavyDisease=[30001,30002]
-                for(var i=0;i<response.objectArray.length;i++){
-                    if(response.MedType[i]==30001 || response.MedType[i]==30002){
-                        $('#time').append(response.objectArray[i])
-                        $('#timePID'+i).parents('td').css('background-color', '#33333a')
-                        $('#timePID'+i).next('label').css('color', 'red')
-                        setdisplay(i)
-                    }else{
-                        $('#time').append(response.objectArray[i])
-                        searchRecord(i,response.eventID[i],selection,IntervalNoOption)
-                        searchNote(i,response.eventID[i])
+                console.log(response.eventID_F[0])
+
+                if(response.objectArray.length!=0){
+                    $('#accordionExample').empty()
+                    for(var i=0;i<response.objectArray.length;i++){
+                        if(response.MedType[i]==30001 || response.MedType[i]==30002){
+                            $('#time').append(response.objectArray[i])
+                            $('#timePID'+i).parents('td').css('background-color', '#33333a')
+                            $('#timePID'+i).next('label').css('color', 'red')
+                            setdisplay(i)
+                        }else{
+                            $('#time').append(response.objectArray[i])
+                            searchRecord(i,response.eventID[i],response.MedType[i],IntervalNoOption,response.objectArray.length)
+                            searchNote(i,response.eventID[i])
+                        }
                     }
+                    total_num = response.objectArray.length
+                    for(let i=0;i<response.eventID_F.length;i++){
+                        let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
+                        let index = eventIDGroup.indexOf(response.eventID_F[i])
+                        let target = $('#timetable .eventID').eq(index)
+                        let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
+                        console.log(targetID)
+                        target.parents('label').append(`<div class="btn btn-primary accordion" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
+                        target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
+                        addInducedEvent(i,response.eventID_F[i],targetID)
+                    }
+                }else{
+                    $('#accordionExample').html('<p style="postion:absolute;width:100%;font-size: 40pt;font-weight:700;text-align: center;font-family: font-family: "LiGothic", "FangSong", Arial, serif;">查無資料</p>')
+                    $('#timetable').css('visibility','visible')
+                    $('.loader2').css('display','none')
                 }
-                total_num = response.objectArray.length
-                
                 
             }
         })
         return true
     }
+
+    function addInducedEvent(i,eventID,index){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:addInducedEvent" %}', // this is the mapping between the url and view
+            data:{
+                'ind':i,
+                'eventID':eventID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                console.log(index)
+                $(`#${index}`).parents('tr').after(response.objectList)
+            }
+        })
+    }
+    function showReport(){
+        $('#text').text($(event.target).children('div').children('p').text())
+    }
     function GetReport() {
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
         $('#text').text(reporttext)
+        if($('#ascription').css('display')!='none'){
+            let pdID = $('input[name="timePID"]:checked').next('label').children('.pdID').html()
+            let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+            let ChartNo = $('input[name="timePID"]:checked').next('label').children('.ChartNo').html()
+            let OrderNo = $('input[name="timePID"]:checked').next('label').children('.OrderNo').html()
+            let edate = $('input[name="timePID"]:checked').next('label').children('.edate').html()
+            let type2 = $('input[name="timePID"]:checked').next('label').children('.type2').html()
+            let menublock = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock')
+            $('#desDate').html(edate)
+            $('#desExam').html(type2)
+            $('#desPhase').html(menublock.clone(true))
+            $('#inductionEventID2').text(eventID)
+        }
+        
     }
     function UpdatePhase(){
         target=$(event.target)
         let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
-        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
-        let pdID = target.parents('.menu').prevAll('.pdID').html()
+        let EDID = target.parents('.menublock').attr('id').split('_')[1]
+        let pdID = target.parents('.menublock').attr('id').split('_')[3]
+        let originSeqNo = target.parents('.menublock').attr('id').split('_')[4]
         let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let eventNo = target.prevAll('.eventGroup').val()
-        let eventTag = target.val()
-        let seqNo = target.prevAll('.IntervalNo').val()
+        let procedureID = target.val()
+        let PDIDGroup = $('#accordionExample .menublock').map(function(){return parseInt($(this).attr('id').split('_')[3])}).get()
+        target.css('border','none')
+        if(pdID==-1){
+            pdID = Math.min(...PDIDGroup.filter(PDID => PDID > 0))
+            target.prevAll('.IntervalNo').val(1)
+            originSeqNo = 1
+        }
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
             data:{
-                'sno':sno,
-                'pdID':pdID,
+                'EDID':EDID,
+                'PDID':pdID,
                 'eventID':eventID,
-                'eventNo':eventNo,
-                'eventTag':eventTag,
-                'seqNo':seqNo,
+                'procedureID':procedureID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                target.parents('.menublock').attr('id','sno_'+response.sno)
-                searchNote(IND,eventID)
-            }
-        })
-    }
-    function UpdateEventGroup(target){
-        let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
-        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
-        let pdID = target.parents('.menu').prevAll('.pdID').html()
-        let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let eventNo = target.val()
-        let eventTag = target.next('.phase').val()
-        let seqNo = target.prevAll('.IntervalNo').val()
-        $.ajax({
-            type: 'post',
-            url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
-            data:{
-                'sno':sno,
-                'pdID':pdID,
-                'eventID':eventID,
-                'eventNo':eventNo,
-                'eventTag':eventTag,
-                'seqNo':seqNo,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                target.parents('.menublock').attr('id','sno_'+response.sno)
+                target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${pdID}_${originSeqNo}`)
                 searchNote(IND,eventID)
             }
         })
     }
 
+
     function UpdateInterval(){
         target=$(event.target)
         let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
-        let sno = target.parents('.menublock').attr('id').split('sno_')[1]
-        let pdID = target.parents('.menu').prevAll('.pdID').html()
+        let EDID = target.parents('.menublock').attr('id').split('_')[1]
+        let pdID = target.parents('.menublock').attr('id').split('_')[3]
         let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let eventNo = target.prevAll('.eventGroup').val()
-        let seqNo = target.val()
+        let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
+        let originSeqNo = target.parents('.menublock').attr('id').split('_')[4]
+        let newSeqNo = target.val()
+        let procedureID = target.next('.phase').val()
+        let diseaseId = $('#ChangeDisease').val()
+
+        if(originSeqNo == 0){
+            target.next('.phase').children('option').eq(1).attr('selected','selected')
+            procedureID = target.next('.phase').val()
+        }else if(newSeqNo == 0){
+            target.next('.phase').val(0)
+        }
 
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updateInterval" %}', // this is the mapping between the url and view
             data:{
-                'sno':sno,
-                'pdID':pdID,
+                'EDID':EDID,
+                'PDID':pdID,
                 'eventID':eventID,
-                'eventNo':eventNo,
-                'seqNo':seqNo,
+                'chartNo':chartNo,
+                'originSeqNo':originSeqNo,
+                'newSeqNo':newSeqNo,
+                'diseaseId':diseaseId,
+                'procedureID':procedureID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                target.parents('.menublock').attr('id','sno_'+response.sno)
-                searchNote(IND,eventID)
+                target.parents('.menublock').attr('id',`sno_${response.EDID}_${eventID}_${response.returnPDID}_${newSeqNo}`)
             }
         })
+        
     }
-    function ignore(){
-        target = $(event.target);
+
+
+    function belong(){
+        $('#ascription').css('display','inline')
+        let inductionID = $('input[name="timePID"]:checked').attr('id')
+        let pdID = $('#'+inductionID).next('label').children('.pdID').html()
+        let eventID = $('#'+inductionID).next('label').children('.eventID').html()
+        let ChartNo = $('#'+inductionID).next('label').children('.ChartNo').html()
+        let OrderNo = $('#'+inductionID).next('label').children('.OrderNo').html()
+        let edate = $('#'+inductionID).next('label').children('.edate').html()
+        let type2 = $('#'+inductionID).next('label').children('.type2').html()
+        let menublock = $('#'+inductionID).next('label').children('.menu').children('.menublock')
+        $(`label[for=${inductionID}]`).parents('td').css('background-color','#FF0000')
+
+        $('#inductionID').text(inductionID)
+        $('#date').html(edate)
+        $('#exam').html(type2)
+        $('#ascriptionPhase').html(menublock.clone(true))
+        $('#inductionEventID1').text(eventID)
+        $("#menu").css('display', 'none');
+    }
+    function ascriptionClose(detect=false){
+        
+        if(detect==false){
+            let inductionID = $('#inductionID').text()
+            $(`label[for=${inductionID}]`).parents('td').css('background-color','#4D5139') 
+        }
+        $('#date').empty()
+        $('#exam').empty()
+        $('#ascriptionPhase').empty()
+        $('#inductionEventID1').empty()
+        $('#desDate').empty()
+        $('#desExam').empty()
+        $('#desPhase').empty()
+        $('#inductionEventID2').empty()
+        $("#ascription").css('display', 'none');
+    }
+
+    function cancerRegistCheck(){
+        $('#checkArea').empty()
+        let cloneObject = $('.'+$('input[name="timePID"]:checked').attr('class'))
+        for(let i=0; i<cloneObject.length; i++){
+            $('#checkArea').append(cloneObject.eq(i).parent().clone(true))
+            $('#checkArea input').attr('name','test')
+            $('#checkArea .note').remove()
+            $('#checkArea .addButton').remove()
+            $('#checkArea div').css('width','165px')
+            $('#checkArea td').css('height','70px')
+            $('#checkArea label').css('height','70px')
+            $('#checkArea label').css('width','498px')
+            $('#checkArea label').css('margin-left','-12px')
+            $('#checkArea label').css('margin-top','0px')
+            $('#checkArea .IntervalNo').css('width','55px')
+            $('#checkArea .IntervalNo').css('margin','0px')
+            $('#checkArea select').css('pointer-events','none')
+        }
+        $("#cancerRegistCheck").css('display', 'inline');
+        $("#menu").css('display', 'none');
+    }
+
+    function cancerRegistCheckClose(){
+        $('#checkArea').empty()
+        $("#cancerRegistCheck").css('display', 'none');
+    }
+
+    function cancerRegistSubmit(){
+        let eventID = $('input[name="test"]:checked').next('label').children('.eventID').html().replaceAll(' ','')
+        let EDID = $('input[name="test"]:checked').attr('class').split('sno_')[1]
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:ignore" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:updateCancerRegist" %}', // this is the mapping between the url and view
             data:{
-                'diseaseNo':$('#ChangeDisease').val(),
-                'eventID':$(event.target).prevAll('.eventID').text(),
+                'EDID':EDID,
+                'eventID':eventID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
-            success:function (response){
-                Ignore=response.Ignore
-                if(Ignore==1){
-
-                    target.parents('label').parents('td').css('background-color','#556245')
-                    target.prevAll().css('text-decoration','line-through')
-                    target.html('Ignored')
-                }else if(Ignore==0){
-                    target.parents('label').parents('td').css('background-color','#33333a')
-                    target.prevAll().css('text-decoration','none')
-                    target.html('Adopted')
-                }
+            success:function(){
+                $('#timetable #'+$('input[name="test"]').eq(i).attr('id')).next('label').children()
+                cancerRegistCheckClose()
             }
         })
 
+        for(let i=0; i<$('input[name="test"]:not(:checked)').length; i++){
+            let ob ='#sno_'+EDID+'_'+$('input[name="test"]:not(:checked)').eq(i).next('label').children('.eventID').html().replaceAll(' ','')
+            let notCheckedId = $('input[name="test"]:not(:checked)').eq(i).attr('id')
+            if($(`#timetable #${notCheckedId}`).next('label').children('.menu').children('.menublock').length==1){
+                $(`#timetable #${notCheckedId}`).next('label').children('.menu').children(ob).children('.IntervalNo').val(1)
+                $(`#timetable #${notCheckedId}`).next('label').children('.menu').children(ob).children('.phase').val(0)
+            }else{
+                $(`#timetable #${notCheckedId}`).next('label').children('.menu').children(ob).remove()
+            }
+        }
+        for(let i=0; i<$('input[name="test"]').length; i++){
+            let id = $('input[name="test"]').eq(i).attr('id')
+            $(`#timetable #${id}`).parent('td').css('background-color','transparent')
+            $(`#timetable #${id}`).parent('td').css('color','#000000')
+            setdisplay(id.split('timePID')[1])
+        }
     }
+
+    function ascriptionSubmit(){
+        let eventID_F = $('#inductionEventID2').text()
+        let eventID = $('#inductionEventID1').text()
+
+        if(eventID_F!=''){ //沒歸屬偵測
+            $.ajax({
+                type: 'post',
+                url: '{% url "poolConfirm:updateInducedEvent" %}', // this is the mapping between the url and view
+                data:{
+                    'eventID_F':eventID_F,
+                    'eventID':eventID,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function(){
+                    
+                    let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
+                    let index = eventIDGroup.indexOf(parseInt(eventID_F))
+                    let index_origin = eventIDGroup.indexOf(parseInt(eventID))
+                    let target = $('#timetable .eventID').eq(index)
+                    let origin = $('#timetable .eventID').eq(index_origin)
+                    let num = 0
+                    if($('.accordion').length==0){
+                        num = 0
+                    }else{
+                        num = $('.accordion').length+1
+                    } 
+                    let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
+
+                    if(target.nextAll('.accordion').length==0){
+                        target.parents('label').append(`<div class="btn btn-primary accordion" data-bs-toggle="collapse" data-bs-target="#collapse${num}" ></div>`)
+                        target.nextAll('.accordion').css('height',target.parents('label').height()+'px')
+                    }else{
+                        num = parseInt(target.nextAll('.accordion').attr('data-bs-target').split('#collapse')[1])
+                    }
+
+                    
+                    console.log($(`.collapse${num}`).length)
+                    console.log($(`.collapse${num}`).parents('tr'))
+                    $(`.collapse${num}`).parents('tr').remove()
+
+                    origin.parents('tr').remove()
+                    addInducedEvent(num,eventID_F,targetID)
+                },
+                complete:function(){
+                    ascriptionClose()
+                }
+            })
+        }
+    }
+
+    function deleteEvent_F(){
+        let eventID = $(event.target).prevAll('.eventID').html()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:deleteEvent_F" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(){
+                GetTime()
+            }
+        })
+    }
+
     $(document).ready(function (e) {
+        
+
+        $('#defaultMenuBlock').get(0).oncontextmenu = function() {
+            return false
+        };
+        //右鍵選單
+        $('#defaultMenuBlock').on('mousedown','td',function(d){
+            $(this).children('input[type="radio"]').prop('checked',true)
+            if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
+                var x = d.originalEvent.x || d.originalEvent.layerX || 0;
+                var y = d.originalEvent.y || d.originalEvent.layerY || 0;
+                $("#menu").css('display', 'inline');
+                $("#menu").css('left', x);
+                $("#menu").css('top', y);
+            }else if(d.which == 1){
+                $("#menu").css('display', 'none');
+            }
+        })
+
+
+        var move1=false;//移動標記  
+        var _x,_y;//左上角位置 
+            $("#ascription").children('.ascriptionHeader').mousedown(function(e){  
+                move1=true;  
+                _x=e.pageX-parseInt($("#ascription").css("left"));  
+                _y=e.pageY-parseInt($("#ascription").css("top"));       
+            });  
+            $(document).mousemove(function(e){  
+                if(move1){  
+                    var x=e.pageX-_x;
+                    var y=e.pageY-_y;  
+                    $("#ascription").css({"top":y,"left":x}); 
+                }  
+            }).mouseup(function(){  
+            move1=false;
+        });
+
+        var move2=false;//移動標記  
+        var _x,_y;//左上角位置 
+            $("#cancerRegistCheck").children('.ascriptionHeader').mousedown(function(e){  
+                move2=true;  
+                _x=e.pageX-parseInt($("#cancerRegistCheck").css("left"));  
+                _y=e.pageY-parseInt($("#cancerRegistCheck").css("top"));       
+            });  
+            $(document).mousemove(function(e){  
+                if(move2){  
+                    var x=e.pageX-_x;
+                    var y=e.pageY-_y;  
+                    $("#cancerRegistCheck").css({"top":y,"left":x}); 
+                }  
+            }).mouseup(function(){  
+            move2=false;
+        });
+
         $('.loader1').css('display','inline')
         $.ajax({
             type: 'post',
@@ -510,14 +790,12 @@
         selection ='<option value="0">請選擇階段</option>'
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:eventGroup" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                for(var i=0;i<response.PhaseID.length;i++) {
-                    selection += '<option value="'+response.PhaseID[i]+'">' + response.PhaseName[i] + '</option>'
-                }
+                selection += response.phase
             }
         })
         $('#ChangeDisease').on('change',function (){
@@ -578,67 +856,138 @@
 
 
 </body>
-
-<div id="Disease" >
-    <select class="form-select" aria-label="Default select example" id="ChangeDisease"></select>
-    <select class="form-select" aria-label="Default select example" id="filter">
-        <option value="1">全部名單</option>
-        <option value="1">過濾Ignore</option>
-    </select>
-</div>
-
-<div id="patient">
-    <div class="loader loader1">
-        <div class="loader-inner pacman">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-        </div>
-        <span class="tooltip">
-            <p>載入中，請稍後‧‧‧</p>
-        </span>
-    </div>
-    <table class="table table-striped" id="Report"></table>
-</div>
-
-
-<div id="title">
-<table  class="thead-dark">
-    <thead>
-    <th class="header" id ="header_date">日期</th>
-    <th class="header" id ="header_exam">檢查項目</th>
-    <th class="header" id ="header_note">註記</th>
-    <th class="header" id ="header_confirm">確認階段</th>
-    </thead>
     
-</table>
-</div>
-
-<div class="loader loader2">
-    <div class="loader-inner ball-grid-pulse">
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
-        <div></div>
+    <div id="Disease" >
+        <select class="form-select" aria-label="Default select example" id="ChangeDisease"></select>
+        <select class="form-select" aria-label="Default select example" id="filter">
+            <option value="1">全部名單</option>
+            <option value="1">過濾Ignore</option>
+        </select>
     </div>
-    <span class="tooltip">
-        <p>載入中，請稍後‧‧‧</p>
-    </span>
-</div>
+
+    <div id="patient">
+        <div class="loader loader1">
+            <div class="loader-inner pacman">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <span class="tooltip">
+                <p>載入中，請稍後‧‧‧</p>
+            </span>
+        </div>
+        <table class="table table-striped" id="Report"></table>
+    </div>
+
+    <div id='defaultMenuBlock'>    
+        <div id="title">
+        <table  class="thead-dark">
+            <thead>
+            <th class="header" id ="header_date">日期</th>
+            <th class="header" id ="header_exam">檢查項目</th>
+            <th class="header" id ="header_note">註記</th>
+            <th class="header" id ="header_confirm">確認階段</th>
+            </thead>
+            
+        </table>
+        </div>
+
+        <div class="loader loader2">
+            <div class="loader-inner ball-grid-pulse">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <span class="tooltip">
+                <p>載入中，請稍後‧‧‧</p>
+            </span>
+        </div>
 
 
-<div id="timetable">
-    <table class="table  table-striped" id="time">
-        <tbody></tbody>
-    </table>
-</div>
+        <div id="timetable">
+            <table class="table   table-hover" id="time">
+                <tbody id="accordionExample"></tbody>
+            </table>
+        </div>
 
-<textarea id="text" readonly>
 
-</textarea>
+
+        <div class="checkPannel" id="ascription">
+            <div class="ascriptionHeader">
+                歸納
+                <button type="button" class="btn-close close" aria-label="Close" onclick="ascriptionClose()"></button>
+            </div>
+            <div id="processing"  class="row">
+                <div class="col-md-6 ">
+                    <div class="item">
+                        <div class="ascriptionContentHeader">日期</div>
+                        <div class="content" id="date">a</div>
+                    </div>
+                </div>
+                <div class="col-md-6 ">
+                    <div class="item">
+                        <div class="ascriptionContentHeader">項目</div>
+                        <div class="content" id="exam"></div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="item">
+                        <div class="content" id="ascriptionPhase"></div>
+                    </div>
+                </div>
+                <p class="inductionEventID" id="inductionEventID1"></p>
+                <p class="inductionEventID" id="inductionID"></p>
+            </div>
+            <div id="destination" class="row">
+                <div class="col-md-6 ">
+                    <div class="item">
+                        <div class="ascriptionContentHeader">日期</div>
+                        <div class="content" id="desDate">a</div>
+                    </div>
+                </div>
+                <div class="col-md-6 ">
+                    <div class="item">
+                        <div class="ascriptionContentHeader">項目</div>
+                        <div class="content" id="desExam"></div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="item">
+                        <div class="content" id="desPhase"></div>
+                    </div>
+                </div>
+                <p class="inductionEventID" id="inductionEventID2"></p>
+            </div>
+            <button type="submit" class="btn btn-primary" id="ascriptionSubmit" onclick="ascriptionSubmit()">Submit</button>
+        </div>
+
+
+        <div class="checkPannel" id="cancerRegistCheck">
+            <div class="ascriptionHeader">
+                癌登資料確認
+                <button type="button" class="btn-close close" aria-label="Close" onclick="cancerRegistCheckClose()"></button>
+            </div>
+            <div id="checkArea"  class="row">
+                
+            </div>
+            <button type="submit" class="btn btn-primary" id="ascriptionSubmit" onclick="cancerRegistSubmit()">Submit</button>
+        </div>
+
+        <div id="menu">
+            <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
+            <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
+        </div>
+    </div>    
+
+
+    <textarea id="text" readonly>
+
+    </textarea>
+</body>
 </html>
 
 

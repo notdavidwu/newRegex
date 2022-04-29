@@ -29,7 +29,12 @@ urlpatterns = [
     path('searchNote/', views.searchNote, name='searchNote'),
     path('searchPhaseAndInterval/', views.searchPhaseAndInterval, name='searchPhaseAndInterval'),
     path('searchRecord/', views.searchRecord, name='searchRecord'),
-    path('eventGroup/', views.eventGroup, name='eventGroup'),
-    path('deleteDefinition/', views.deleteDefinition, name='deleteDefinition'),
 
+    path('deleteDefinition/', views.deleteDefinition, name='deleteDefinition'),
+    path('updateCancerRegist/', views.updateCancerRegist, name='updateCancerRegist'),
+    path('addInducedEvent/', views.addInducedEvent, name='addInducedEvent'),
+    path('updateInducedEvent/', views.updateInducedEvent, name='updateInducedEvent'),
+    path('deleteEvent_F/', views.deleteEvent_F, name='deleteEvent_F'),
+    path('getClinicalProcedures/', views.getClinicalProcedures, name='getClinicalProcedures'),
+    
 ]

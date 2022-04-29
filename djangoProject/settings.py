@@ -148,6 +148,7 @@ DATABASES = {
                 'MARS_Connection': True,
             },
         },
+
         'MEWS': {
             'ENGINE': 'mssql',
             'NAME': 'MEWS',
@@ -160,9 +161,36 @@ DATABASES = {
                 'MARS_Connection': True,
             },
         },
+        'HealthData': {
+            'ENGINE': 'mssql',
+            'NAME': 'HealthData',
+            'USER': 'TEST',
+            'PASSWORD': '81218',
+            'HOST': '172.31.6.157',
+            'PORT': '1433',
+            'OPTIONS': {
+                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
+                'MARS_Connection': True,
+            },
+        },
+
+
+
         'dbDesigning': {
             'ENGINE': 'mssql',
             'NAME': 'dbDesigning',
+            'USER': 'TEST',
+            'PASSWORD': '81218',
+            'HOST': '172.31.6.22',
+            'PORT': '1433',
+            'OPTIONS': { 
+                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
+                'MARS_Connection': True,
+            },
+        },
+        'coreDB': {
+            'ENGINE': 'mssql',
+            'NAME': 'coreDB',
             'USER': 'TEST',
             'PASSWORD': '81218',
             'HOST': '172.31.6.22',
@@ -184,6 +212,7 @@ DATABASES = {
                 'MARS_Connection': True,
             },
         },
+        
     }
 DATABASE_CONNECTION_POOLING  =  False
 
