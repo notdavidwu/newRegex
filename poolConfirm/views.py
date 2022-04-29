@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 from cv2 import resize
 from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
