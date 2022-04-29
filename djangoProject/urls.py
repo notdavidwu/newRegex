@@ -30,7 +30,7 @@ urlpatterns = [
     path('Classify/', include('Classify.urls', namespace='Classify')),
     path('Search/', include('Search.urls', namespace='Search')),
     path('categorize/', include('categorize.urls', namespace='categorize')),
-    path('poolConfirm/', include('poolConfirm.urls', namespace='poolConfirm')),
+    #path('poolConfirm/', include('poolConfirm.urls', namespace='poolConfirm')),
     path('warehousing/', include('warehousing.urls', namespace='warehousing')),
     path('', views.index, name="base"),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
