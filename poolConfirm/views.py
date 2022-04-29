@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 from cv2 import resize
 from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
@@ -415,7 +414,7 @@ def searchRecord(request):
             procedureID.append(row[3])
             eventID_F.append(row[4])
             PDID.append(row[5])
-            
+
     else:
         Record = 1
         EDID=[-1]
