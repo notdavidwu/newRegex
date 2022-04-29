@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 from cv2 import resize
 from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
@@ -417,10 +418,10 @@ def searchRecord(request):
     else:
         Record = 1
         EDID=[-1]
-        eventID=[NULL]
+        eventID=[0]
         caSeqNo=[0]
         procedureID=[0]
-        eventID_F=[NULL]
+        eventID_F=[0]
         PDID = ['-1']
     print(procedureID)
     return JsonResponse({'IND':IND,'Record':Record,'caSeqNo':caSeqNo,'EDID':EDID,'eventID':eventID,'procedureID':procedureID,'eventID_F':eventID_F,'PDID':PDID})
