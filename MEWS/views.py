@@ -100,15 +100,15 @@ def YearNum(year, on):
 ##############################################################################################
 
 def RRTNum(year1, year2, ward):
-    sql = '''
-          EXEC MEWS.RRTData @Date1=%s, @Date2=%s, @Ward=%s
+    sql = f'''
+          EXEC MEWS.RRTData @Date1={year1}, @Date2={year2}, @Ward="{ward}"
           '''
     colname = ['RRT', 'num']
-    ID = [year1, year2, ward]
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql, ID)
+    cursor.execute(sql)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
+    print(df)
     df.set_index(colname[0], inplace=True)
     return df, colname[1]
 
@@ -116,17 +116,16 @@ def RRTNum(year1, year2, ward):
 
 def RRTWardNum(year, avg):
     if avg:
-        sql = '''
-              EXEC MEWS.RRTWardAvgData @Date=%s
+        sql = f'''
+              EXEC MEWS.RRTWardAvgData @Date={year}
               '''
     else:
-        sql = '''
-              EXEC MEWS.RRTWardData @Date=%s
+        sql = f'''
+              EXEC MEWS.RRTWardData @Date={year}
               '''
     colname = ['Ward', '安全', '達三項', '可啟動', '系統啟動']
-    ID = [year]
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql, ID)
+    cursor.execute(sql)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
     df.set_index(colname[0], inplace=True)
@@ -235,13 +234,12 @@ def RRTTransferNum(year):
 ##############################################################################################
 
 def RRTTransferNullNum(year1, year2):
-    sql = '''
-          EXEC MEWS.RRTTransferYearNull @Date1=%s, @Date2=%s
+    sql = f'''
+          EXEC MEWS.RRTTransferYearNull @Date1={year1}, @Date2={year2}
           '''
     colname = ['Match', '就醫人數', '就醫人次', '筆數']
-    ID = [year1, year2]
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql, ID)
+    cursor.execute(sql)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
     df.set_index(colname[0], inplace=True)
