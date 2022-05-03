@@ -64,10 +64,11 @@ def confirmpat2(request):
     # '''
 
     query = '''
-    select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID from allEvents as a
+    select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID 
+	from allEvents as a
 	inner join medTypeSet as b on a.medType=b.medType
-	inner join eventDetails as c on a.eventID=c.eventID
-	where a.chartNo=%s and c.descriptionType=3 and eventID_F is null 
+	left join eventDetails as c on a.eventID=c.eventID
+	where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType is NULL) and eventID_F is null 
     '''
     cursor = connections['coreDB'].cursor()
     cursor.execute(query,[PID])
