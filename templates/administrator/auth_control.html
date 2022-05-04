@@ -111,11 +111,17 @@ function auth(){
             $('#authSetting').append('<div class="form-check form-switch"><input class="form-check-input" ' +
                     'onchange="update_de_identificationSetting()" value="1" type="checkbox" name="update_de_identificationSetting" id="de_identificationSetting">' +
                     '<label class="form-check-label" for="de_identificationSetting">是否去識別化</label></div>')
+            $('#authSetting').append('<div class="form-check form-switch"><input class="form-check-input" ' +
+                'onchange="update_all_annotations()" value="1" type="checkbox" name="update_all_annotations" id="all_annotations">' +
+                '<label class="form-check-label" for="all_annotations">啟用看到所有影像標註功能</label></div>')
             if(response.active==true){
                 $('#userSetting').prop('checked',true)
             }
             if(response.de_identification==true){
                 $('#de_identificationSetting').prop('checked',true)
+            }
+            if(response.all_annotations==true){
+                $('#all_annotations').prop('checked',true)
             }
         }
     })
@@ -210,6 +216,19 @@ function update_userSetting(){
         }
     })
 }
+
+function update_all_annotations(){
+    var username = ($('input[name="user"]:checked').next('label').html())
+    $.ajax({
+        type: 'post',
+        url: '{% url "administrator:update_all_annotations" %}', // this is the mapping between the url and view
+        data:{
+            'username':username,
+            'csrfmiddlewaretoken': window.CSRF_TOKEN
+        }
+    })
+}
+
 function update_de_identificationSetting(){
     var username = ($('input[name="user"]:checked').next('label').html())
     $.ajax({

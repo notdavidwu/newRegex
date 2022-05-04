@@ -31,5 +31,6 @@ urlpatterns = [
     path('insertAuthDiseaseLabeledUser/', views.insertAuthDiseaseLabeledUser, name='insertAuthDiseaseLabeledUser'),
     path('removeAuthDiseaseLabeledUser/', views.removeAuthDiseaseLabeledUser, name='removeAuthDiseaseLabeledUser'),
     path('update_de_identificationSetting/', views.update_de_identificationSetting, name='update_de_identificationSetting'),
+    path('update_all_annotations/', views.update_all_annotations, name='update_all_annotations'),
 
 ]

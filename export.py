@@ -165,16 +165,16 @@ for i in tqdm(range(len(PatientListID))):
             filename = str(PET_tag[0].PatientID)+'_'+str(PET_tag[0].ContentDate)+'_'+str(PET_tag[0].SeriesNumber)+'_SOPT_log.xml'
             trees.write(os.path.join(saveFiledir,filename))
 
-            filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
-                PET_tag[0].SeriesNumber) + '_CT_Body.mat'
-            newCT = CT_view.copy()
-            newCT = newCT.transpose(1,2,0)
-            CT_mat={'Data':np.float64(newCT)}
-            savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
-            filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
-                PET_tag[0].SeriesNumber) + '_PET_Body.mat'
-            newPET=PET.copy()
-            newPET = newPET.transpose(1,2,0)
-            PET_mat={'Data':np.float64(newPET)}
-            savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
+            # filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
+            #     PET_tag[0].SeriesNumber) + '_CT_Body.mat'
+            # newCT = CT_view.copy()
+            # newCT = newCT.transpose(1,2,0)
+            # CT_mat={'Data':np.float64(newCT)}
+            # savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
+            # filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
+            #     PET_tag[0].SeriesNumber) + '_PET_Body.mat'
+            # newPET=PET.copy()
+            # newPET = newPET.transpose(1,2,0)
+            # PET_mat={'Data':np.float64(newPET)}
+            # savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
 

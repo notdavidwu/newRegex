@@ -64,8 +64,10 @@ def login(request):
         if re is not None:
             au = Auth(username)
             de_identification = de_identification_check(username)
+            all_annotations = all_annotations_check(username)
             request.session['au'] = au
             request.session['de_identification'] = de_identification
+            request.session['all_annotations'] = all_annotations
             auth.login(request, re)
             return redirect('/', {'user': re})
             # return render(request, 'home.html', {'user': re})
@@ -99,3 +101,11 @@ def de_identification_check(username):
     res = cursor.fetchall()
     de_identification=res[0][0]
     return de_identification
+
+def all_annotations_check(username):
+    query = '''select all_annotations from auth_user where username=%s'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query, [username])
+    res = cursor.fetchall()
+    all_annotations=res[0][0]
+    return all_annotations

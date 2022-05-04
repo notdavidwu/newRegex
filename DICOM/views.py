@@ -127,6 +127,7 @@ def DICOM(request):
     else : 
         return redirect('/')
     de_identification = request.session.get('de_identification')
+    
     StudyID = request.session.get('StudyID', 0)
     SeriesID = request.session.get('SeriesID', 0)
     SeriesDes = request.session.get('SeriesDes', 0)
@@ -1243,6 +1244,8 @@ def deleteLocation(request):
 
 @csrf_exempt
 def selectLocation(request):
+    is_superuser = request.session.get('is_superuser')
+    all_annotations = request.session.get('all_annotations')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     # response = annotation.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
@@ -1251,22 +1254,34 @@ def selectLocation(request):
     string = request.POST.getlist('str[]')
     studyDate = request.POST.getlist('date[]')
     username = str(request.POST.get('username'))
-    query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
-    '''
     cursor = connections['AIC'].cursor()
 
-    cursor.execute(query,
+    if all_annotations==True:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
+        and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
+                   [PID, Disease, string[0], string[1],
+                    string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
+    else:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s and (username=%s or username='') and Disease=%s 
+        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
+        order by studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
                    [PID, username, Disease, string[0], string[1],
                     string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
+    
+
+    
     response = cursor.fetchall()
-    print(len(response))
-    print('SeriesIdIndex:',SeriesIdIndex)
-    print('studyDate:',studyDate)
-    print('string',string)
-    print('PID:', PID)
-    print('username:',username)
+
     id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID = [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
 
     for info in response:
@@ -1798,6 +1813,7 @@ def getusers(request):
     cursor = connections['default'].cursor()
     cursor.execute(query,[username])
     is_superuser = cursor.fetchall()[0][0]
+    request.session['is_superuser']=is_superuser
     return JsonResponse({'users':users,'is_superuser':is_superuser}, status=200) 
 
 @csrf_exempt
