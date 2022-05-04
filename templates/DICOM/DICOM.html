@@ -972,7 +972,11 @@
         for(var i =0;i<indices.length;i++){
 
             if (indices.eq(i).next('label').children('.indices').text()==0) {
-                indices.eq(i).next('label').css('background-color', '#BBBBBB')
+                if(indices.eq(i).next('label').children('.data1').eq(2).text()=='Primary tumor'){
+                    indices.eq(i).next('label').css('background-color', '#BBBBBB')
+                }else{
+                    indices.eq(i).next('label').css('background-color', '#808F7C')
+                }
             }else if(indices.eq(i).next('label').children('.indices').text()==1) {
                 indices.eq(i).next('label').css('background-color','#A8D8B9')
             }else if(indices.eq(i).next('label').children('.indices').text()==2){
@@ -1454,7 +1458,12 @@
                         '</label></td></tr>')
                     
                     if (response.indices[i]==0) {
-                        $('#' + i).next('label').css('background-color', '#BBBBBB')
+                        //alert(response.LabelGroup[i]=='Primary tumor')
+                        if(response.LabelGroup[i]=='Primary tumor'){
+                            $('#' + i).next('label').css('background-color', '#BBBBBB')
+                        }else{
+                            $('#' + i).next('label').css('background-color', '#808F7C')
+                        }
                     }else if(response.indices[i]==1) {
                         $('#'+i).next('label').css('background-color','#A8D8B9')
                     }else if(response.indices[i]==2){
@@ -1661,7 +1670,11 @@
                         '<p class="indices">' + response.indices[i] +'</p>'+
                         '</label></td></tr>')
                     if (response.indices[i]==0) {
-                        $('#' + i).next('label').css('background-color', '#BBBBBB')
+                        if(response.LabelGroup[i]=='Primary tumor'){
+                            $('#' + i).next('label').css('background-color', '#BBBBBB')
+                        }else{
+                            $('#' + i).next('label').css('background-color', '#808F7C')
+                        }
                     }else if(response.indices[i]==1) {
                         $('#'+i).next('label').css('background-color','#A8D8B9')
                     }else if(response.indices[i]==2){
@@ -1749,7 +1762,11 @@
                             '</label></td></tr>')
 
                         if (response.indices[i]==0) {
-                            $('#' + i).next('label').css('background-color', '#BBBBBB')
+                            if(response.LabelGroup[i]=='Primary tumor'){
+                                $('#' + i).next('label').css('background-color', '#BBBBBB')
+                            }else{
+                                $('#' + i).next('label').css('background-color', '#808F7C')
+                            }
                         }else if(response.indices[i]==1) {
                             $('#'+i).next('label').css('background-color','#A8D8B9')
                         }else if(response.indices[i]==2){
