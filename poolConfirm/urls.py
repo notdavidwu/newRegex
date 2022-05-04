@@ -34,4 +34,8 @@ urlpatterns = [
     path('updateInducedEvent/', views.updateInducedEvent, name='updateInducedEvent'),
     path('deleteEvent_F/', views.deleteEvent_F, name='deleteEvent_F'),
     path('getClinicalProcedures/', views.getClinicalProcedures, name='getClinicalProcedures'),
+    path('getCancerRegistData/', views.getCancerRegistData, name='getCancerRegistData'),
+    path('status/', views.status, name='status'),
+    path('getNum/', views.getNum, name='getNum'),
+    
 ]

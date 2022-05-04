@@ -11,29 +11,49 @@ def confirm(request):
     de_identification = request.session.get('de_identification')
     return render(request, 'poolConfirm/confirm.html',{'au':au,'de_identification':de_identification})
 
-
+@csrf_exempt
+def getNum(request):
+    
+    return JsonResponse({'num': num})
 @csrf_exempt
 def confirmpat(request):
+    filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
-    query = '''
-    select [PD],[chartNo] from(
-    SELECT [PD],[chartNo],[diseaseId],[caSeqNo],[diagStatus],[treatStatus],[confirmed]
-    ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-    FROM [coreDB].[dbo].[PatientDisease] where diseaseId=%s
-    ) as a where  a.Sort=1
-    '''
+    if filter=='0':
+        query = f'''
+        select [PD],[chartNo],[confirmed] from(
+        SELECT [PD],[chartNo],[diseaseId],[caSeqNo],[diagStatus],[treatStatus],[confirmed]
+        ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
+        FROM [coreDB].[dbo].[PatientDisease] where diseaseId={Disease}
+        ) as a where  a.Sort=1
+        '''
+    else:
+        query = f'''
+        select [PD],[chartNo],[confirmed] from(
+        SELECT [PD],[chartNo],[diseaseId],[caSeqNo],[diagStatus],[treatStatus],[confirmed]
+        ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
+        FROM [coreDB].[dbo].[PatientDisease] where diseaseId={Disease} and confirmed={filter}
+        ) as a where  a.Sort=1
+        '''
     cursor = connections['coreDB'].cursor()
-    cursor.execute(query,[Disease])
+    cursor.execute(query)
     examID=''
     #examID = list(cursor.fetchall())
     for row in cursor:
-        examID += f'''
-        <tr><td>
-        <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]}>
-        <label for={row[0]}><p class="PatientListID">{str(row[1])}</p><p class="ID">{row[0]}</p></label>
-        </td></tr>
-        '''
-        
+        if row[2] is not None:
+            examID += f'''
+            <tr><td>
+            <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]}>
+            <label for={row[0]}><p class="PatientListID noted">{str(row[1])}</p><p class="ID noted">{row[0]}</p></label>
+            </td></tr>
+            '''
+        else:
+            examID += f'''
+            <tr><td>
+            <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]}>
+            <label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>
+            </td></tr>
+            '''
     return JsonResponse({'examID': examID})
 
 @csrf_exempt
@@ -123,6 +143,28 @@ def confirmpat2(request):
     return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray,'eventID_F':eventID_F})
 
 @csrf_exempt
+def getCancerRegistData(request):
+    chartNo = request.POST.get('chartNo')
+    query = ''' 
+            select disease,caSeqNo,c.caregExecDate,d.procedureName
+                from PatientDisease as a
+                inner join diseasetList as b on a.diseaseId=b.diseaseId
+                inner join eventDefinitions as c on a.PD=c.PDID
+                inner join clinicalProcedures as d on c.procedureID=d.procedureID
+                where chartNo=%s and c.caregExecDate is not NULL
+            '''
+    cursor = connections['coreDB'].cursor()
+    cursor.execute(query,[chartNo])
+    PD ,chartNo,disease,caSeqNo =[],[],[],[]
+    res=cursor.fetchall()
+    for row in res:
+        PD.append(row[0])
+        chartNo.append(row[1])
+        disease.append(row[2])
+        caSeqNo.append(row[3])
+    return JsonResponse({'PD':PD,'chartNo':chartNo,'disease':disease,'caSeqNo':caSeqNo})
+
+@csrf_exempt
 def addInducedEvent(request):
     ind=request.POST.get('ind')
     eventID=request.POST.get('eventID')
@@ -186,59 +228,54 @@ def deleteDefinition(request):
 
 
 @csrf_exempt
-def ignore(request):
-    eventID=request.POST.get('eventID')
-    diseaseNo = request.POST.get('diseaseNo')
-    query = '''Select Ignore from Ignore WHERE eventID=%s  AND diseaseNo=%s'''
-    cursor = connections['dbDesigning'].cursor()
-    cursor.execute(query,[eventID,diseaseNo])
-    res = cursor.fetchall()
-    if len(res)==0:
-        Ignore = 1
-        query = '''insert into Ignore (eventID,Ignore,diseaseNo) values(%s,%s,%s)'''
-        cursor = connections['dbDesigning'].cursor()
-        cursor.execute(query,[eventID,Ignore,diseaseNo])
-    else:
-        Ignore = res[0][0]
-        if Ignore == 0:
-            Ignore = 1
-            query = '''UPDATE Ignore SET Ignore=1 WHERE eventID=%s  AND diseaseNo=%s'''
-            cursor = connections['dbDesigning'].cursor()
-            cursor.execute(query,[eventID,diseaseNo])
-        elif Ignore == 1:
-            Ignore = 0
-            query = '''UPDATE Ignore SET Ignore=0 WHERE eventID=%s  AND diseaseNo=%s'''
-            cursor = connections['dbDesigning'].cursor()
-            cursor.execute(query,[eventID,diseaseNo])
-    return JsonResponse({'Ignore':Ignore})
+def status(request):
+    chartNo = request.POST.get('chartNo')
+    status = request.POST.get('status')
+    disease = request.POST.get('disease')
+    query = '''UPDATE PatientDisease SET confirmed = %s where chartNo = %s and diseaseId = %s'''
+    cursor = connections['coreDB'].cursor()
+    cursor.execute(query,[status,chartNo,disease])
+    return JsonResponse({})
+
 @csrf_exempt
 def updatePhase(request):
-    EDID = NULL if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
+    EDID = 'NULL' if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
     PDID = request.POST.get('PDID')
     eventID = request.POST.get('eventID')
     procedureID = request.POST.get('procedureID')
+    chartNo = request.POST.get('chartNo')
+    diseaseId = request.POST.get('diseaseId')
+    originSeqNo = request.POST.get('originSeqNo')
     cursor = connections['coreDB'].cursor()
-    print(int(procedureID)==0)
-    print(procedureID)
-    print(len(procedureID))
+
     if procedureID=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
     else:
-        if EDID is NULL: #insert
+        
+        if PDID == 'Infinity':
+            query = f'SELECT top(1)PD,caSeqNo FROM PatientDisease WHERE chartNo = {chartNo}'
+            cursor.execute(query)
+            res=cursor.fetchall()
+            PDID = res[0][0]
+            originSeqNo = res[0][1]
+            
+            if len(res)==0:
+                queryInsert = '''INSERT INTO PatientDisease (chartNo,diseaseId,caSeqNo) OUTPUT INSERTED .PD VALUES(%s,%s,%s)'''
+                cursor.execute(queryInsert,[chartNo,diseaseId,1])
+                PDID = cursor.fetchall()[0][0]
+        if EDID == 'NULL': #insert
             query = f'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES ({eventID},{PDID},{procedureID})'
             cursor.execute(query)
             EDID = cursor.fetchall()[0]
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
             cursor.execute(query,[procedureID,EDID])
-
-
-    return JsonResponse({'sno':[EDID]})
+    return JsonResponse({'sno':[EDID],'originSeqNo':[originSeqNo]})
 @csrf_exempt
 def updateInterval(request):
-    EDID = NULL if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
-    PDID = NULL if request.POST.get('PDID')=='-1' else request.POST.get('PDID')
+    EDID = 'NULL' if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
+    PDID = 'NULL' if request.POST.get('PDID')=='-1' else request.POST.get('PDID')
     eventID = request.POST.get('eventID')
     chartNo = request.POST.get('chartNo')
     procedureID=request.POST.get('procedureID')
@@ -256,7 +293,7 @@ def updateInterval(request):
         query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseId=%s'''
         cursor.execute(query_presearch,[chartNo,originSeqNo,diseaseId])
         searchResult3 = cursor.fetchall()
-        print(searchResult3)
+        
         diagStatus = searchResult3[0][1]
         treatStatus = searchResult3[0][2]
         if diagStatus is None and treatStatus is None:
@@ -272,7 +309,7 @@ def updateInterval(request):
             queryInsert = '''INSERT INTO PatientDisease (chartNo,diseaseId,caSeqNo) OUTPUT INSERTED .PD VALUES(%s,%s,%s)'''
             cursor.execute(queryInsert,[chartNo,diseaseId,newSeqNo])
             newPDID = cursor.fetchall()[0][0]
-            if PDID is not NULL:
+            if PDID != 'NULL':
                 '''修改 eventDefinitions PDID'''
                 queryModify = '''UPDATE eventDefinitions SET PDID=%s where PDID=%s and eventID=%s'''
                 cursor.execute(queryModify,[newPDID,PDID,eventID])
@@ -299,7 +336,7 @@ def updateInterval(request):
             if diagStatus is None and treatStatus is None:
                 queryDelete='''DELETE FROM PatientDisease WHERE PD=%s'''
                 cursor.execute(queryDelete,[oldPDID])
-            if PDID is not NULL:
+            if PDID != 'NULL':
                 '''修改 eventDefinitions PDID'''
                 queryModify = '''UPDATE eventDefinitions SET PDID=%s where PDID=%s and eventID=%s'''
                 cursor.execute(queryModify,[returnPDID,oldPDID,eventID])
@@ -379,8 +416,7 @@ def searchRecord(request):
     IND = request.POST.get('IND')
     chartNo = request.POST.get('chartNo')
     eventID = request.POST.get('eventID')
-    print(eventID)
-    print(chartNo)
+
     query = '''
         select * from (
         select b.caSeqNo,c.EDID,c.eventID,c.procedureID,f.eventID as 'eventID_F',b.PD,c.caregExecDate,f.eventDate
@@ -405,7 +441,7 @@ def searchRecord(request):
     procedureID = []
     eventID = []
     eventID_F = []
-    print(len(res))
+
     if len(res)!=0:
         Record = len(res)
         for row in res:
@@ -424,7 +460,7 @@ def searchRecord(request):
         procedureID=[0]
         eventID_F=[0]
         PDID = ['-1']
-    print(procedureID)
+
     return JsonResponse({'IND':IND,'Record':Record,'caSeqNo':caSeqNo,'EDID':EDID,'eventID':eventID,'procedureID':procedureID,'eventID_F':eventID_F,'PDID':PDID})
 
 @csrf_exempt
@@ -470,3 +506,26 @@ def getClinicalProcedures(request):
     for row in result:
         selection += f'<option value={row[0]}>{row[1]}</option>'
     return JsonResponse({'selection':selection})
+
+@csrf_exempt
+def getNum(request):
+    cursor = connections['coreDB'].cursor()
+    disease = request.POST.get('disease')
+
+    query = '''
+    select count(distinct chartNo) from PatientDisease where diseaseId=%s
+    '''
+    cursor.execute(query,[disease])
+    num = [cursor.fetchall()[0][0]]
+    query = '''
+    select statusId,COUNT(confirmed) as num 
+    from status as a
+    left join PatientDisease as b on b.confirmed=a.statusId
+    where statusId>0 and (diseaseId=%s or diseaseId is null) group by statusId,confirmed
+    order by statusId
+    '''
+    cursor.execute(query,[disease])
+    res = cursor.fetchall()
+    for row in res:
+        num.append(row[1])
+    return JsonResponse({'num':num})

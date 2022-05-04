@@ -142,7 +142,7 @@
     }
     #processing{width:100%;height:250px;border-bottom:1px solid #AAAAAA}
     #destination{width:100%;height:250px;border-top:1px solid #AAAAAA}
-    #menu{
+    .customMenu{
         padding-bottom:5px;
         padding-left:5px;
         padding-right:5px;
@@ -193,6 +193,25 @@
     input[name='test']:checked ~label{background-color: #ffdf7e;color:black;}
     .accordion{left:-8px;position:absolute;width:5px;height:100%;z-index:5}
     .collapseItem{padding-left:20px;}
+
+
+    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px; --formwidth: 500px; --form-mob-width: 500px; }
+    #mycheckbox { position: absolute; left: -9999px; }
+    .feedback-label,.form { position: fixed; top: 50%; right: 0; }
+    .feedback-label { transform-origin: top right; transform: rotate(-90deg) translate(50%, -100%); z-index: 10; }
+    .form {height:500px;background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--formwidth); max-height: 85vh;margin-top: 2%; transform: translate(100%, -50%); padding: 0px; overflow: auto; background-color: var(--form); z-index: 1; border-radius:10px}
+    .feedback-label { border-radius: var(--border-radius); }
+    .feedback-label { padding: 5px 10px; border-radius: var(--border-radius) var(--border-radius) 0 0; }
+    .feedback-label { background: brown; color: white; }
+    .feedback-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #mycheckbox:checked + .feedback-label { background: #e78632; transform: rotate(-90deg) translate(50%, calc((var(--formwidth) + 100%) * -1))}
+    #mycheckbox:checked ~ .form { transform: translate(0, -50%);z-index: 10;}
+    .feedback-label, .form { transition: all 0.35s ease-in-out; }
+    .form{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    td{padding:0px;margin:0px;font-size:10pt}
+    .status{padding:0px;padding-top:5px;padding-bottom:5px}
+    #statusMenu{width:150px}
+    .noted{color:#FFFF00}
 </style>
 
 
@@ -388,11 +407,12 @@
                             $('#time').append(response.objectArray[i])
                             $('#timePID'+i).parents('td').css('background-color', '#33333a')
                             $('#timePID'+i).next('label').css('color', 'red')
+                            searchRecord(i,response.eventID[i],response.MedType[i],IntervalNoOption,response.objectArray.length)
                             setdisplay(i)
                         }else{
                             $('#time').append(response.objectArray[i])
                             searchRecord(i,response.eventID[i],response.MedType[i],IntervalNoOption,response.objectArray.length)
-                            searchNote(i,response.eventID[i])
+                            //searchNote(i,response.eventID[i])
                         }
                     }
                     total_num = response.objectArray.length
@@ -412,6 +432,21 @@
                     $('.loader2').css('display','none')
                 }
                 
+            }
+        })
+        
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getCancerRegistData" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':text,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#cancerRegistInfo').children('tbody').empty()
+                for(let i=0;i<response.PD.length;i++){
+                    $('#cancerRegistInfo').children('tbody').append(`<tr><td>${response.PD[i]}</td><td>${response.chartNo[i]}</td><td>${response.disease[i]}</td><td>${response.caSeqNo[i]}</td></tr>`)
+                }
             }
         })
         return true
@@ -462,12 +497,15 @@
         let eventID = target.parents('.menu').prevAll('.eventID').html()
         let procedureID = target.val()
         let PDIDGroup = $('#accordionExample .menublock').map(function(){return parseInt($(this).attr('id').split('_')[3])}).get()
+        let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
+        let diseaseId = $('#ChangeDisease').val()
         target.css('border','none')
         if(pdID==-1){
             pdID = Math.min(...PDIDGroup.filter(PDID => PDID > 0))
             target.prevAll('.IntervalNo').val(1)
             originSeqNo = 1
         }
+        alert(pdID)
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
@@ -476,11 +514,15 @@
                 'PDID':pdID,
                 'eventID':eventID,
                 'procedureID':procedureID,
+                'chartNo':chartNo,
+                'diseaseId':diseaseId,
+                'originSeqNo':originSeqNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${pdID}_${originSeqNo}`)
-                searchNote(IND,eventID)
+                target.prevAll('.IntervalNo').val(response.originSeqNo)
+                target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${pdID}_${response.originSeqNo}`)
+                //searchNote(IND,eventID)
             }
         })
     }
@@ -690,14 +732,68 @@
         })
     }
 
+    function getNum(){
+        let disease = $('#ChangeDisease').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getNum" %}', // this is the mapping between the url and view
+            data:{
+                'disease':disease,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                let str=['全部','診斷','追蹤','治療','診斷+治療','診斷+追蹤','治療+追蹤','診斷+治療+追蹤','Ignore']
+                for(let i=0;i<response.num.length;i++){
+                    $('#filter').children('option').eq(i).html(`${str[i]}(${response.num[i]})`)
+                }
+            }
+        })
+    }
+
+    function status(status){
+        $('#statusMenu').css('display','none')
+        let chartNo = $('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let disease = $('#ChangeDisease').val()
+
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:status" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'status':status,
+                'disease':disease,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(){
+                getNum()
+            }
+        })
+    }
     $(document).ready(function (e) {
         
+        $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
+            return false
+        };
 
-        $('#defaultMenuBlock').get(0).oncontextmenu = function() {
+        $('#defaultMenuBlock1').on('mousedown','td',function(d){
+            $(this).children('input[type="radio"]').prop('checked',true)
+            if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
+                var x = d.originalEvent.x || d.originalEvent.layerX || 0;
+                var y = d.originalEvent.y || d.originalEvent.layerY || 0;
+                $("#statusMenu").css('display', 'inline');
+                $("#statusMenu").css('left', x);
+                $("#statusMenu").css('top', y);
+                $("#menu").css('display', 'none');
+            }else if(d.which == 1){
+                $("#statusMenu").css('display', 'none');
+                $("#menu").css('display', 'none');
+            }
+        })
+        $('#defaultMenuBlock2','body').get(0).oncontextmenu = function() {
             return false
         };
         //右鍵選單
-        $('#defaultMenuBlock').on('mousedown','td',function(d){
+        $('#defaultMenuBlock2').on('mousedown','td',function(d){
             $(this).children('input[type="radio"]').prop('checked',true)
             if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
                 var x = d.originalEvent.x || d.originalEvent.layerX || 0;
@@ -705,8 +801,10 @@
                 $("#menu").css('display', 'inline');
                 $("#menu").css('left', x);
                 $("#menu").css('top', y);
+                $("#statusMenu").css('display', 'none');
             }else if(d.which == 1){
                 $("#menu").css('display', 'none');
+                $("#statusMenu").css('display', 'none');
             }
         })
 
@@ -760,11 +858,14 @@
                 }
             },
             complete:function (){
+                getNum()
                 var disease = $('#ChangeDisease').val()
+                let filter = $('#filter').val()
                 $.ajax({
                     type: 'post',
                     url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
                     data:{
+                        'filter':filter,
                         'Disease':disease,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
@@ -798,17 +899,24 @@
                 selection += response.phase
             }
         })
+        
         $('#ChangeDisease').on('change',function (){
+            getNum()
+            $('#accordionExample').empty()
+            let filter = $('#filter').val()
+            let disease = $('#ChangeDisease').val()
+            $('#Report').empty()
             $.ajax({
                 type: 'post',
                 url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
                 data:{
-                    'Disease':$('#ChangeDisease').val(),
+                    'filter':filter,
+                    'Disease':disease,
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
                 success:function (response){
-                    $('#Report').empty()
                     $('#Report').append(response.examID) 
+                    
                 },
                 complete:function(){
                     if("{{de_identification}}"=='False'){
@@ -822,27 +930,34 @@
                 }
             })
         })
-        $('#ChangeDisease').on('change',function (){
-            num=($('.note').length)
-            for(var i = 0; i < num; i++){
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
-                    data:{
-                        'IND':i,
-                        'DiseaseNo':$('#ChangeDisease').val(),
-                        'OrderNo':$('#timePID'+i).next('label').children('.OrderNo').html(),
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-                        //alert(response.EventID)
-                        $('#timePID'+response.IND).next('label').children('.phase').val(response.EventID)
-                        $('#timePID'+response.IND).next('label').children('.IntervalNo').val(response.IntervalID)
-                        //$('#timePID'+response.IND).next('label').children('.phase').children('option[value='+response.EventID+']').attr('selected','selected')
-                        //$('#timePID'+response.IND).next('label').children('.IntervalNo').children('option[value='+response.IntervalID+']').attr('selected','selected')
+        $('#filter').on('change',function (){
+            $('#accordionExample').empty()
+            let filter = $('#filter').val()
+            let disease = $('#ChangeDisease').val()
+            $('#Report').empty()
+            $.ajax({
+                type: 'post',
+                url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
+                data:{
+                    'filter':filter,
+                    'Disease':disease,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    $('#Report').append(response.examID) 
+                    
+                },
+                complete:function(){
+                    if("{{de_identification}}"=='False'){
+                        $('.ID').css('display','none')
+                        $('.PatientListID').css('display','inline')
+                    }else{
+                        $('.ID').css('display','inline')
+                        $('.PatientListID').css('display','none')
                     }
-                })
-            }
+                    $('.loader1').css('display','none')
+                }
+            })
         })
         
     })
@@ -860,28 +975,35 @@
     <div id="Disease" >
         <select class="form-select" aria-label="Default select example" id="ChangeDisease"></select>
         <select class="form-select" aria-label="Default select example" id="filter">
-            <option value="1">全部名單</option>
-            <option value="1">過濾Ignore</option>
+            <option value=0>全部</option>
+            <option value=1>診斷</option>
+            <option value=2>治療</option>
+            <option value=3>追蹤</option>
+            <option value=4>診斷+治療</option>
+            <option value=5>診斷+追蹤</option>
+            <option value=6>治療+追蹤</option>
+            <option value=7>診斷+治療+追蹤</option>
+            <option value=8>Ignore</option>
         </select>
     </div>
-
-    <div id="patient">
-        <div class="loader loader1">
-            <div class="loader-inner pacman">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
+    <div id='defaultMenuBlock1'>  
+        <div id="patient">
+            <div class="loader loader1">
+                <div class="loader-inner pacman">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+                <span class="tooltip">
+                    <p>載入中，請稍後‧‧‧</p>
+                </span>
             </div>
-            <span class="tooltip">
-                <p>載入中，請稍後‧‧‧</p>
-            </span>
+            <table class="table table-striped" id="Report"></table>
         </div>
-        <table class="table table-striped" id="Report"></table>
     </div>
-
-    <div id='defaultMenuBlock'>    
+    <div id='defaultMenuBlock2'>  
         <div id="title">
         <table  class="thead-dark">
             <thead>
@@ -977,12 +1099,37 @@
             <button type="submit" class="btn btn-primary" id="ascriptionSubmit" onclick="cancerRegistSubmit()">Submit</button>
         </div>
 
-        <div id="menu">
+        <div id="statusMenu" class="customMenu">
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(1)">診斷</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(2)">治療</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(3)">追蹤</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(4)">診斷+治療</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(5)">診斷+追蹤</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(6)">治療+追蹤</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(7)">診斷+治療+追蹤</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(8)">Ignore</p>
+        </div>
+
+        <div id="menu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
             <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
         </div>
     </div>    
 
+    <div id="slideout">
+        <input type="checkbox" id="mycheckbox">
+        <label for="mycheckbox" class="feedback-label">癌登資料</label>
+        <form class="form sc2">
+            <table class="table table-striped table-hover" id="cancerRegistInfo" >
+                <thead>
+                    <tr>
+                        <th>疾病</th><th>序列</th><th>日期</th><th>項目</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </form>
+    </div>
 
     <textarea id="text" readonly>
 

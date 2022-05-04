@@ -132,6 +132,8 @@ for i in tqdm(range(len(PatientListID))):
             PatientID.text = str(PET_tag[0].PatientID)
             SeriesDescription = ET.SubElement(Image_Info, 'SeriesDescription')
             SeriesDescription.text = str(PET_tag[0].SeriesDescription)
+            StudyNumber = ET.SubElement(Image_Info, 'StudyNumber')
+            StudyNumber.text =str(StudyID)
             SeriesNumber = ET.SubElement(Image_Info, 'SeriesNumber')
             SeriesNumber.text =str(PET_tag[0].SeriesNumber)
             SeriesDate = ET.SubElement(Image_Info, 'SeriesDate')
