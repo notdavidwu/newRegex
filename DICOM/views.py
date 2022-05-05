@@ -1061,14 +1061,31 @@ def insertLocation(request):
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     #PID = 'null' if (str(request.POST.get('PID')) == '') else fernet.decrypt(request.POST.get('PID').encode()).decode()
     PID = 'null' if (str(request.POST.get('PID')) == '') else  request.POST.get('PID')
-    query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
-    '''
+    
+    all_annotations = request.session.get('all_annotations')
     cursor = connections['AIC'].cursor()
-    cursor.execute(query,
-                   [PID, str(request.POST.get('username')), Disease, string[0], string[1],
+    if all_annotations==True:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
+        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
+                   [PID, Disease, string[0], string[1],
                     string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
+    else:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s and (username=%s or username='') and Disease=%s 
+        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
+        order by studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
+                   [PID, username, Disease, string[0], string[1],
+                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
+                    
     response = cursor.fetchall()
     id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID ,StudyID =[], [], [], [], [], [], [], [], [], [], [], [], [], [], []
     for info in response:
@@ -1128,6 +1145,7 @@ def insertLocation(request):
 
 @csrf_exempt
 def deleteLocation(request):
+    all_annotations = request.session.get('all_annotations')
     id=str(request.POST.get('id'))
     querySearch='''SELECT PID,SD,StudyID,seriesID FROM annotation WHERE id=%s'''
     cursor = connections['AIC'].cursor()
@@ -1169,18 +1187,35 @@ def deleteLocation(request):
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     string = request.POST.getlist('str[]')
     Study_Date = request.POST.getlist('Study_Date[]')
-    query = '''
-    select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-    where  PID=%s and (username=%s or username='') and Disease=%s and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
-    '''
-    cursor = connections['AIC'].cursor()
 
+    cursor = connections['AIC'].cursor()
 
     PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
 
-    cursor.execute(query,
-                   [PID, str(request.POST.get('username')), Disease, string[0], string[1],
+
+    if all_annotations==True:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
+        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
+                   [PID, Disease, string[0], string[1],
                     string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
+    else:
+        query = '''
+        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
+        where  PID=%s and (username=%s or username='') and Disease=%s 
+        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
+        order by studySeries,date,LabelName ASC
+        '''
+        cursor.execute(query,
+                   [PID, username, Disease, string[0], string[1],
+                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
+
+
     response = cursor.fetchall()
     id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID,StudyID =[], [], [], [], [], [], [], [], [], [], [], [], [], [], []
 
