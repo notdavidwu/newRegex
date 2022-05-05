@@ -1085,9 +1085,9 @@ def insertLocation(request):
         cursor.execute(query,
                    [PID, username, Disease, string[0], string[1],
                     string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
-                    
+
     response = cursor.fetchall()
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID ,StudyID =[], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID ,StudyID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
     for info in response:
         Type = str(info[3]).replace(' ', '')
 
@@ -1133,12 +1133,12 @@ def insertLocation(request):
         LabelRecord.append(info[12])
         StudyID.append(info[17])
         SeriesID.append(info[19])
-
+        Dr_confirm.append(info[20])
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
     return JsonResponse(
         {'inserted_id':inserted_id,'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
-         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,
+         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
          'indices': indices},
         status=200)
 
@@ -1217,7 +1217,7 @@ def deleteLocation(request):
 
 
     response = cursor.fetchall()
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID,StudyID =[], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID,StudyID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
 
     for info in response:
         Type = str(info[3]).replace(' ', '')
@@ -1266,13 +1266,13 @@ def deleteLocation(request):
         LabelRecord.append(info[12])
         StudyID.append(info[17])
         SeriesID.append(info[19])
-    
+        Dr_confirm.append(info[20])
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
     
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
-         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,
+         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
          'indices': indices},
         status=200)
 
@@ -1317,7 +1317,7 @@ def selectLocation(request):
     
     response = cursor.fetchall()
 
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID = [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
+    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
 
     for info in response:
         Type = str(info[3]).replace(' ', '')
@@ -1365,13 +1365,13 @@ def selectLocation(request):
         LabelRecord.append(info[12])
         StudyID.append(info[17])
         SeriesID.append(info[19])
-
+        Dr_confirm.append(info[20])
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
     
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
-         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,
+         'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
          'indices': indices},
         status=200)
 

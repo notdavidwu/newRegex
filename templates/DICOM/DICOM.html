@@ -984,6 +984,10 @@
             }else if(indices.eq(i).next('label').children('.indices').text()==3){
                 indices.eq(i).next('label').css('background-color','#808F7C')
             }
+            if(indices.eq(i).next('label').children('.Dr_confirm').text()=='true'){
+                indices.eq(i).next('label').css('background-color', '#333333')
+                indices.eq(i).next('label').children('p').css('color', '#FFFFFF')
+            }
         }
 
         ActualCoordinates=true
@@ -1455,6 +1459,7 @@
                         '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
                         '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
                         '<p class="indices">' + response.indices[i] +'</p>'+
+                        '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
                         '</label></td></tr>')
                     
                     if (response.indices[i]==0) {
@@ -1470,6 +1475,10 @@
                         $('#'+i).next('label').css('background-color','#81C7D4')
                     }else if(response.indices[i]==3){
                         $('#'+i).next('label').css('background-color','#808F7C')
+                    }
+                    if(response.Dr_confirm[i]){
+                        $('#' + i).next('label').css('background-color', '#333333')
+                        $('#' + i).next('label').children('p').css('color', '#FFFFFF')
                     }
                 }
                 $('.localizationform').scrollTop($('#textarea').height())
@@ -1668,6 +1677,7 @@
                         '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
                         '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
                         '<p class="indices">' + response.indices[i] +'</p>'+
+                        '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
                         '</label></td></tr>')
                     if (response.indices[i]==0) {
                         if(response.LabelGroup[i]=='Primary tumor'){
@@ -1681,6 +1691,10 @@
                         $('#'+i).next('label').css('background-color','#81C7D4')
                     }else if(response.indices[i]==3){
                         $('#'+i).next('label').css('background-color','#808F7C')
+                    }
+                    if(response.Dr_confirm[i]){
+                        $('#' + i).next('label').css('background-color', '#333333')
+                        $('#' + i).next('label').children('p').css('color', '#FFFFFF')
                     }
                 }
                 $('.localizationform').scrollTop($('#textarea').height())
@@ -1759,6 +1773,7 @@
                             '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
                             '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
                             '<p class="indices">' + response.indices[i] +'</p>'+
+                            '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
                             '</label></td></tr>')
 
                         if (response.indices[i]==0) {
@@ -1773,6 +1788,10 @@
                             $('#'+i).next('label').css('background-color','#81C7D4')
                         }else if(response.indices[i]==3){
                             $('#'+i).next('label').css('background-color','#808F7C')
+                        }
+                        if(response.Dr_confirm[i]){
+                            $('#' + i).next('label').css('background-color', '#333333')
+                            $('#' + i).next('label').children('p').css('color', '#FFFFFF')
                         }
                     }
                 $("#location_menu").css('display', 'none')
@@ -1825,6 +1844,7 @@
         let doctor_confirm = Number($('#DrConfirm').is(':checked'))
         updateDrConfirm(a_id,doctor_confirm)
         insertAnnotationFactor(a_id)
+        selectLocation()
     }
 
     function updateDrConfirm(id,doctor_confirm){
