@@ -1261,7 +1261,7 @@ def selectLocation(request):
         select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
         CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
         where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
-        and SD in (%s,%s,%s,%s) order by SUV DESC,studySeries,date,LabelName ASC
+        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
         '''
         cursor.execute(query,
                    [PID, Disease, string[0], string[1],
