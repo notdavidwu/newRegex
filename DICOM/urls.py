@@ -52,5 +52,6 @@ urlpatterns = [
     path('getAnnotationFactorGroup/', views.getAnnotationFactorGroup, name='getAnnotationFactorGroup'),
     path('getAnnotationFactorDetail/', views.getAnnotationFactorDetail, name='getAnnotationFactorDetail'),
     path('getAnnotationFactor/', views.getAnnotationFactor, name='getAnnotationFactor'),
+    path('updateDrConfirm/', views.updateDrConfirm, name='updateDrConfirm'),
     
 ]

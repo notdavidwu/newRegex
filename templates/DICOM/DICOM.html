@@ -1809,6 +1809,7 @@
                     $('#annotation_detail_f_id_'+response.f_id[i]).children('.factor').val(response.factor[i])
                     $('#annotation_detail_f_id_'+response.f_id[i]).children('.detail').val(response.detail[i])
                 }
+                $('#DrConfirm').prop('checked',response.dr_confirm)
             }
         });
     }
@@ -1821,7 +1822,24 @@
         
         $('#editAnnotation').css('display','none')
         let a_id = $('#annotation_basic_info').children('#a_id').text()
+        let doctor_confirm = Number($('#DrConfirm').is(':checked'))
+        updateDrConfirm(a_id,doctor_confirm)
         insertAnnotationFactor(a_id)
+    }
+
+    function updateDrConfirm(id,doctor_confirm){
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:updateDrConfirm" %}', // this is the mapping between the url and view
+            data: {
+                'id':id,
+                'doctor_confirm':doctor_confirm,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('#DrConfirm').prop('checked',false)
+            }
+        });
     }
 
     $(document).ready(function (e) {
@@ -3020,6 +3038,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <input type='checkbox' id="DrConfirm"><label for="DrConfirm">醫師確認</label>
                         <button type="button" class="btn btn-secondary editAnnotationExit" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="editAnnotationSubmit()">提交</button>
                     </div>

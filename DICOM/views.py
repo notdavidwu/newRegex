@@ -1261,7 +1261,7 @@ def selectLocation(request):
         select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
         CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
         where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
-        and SD in (%s,%s,%s,%s) order by studySeries,date,LabelName ASC
+        and SD in (%s,%s,%s,%s) order by SUV DESC,studySeries,date,LabelName ASC
         '''
         cursor.execute(query,
                    [PID, Disease, string[0], string[1],
@@ -1819,15 +1819,28 @@ def getusers(request):
 @csrf_exempt
 def getAnnotationFactor(request):
     a_id = request.POST.get('a_id')
-    query='''select f_id, factor, detail from annotationFactor where a_id=%s'''
     cursor = connections['AIC'].cursor()
+    query='''select f_id, factor, detail from annotationFactor where a_id=%s'''
     cursor.execute(query,[a_id])
-    print(a_id)
+    
     res = cursor.fetchall()
-    f_id,factor,detail = [],[],[]
+    f_id,factor,detail,dr_confirm = [],[],[],[]
     for row in res :
         f_id.append(row[0])
         factor.append(row[1])
         detail.append(row[2])
-    print(detail)
-    return JsonResponse({'f_id':f_id,'factor':factor,'detail':detail}, status=200) 
+
+    query='''select doctor_confirm from annotation where id=%s'''
+    cursor.execute(query,[a_id])
+    dr_confirm = cursor.fetchall()[0][0]
+    return JsonResponse({'f_id':f_id,'factor':factor,'detail':detail,'dr_confirm':dr_confirm}, status=200) 
+
+@csrf_exempt
+def updateDrConfirm(request):
+    id = request.POST.get('id')
+    doctor_confirm = request.POST.get('doctor_confirm')
+    print(id,' ',doctor_confirm)
+    query=f'''update annotation set doctor_confirm={doctor_confirm} where id={id}'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query)
+    return JsonResponse({}, status=200) 
