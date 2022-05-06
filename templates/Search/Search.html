@@ -333,20 +333,7 @@
                 }
             }
         })
-        $('body').on('click',function(event){
-            
-            if ($(event.target).attr('class')=="Report-label" || $(event.target).attr('class')=="TypeName-label" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="TypeName" || $(event.target).attr('class')=="ExecDate" || $(event.target).attr('class')=="ExecDateTime" || $(event.target).attr('class')=="TimeShowLabel"){
-                
-                return true;
-            }else if(event.target.id=='Reportcheckbox' || event.target.id.includes('TimeShow')){
-                return true;
-            }else if(event.target.name=='Timetable' || event.target.name=='Ttable'){
-                alert('1')
-                return true;
-            }else{
-                $('#Reportcheckbox').prop('checked',false);
-            }
-        })
+        
         $("#partystart").datepicker({
             dateFormat:"yy-mm-dd",
             changeMonth: true,
