@@ -1056,7 +1056,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99999'}
+                                        style={'z-index': '99'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_date,
@@ -1065,7 +1065,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99998'}
+                                        style={'z-index': '98'}
                                        )
                         ),
                         dbc.Row(
@@ -1075,7 +1075,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99997'}
+                                        style={'z-index': '97'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_div,
@@ -1084,7 +1084,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99996'}
+                                        style={'z-index': '96'}
                                        )
                         ),
                         dbc.Row(dbc.Col(button_chartno,
@@ -1093,7 +1093,7 @@ app.layout = dbc.Container(
                                         md=sidebar_size,
                                         lg=sidebar_size,
                                         width=sidebar_size,
-                                        style={'z-index': '99995'}
+                                        style={'z-index': '95'}
                                        )
                         ),
                     ],

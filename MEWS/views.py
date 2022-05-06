@@ -873,7 +873,7 @@ app.layout = dbc.Container(
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size,
-                        style={'z-index': '99999'},
+                        style={'z-index': '99'},
                        )
             ],
             style={'display': 'flex',
@@ -888,7 +888,7 @@ app.layout = dbc.Container(
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size,
-                        style={'z-index': '99998'},
+                        style={'z-index': '98'},
                        )
             ],
             style={'display': 'flex',
@@ -903,7 +903,7 @@ app.layout = dbc.Container(
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size,
-                        style={'z-index': '99997'},
+                        style={'z-index': '97'},
                        )
             ],
             style={'display': 'flex',
@@ -918,7 +918,7 @@ app.layout = dbc.Container(
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size,
-                        style={'z-index': '99996'},
+                        style={'z-index': '96'},
                        )
             ],
             style={'display': 'flex',
@@ -933,7 +933,7 @@ app.layout = dbc.Container(
                         md=graph_size,
                         lg=graph_size,
                         width=graph_size,
-                        style={'z-index': '99995'},
+                        style={'z-index': '95'},
                        )
             ],
             style={'display': 'flex',
