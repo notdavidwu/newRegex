@@ -157,7 +157,7 @@
     #tableframe{border:10px solid #333333;position:absolute;overflow-y:auto;overflow-x:hidden;border-radius: 10px;top:100px;height:calc(100% - 140px);width:calc(100% - 40px);margin:20px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF}
     #chartSearchArea{position:absolute;margin:20px;width:calc(100% - 40px)}
     #filter{position:absolute;margin:20px;width:calc(100% - 40px);top:50px}
-    #TimeShow{margin-bottom: -0px;margin-top:-2px}
+    #TimeShow{margin-bottom: -0px;margin-top:-2px;overflow-x:auto}
         input[name='Timetable']{display: none}/*radio  消失*/
         input[name='Timetable'] +label{width: 130%;height: 50px;margin: -12px;left:0px}
         input[name='Timetable']:checked ~label{background:url("{% static 'image/texture.png' %}");color:#FFFFFF;background-color: #2E5C6E;;padding-left: 2%}
@@ -168,14 +168,14 @@
         .MedType{display: none}
         .locationnow{
             display: none;
-            margin-left: calc(2% + 420px);
+            right: 5px;
             margin-top: -35px;
             position:absolute;}
         .hospital{
             height:20px;
             width:20px;
             display: none;
-            margin-left: calc(2% + 400px);
+            right: 50px;
             margin-top: -40px;
             position:absolute;
         }
@@ -411,7 +411,7 @@
                 $('#TimeShow').children('tr').remove()
                 for (var i = 0; i < response.ChartNo.length; i++) {
                     //alert(response.Token[i])
-                    $('#TimeShow').append('<tr><td>' +
+                    tempword='<tr><td>' +
                         '<input type="radio" onclick="primarytext()" name="Timetable" id=TimeShow' + i + '>' +
                         '<label class="TimeShowLabel" for=TimeShow' + i + '>' +
                         '<p  class="timeChartNo">' + response.ChartNo[i] + '</p>' +
@@ -420,15 +420,21 @@
                         '<p  class="ItemNo">' + response.ItemNo[i] + '</p>' +
                         '<p  class="ExecDate">' + response.ExecDate[i] + '</p>' +
                         '<p  class="ExecDateTime">' + response.ExecDateTime[i] + '</p>' +
-                        '<p  class="MedType">' + response.MedType[i] + '</p>' +
-                        '<p  class="locationnow">' +'('+ response.locationnow[i].replace(/\s*/g,"") +')' +'</p>' +
+                        '<p  class="MedType">' + response.MedType[i] + '</p>' 
+                        if(response.locationnow[i]!=null){
+                            tempword+='<p  class="locationnow">' +'('+ response.locationnow[i].replace(/\s*/g,"") +')' +'</p>'
+                        }
+                        else{
+                            tempword+='<p  class="locationnow">' +'('+ response.locationnow[i] +')' +'</p>' 
+                        }
+                        tempword+=
                         '<p  class="TypeName">' + response.TypeName[i]+'</p>' +
                         '<p  class="Bacteria"><img src={% static "image/bacterium-solid.svg" %}></img></p>' +
                         '<p  class="catheter"><img src={% static "image/catheter.png" %}></img></p>' +
                         '<p  class="hospital"><img src={% static "image/hospital.png" %}></img></p>' +
                         '</label>' +
                         '</td></tr>'
-                    )
+                    $('#TimeShow').append(tempword)
                     console.log(response.Ward[i]!=null)
                     if(response.Ward[i]!=null){
                         let object = $('#TimeShow'+i).next('label').children('.TypeName')
