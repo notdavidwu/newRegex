@@ -133,7 +133,7 @@
             border-bottom: 1px solid #dddddd;
         }
 
-        
+
 
         .styled-table tbody tr:last-of-type {
             border-bottom: 2px solid #009879;
@@ -166,45 +166,6 @@
         .VisitNo{display: none}
         .ItemNo{display: none}
         .MedType{display: none}
-        .locationnow{
-            display: none;
-            margin-left: calc(2% + 420px);
-            margin-top: -35px;
-            position:absolute;}
-        .hospital{
-            height:20px;
-            width:20px;
-            display: none;
-            margin-left: calc(2% + 400px);
-            margin-top: -40px;
-            position:absolute;
-        }
-        .hospital img{
-            height:20px;
-            width:100%;
-        }
-        input[name='Ttable']{display: none}/*radio  消失*/
-        input[name='Ttable'] +label{width: 100%;height: 200%;border-radius:5px;}
-        input[name='Ttable']:checked ~label{background:url("{% static 'image/texture.png' %}");background-color: #f3a9a9;}
-        .catheter{
-            height:250px;
-            width:25px;
-            display: none;
-            margin-left: calc(2% + 200px);
-            margin-top: -40px;
-            position:absolute;
-        }
-        .catheter img{
-            height:25px;
-            width:100%;
-        }
-        .catheter2{
-            margin-left: calc(-4%);
-            height:40px;
-            width:40px;
-            position:absolute;
-            background:url("{% static 'image/texture.png' %}");
-        }
         .Bacteria{
             height:20px;
             width:20px;
@@ -221,7 +182,7 @@
         }
         .TypeName{margin-left: calc(2% + 100px);margin-top: -35px}
         .ExecDate{margin-top: -5px}
-        .ExecDateTime{margin-top: -18px;height:5px;margin-left:10px}
+        .ExecDateTime{;margin-top: -18px;height:5px;margin-left:10px}
     #checkboxd input[type="checkbox"] {display: none; }
     #checkboxd input:checked + .button {background: #5e7380; color: #fff;}
     #checkboxd .button {display: inline-block; margin: 0 5px 5px 0; padding: 5px 10px; background: #f7f7f7; color: #333; cursor: pointer; }
@@ -237,7 +198,7 @@
 
     :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #8e8fef; --border-radius: 10px; --width: 300px; --form-mob-width: 420px; }
     #Imagecheckbox { position: absolute; left: -9999px; }
-    .Image-label{ position: fixed; top: 65px; left: 0px;width:50px}
+    .Image-label{ position: fixed; top: 65px; left: 0px;,width:50px}
     .Imageform { position: fixed; top: 65px; left: 0px;}
     .Image-label { transform-origin: top right; transform: rotate(0deg) translate(0%, 50%); z-index: 2;writing-mode: vertical-rl }
     .Imageform {background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--width); margin-top: 0.5% ;transform: translate(-100%, -0%); padding-left: 10px;padding-right: 10px; overflow: auto; background-color: #FFFFFF; z-index: 7; border-radius:10px}
@@ -255,7 +216,7 @@
     
     :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #8e8fef; --border-radius: 10px; --width: 450px; --form-mob-width: 420px; }
     #Reportcheckbox { display:none;position: absolute; right: -9999px; }
-    .Report-label{ position: fixed; top: 105px; left: 0px;width:50px}
+    .Report-label{ position: fixed; top: 105px; left: 0px;,width:50px}
     .Reportform { position: fixed; top: 85px; left: 0px;height:calc(100% - 90px)}
     
     .Report-label { transform-origin: top right; transform: rotate(0deg) translate(0%, 50%); z-index: 2;writing-mode: vertical-rl }
@@ -284,9 +245,9 @@
         height:40px;
         box-shadow: 0px 0px 0px 3px #030340
     }
-    #priReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);height: calc(100%);z-index: 1;margin:10px;padding:10px}
-    #tubeReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);z-index: 1;margin:10px;padding:10px}
-    #tubeReport tr{height:20px}
+    #priReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);height: calc(100%);z-index: 1;margin:0px;padding:10px}
+    #tubeReport{display:none;background:url("{% static 'image/texture.png' %}");background-color: #FFFFFF;resize: none;width: calc(100%);z-index: 1;margin:0px;padding:10px}
+    #tubeReport td{width:50%;height:50px}
     .center{text-align:center;vertical-align: middle}
     .noMarginAndPadding{padding:0px;margin:0px}
 </style>
@@ -295,7 +256,19 @@
 
 <script>
      $(document).ready(function (e) {
-        
+        $('#akavenom').css('checked','checked')
+        $("#partystart").datepicker({
+            dateFormat:"yy-mm-dd",
+            changeMonth: true,
+            changeYear: true,
+            minDate: '2018-01-01'
+        });
+        $("#partyend").datepicker({
+            dateFormat:"yy-mm-dd",
+            changeMonth: true,
+            changeYear: true,
+            minDate: '2018-01-01'
+        });       
         $.ajax({
             type: 'post',
             url: '{% url "Search:getWard" %}', // this is the mapping between the url and view
@@ -305,7 +278,6 @@
             success: function (response) {
                 for (var i = 0; i < response.ward.length; i++) {
                     $('#ward').append('<option value="'+response.ward[i]+'">'+response.ward[i]+'</option>')
-                    
                 }
             }
         })
@@ -334,31 +306,16 @@
             }
         })
         $('body').on('click',function(event){
-            
             if ($(event.target).attr('class')=="Report-label" || $(event.target).attr('class')=="TypeName-label" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="TypeName" || $(event.target).attr('class')=="ExecDate" || $(event.target).attr('class')=="ExecDateTime" || $(event.target).attr('class')=="TimeShowLabel"){
-                
                 return true;
             }else if(event.target.id=='Reportcheckbox' || event.target.id.includes('TimeShow')){
                 return true;
-            }else if(event.target.name=='Timetable' || event.target.name=='Ttable'){
-                alert('1')
+            }else if(event.target.name=='Timetable'){
                 return true;
             }else{
                 $('#Reportcheckbox').prop('checked',false);
             }
         })
-        $("#partystart").datepicker({
-            dateFormat:"yy-mm-dd",
-            changeMonth: true,
-            changeYear: true,
-            minDate: '2018-01-01'
-        });
-        $("#partyend").datepicker({
-            dateFormat:"yy-mm-dd",
-            changeMonth: true,
-            changeYear: true,
-            minDate: '2018-01-01'
-        });    
     })
 
     function createFloatingBox(pannel,id,ChartNo){
@@ -434,28 +391,19 @@
                         '<p  class="ExecDate">' + response.ExecDate[i] + '</p>' +
                         '<p  class="ExecDateTime">' + response.ExecDateTime[i] + '</p>' +
                         '<p  class="MedType">' + response.MedType[i] + '</p>' +
-                        '<p  class="locationnow">' +'('+ response.locationnow[i].replace(/\s*/g,"") +')' +'</p>' +
                         '<p  class="TypeName">' + response.TypeName[i]+'</p>' +
                         '<p  class="Bacteria"><img src={% static "image/bacterium-solid.svg" %}></img></p>' +
-                        '<p  class="catheter"><img src={% static "image/catheter.png" %}></img></p>' +
-                        '<p  class="hospital"><img src={% static "image/hospital.png" %}></img></p>' +
                         '</label>' +
                         '</td></tr>'
                     )
                     console.log(response.Ward[i]!=null)
                     if(response.Ward[i]!=null){
                         let object = $('#TimeShow'+i).next('label').children('.TypeName')
-                        object.text(object.text()+'('+response.Ward[i].replace(/\s*/g,"") +')')
+                        object.text(object.text()+'('+response.Ward[i]+')')
                     }
-                    if(response.locationnow[i]!=null){
-                        $('#TimeShow'+i).next('label').children('.hospital').css('display','inline')
-                        $('#TimeShow'+i).next('label').children('.locationnow').css('display','inline')
-                    }
+
                     if(response.Attribute[i]==1){
                         $('#TimeShow'+i).next('label').children('.Bacteria').css('display','inline')
-                    }
-                    if(response.Attribute[i]==2){
-                        $('#TimeShow'+i).next('label').children('.catheter').css('display','inline')
                     }
                     if(response.MedType[i]==30801){ //護理紀錄
                         $('#TimeShow'+i).parents('td').css('background-color',"#FEDFE1")
@@ -475,7 +423,11 @@
                         $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
                         $('#TimeShow'+i).prop('onclick',null)
                     }
-                    if(response.MedType[i]==30903){ //導管插入
+                    if(response.MedType[i]==30901){ //導管插入
+                        $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
+                        $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
+                    }
+                    if(response.MedType[i]==30902){ //導管移除
                         $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
                         $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
                     }
@@ -507,137 +459,20 @@
                 $('#priReport').empty()//or text('')
 
                 
-                if(MedType==30801){                                      //點擊護理紀錄
+                if(MedType==30801){
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
                         $('#priReport').append('【'+response.CreateTime[i]+'】\n'+response.ReportText[i]+' \n  \n')
                     }
-                }else if(MedType ==30903){                              //點擊導管
+                }else if(MedType ==30901 || MedType ==30902){
                     $('#priReport').css('display','none')
                     $('#tubeReport').css('display','table')
                     $('#tubeReport').empty()
-                    //$('#tubeReport').append(response.object)
-                    a='<tr class="table-secondary"><th style="width=60px">導管名稱 </th><th>中心導管</th><th>置入時間 </th><th>停用/取出時間</th></tr>'
-                    for (var i = 0; i < response.TubeUsageNo.length; i++) {
-                        a=a+`<tr ><td ><input type="radio" onclick="TubeReport()"  name="Ttable" id="Ttable${i}"  style="zoom:1.5;"><label for=Ttable${i} id="tuberadio">${response.TubeName[i]}<BR>-> <span class="TubeUsageNo">${response.TubeUsageNo[i]}</span></label></td><td>`
-                        if (response.IsCenter[i]==1)
-                        {
-                            a=a+'<img class="catheter2" src={% static "image/catheter.png" %}></img></td>'
-                            if(response.MedType[i]==30901){
-                                a+='<td style="background-color:#93c3f0">'+response.TubeInsertion[i]+'\n'+response.TubeInsertionTime[i]+
-                                '</td><td>'+response.RemovalTime[i]+'\n'+response.RemovalTimeTime[i]+'</td></tr>'
-                            }
-                            else{
-                                a+='<td>'+response.TubeInsertion[i]+'\n'+response.TubeInsertionTime[i]+
-                                '</td><td style="background-color:#93c3f0">'+response.RemovalTime[i]+'\n'+response.RemovalTimeTime[i]+'</td></tr>'
-                            }
-                        }
-                        else{
-                            a=a+'</td>'
-                            if(response.MedType[i]==30901){
-                                a+='<td style="background-color:#93c3f0">'+response.TubeInsertion[i]+'\n'+response.TubeInsertionTime[i]+
-                                '</td><td>'+response.RemovalTime[i]+'\n'+response.RemovalTimeTime[i]+'</td></tr>'
-                            }
-                            else{
-                                a+='<td>'+response.TubeInsertion[i]+'\n'+response.TubeInsertionTime[i]+
-                                '</td><td style="background-color:#93c3f0">'+response.RemovalTime[i]+'\n'+response.RemovalTimeTime[i]+'</td></tr>'
-                            }
-                        }
-                       
-                    } 
-                    a+='<tr colspan="4">============================================</tr>'
-                    $('#tubeReport').append(a)
-                    //$('.TubeRemark').height($('.Reportform').height()-$('#tubeReport').height())
+                    $('#tubeReport').append(response.object)
+                    $('.TubeRemark').height($('.Reportform').height()-$('#tubeReport').height())
 
-                }else if (MedType ==2133){                     //點擊檢驗報告
-                    $('#priReport').css('display','block')
-                    $('#tubeReport').css('display','none')
-                    for(var i =0;i<response.ReportText.length;i++){
-                        $('#priReport').append(response.ReportText[i]+' \n  \n')
-                    }
-                    $.ajax({
-                        type: 'post',
-                        url: '{% url "Search:structureDatatest" %}', // this is the mapping between the url and view
-                        data: {
-                            'ReportID': response.ReportID[0],
-                            'csrfmiddlewaretoken': window.CSRF_TOKEN
-                        },
-                        success: function (response) {
-                            var acount =0,bacterianum=0
-                            bacteria=''
-                            bacteria2=''
-                            bacteria3=''
-                            bacteriarecord=[]
-                            //alert(response.Category.length)
-                            a=''
-                            a+=`<div id="${response.ReportID}" class="abstractContent">`+
-                                    `<div>檢驗報告【<span>${ExecDate}</span>】</div>`
-                            for (var i = 0; i < response.Category.length; i++) {
-                                if(response.Category[i]==1)
-                                {
-                                    a+=`<div>檢驗項目：<span>${response.ExamItemText[i]}</span></div>`
-                                }
-                                else if(response.Category[i]==2)
-                                {
-                                    a+=`<div>檢驗來源：<span>${response.ExamItemText[i]}</span></div>`
-                                }
-                            }
-                            for (var i = 0; i < response.Bacteria.length; i++) {
-                                if(response.drug[i]== null)
-                                {
-                                    if(response.drug[i-1]!=null){
-                                        a+=`</table></div>`
-                                        acount=0
-                                        bacterianum=0
-                                    }
-                                    a+=`<div>菌種：<span>${response.Bacteria[i]}</span><button class="btn btn-danger">非菌種</button></div>`
-                                    bacterianum+=1
-                                    
-                                    bacteriarecord[bacterianum]=response.Bacteria[i]
-                                }
-                                else{
-                                    if(acount==0)
-                                    {//alert(bacteriarecord[1])
-                                        a+=`<div><table class="table table-striped table-success table-hover" style=" width:97%;word-wrap: break-word;text-align:center;table-layout: fixed;">`+
-                                            `<tr><td colspan="2" style="width:23%">${bacteriarecord[1]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
-                                            if(bacteriarecord[2]!=null){
-                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[2]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
-                                            }else{
-                                                a+=`<td colspan="2" style="width:23%">無</td>`
-                                            }if(bacteriarecord[3]!=null){
-                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[3]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
-                                            }else{
-                                                a+=`<td colspan="2" style="width:23%">無</td><td></td>`
-                                            }
-                                            `<tr><td>${response.Resistance1w[i]}</td><td>${response.Resistance1n[i]}</td>`+
-                                            `<td>${response.Resistance2w[i]}</td><td>${response.Resistance2n[i]}</td>`+
-                                            `<td>${response.Resistance3w[i]}</td><td>${response.Resistance3n[i]}</td>`+
-                                            `<th>${response.drug[i]}</th></tr>`
-                                    }
-                                    else{
-                                        a+=`<tr><td>${response.Resistance1w[i]}</td><td>${response.Resistance1n[i]}</td>`+
-                                            `<td>${response.Resistance2w[i]}</td><td>${response.Resistance2n[i]}</td>`+
-                                            `<td>${response.Resistance3w[i]}</td><td>${response.Resistance3n[i]}</td>`+
-                                            `<th>${response.drug[i]}</th></tr>`
-                                    }
-                                    acount+=1;
-                                }
-                            }
-                            if(response.drug[response.Bacteria.length-1]==null){
-                                a+=`</table>`
-                            }
-                            a+=`</div>`
-                            //alert(a)
-                            $('#abstract').append(a)
-                            //$('.Examtable').css('border','3px #cccccc solid')
-                            //$('.Examtable').children('td').css('background','lightblue')
-                            //$('.table table-striped table-primary table-hover').css('width','60%')
-                        }
-                        
-                    }) 
-                }
-                else{                                          //點擊檢驗報告
+                }else{
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
@@ -762,63 +597,11 @@
         })
 
     }
-    function TubeReport(){
-        var TubeUsageNo = ($('input[name="Ttable"]:checked').parents('td').children('label').children('.TubeUsageNo').text())
-        var MedType=99999
-        //alert(TubeUsageNo)
-        $('.table-light').remove()
-        $('.table-info').remove()
-        $.ajax({
-            type: 'post',
-            url: '{% url "Search:PrimaryText" %}', // this is the mapping between the url and view
-            data: {
-                'OrderNo': TubeUsageNo,
-                'MedType': MedType,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success: function (response) {
-                $('#tubeReport').append(response.object)
-            }
-        })
-        
-    }
-    function collectbtn(){
-        alert('收')
-    }
+
 
 </script>
 <body >
-   
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
-        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false" >Link</a>
-                <div class="dropdown-menu" aria-labelledby="dropdown01">
-                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
-                </div>
-            </li>
-            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
-            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
-            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
-            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
-            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
-        </ul>
-
-        {% include 'accounts/loginpartial.html' %}
-    </div>
-</nav>
-
+    {% include 'navBar.html' %}
 
 
 <div id="ImageSelect" id="Requirement" >
@@ -946,7 +729,7 @@
         <label for="Reportcheckbox" class="Report-label">原始報告</label>
         <form class="Reportform sc2 row g-3">
             <textarea class="form-control" id="priReport" rows="3" readonly></textarea>
-            <table class="form-control table table-striped table-hover center" id="tubeReport"></table>
+            <table class="form-control table table-dark table-hover center" id="tubeReport"></table>
         </form>
     </div>
 </body>

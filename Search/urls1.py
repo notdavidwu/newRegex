@@ -26,5 +26,5 @@ urlpatterns = [
     path('getWard/', views.getWard,name='getWard'),
     path('getDivName/', views.getDivName,name='getDivName'),
     path('getCategory/', views.getCategory,name='getCategory'),
-    path('structureDatatest/', views.structureDatatest,name='structureDatatest'),
+    
 ]

@@ -19,24 +19,24 @@ def PoolList(request):
     DivName=request.POST.get('DivName')
     query = f'''
         select distinct a.ChartNo  from (
-        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test0419 as b on a.ChartNo=b.ChartNo
+        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo
         where ExecDate between '{partystart}'/*起始日期*/ and '{partyend}'/*終止日期*/ and MedType between 2131 and 2135--時間
         ) as a 
         inner join (
-        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test0419 as b on a.ChartNo=b.ChartNo--Ward
-        where locationnow like '{ward}' and ExecDate between '{partystart}'/*起始日期*/ and '{partyend}'/*終止日期*/
+        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo--Ward
+        where Ward like '{ward}'
         ) as b on a.ChartNo=b.ChartNo
         inner join (
-        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test0419 as b on a.ChartNo=b.ChartNo--Ward
+        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo--Ward
         where Division like '{DivName}'
         ) as c on b.ChartNo=c.ChartNo
         inner join (
-        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test0419 as b on a.ChartNo=b.ChartNo--Ward
-        where locationnow is not null and ExecDate between '{partystart}'/*起始日期*/ and '{partyend}'/*終止日期*/--住院
+        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo--Ward
+        where MedType in(30401,30402,30403) --住院
         ) as d on c.ChartNo=d.ChartNo
         inner join (
-        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test0419 as b on a.ChartNo=b.ChartNo--Ward
-        where Attibute={bacterial} and ExecDate between '{partystart}'/*起始日期*/ and '{partyend}'/*終止日期*/ ---有菌
+        select distinct a.ChartNo from I_Patient as a inner join I_AllExam_Test as b on a.ChartNo=b.ChartNo--Ward
+        where Attribute={bacterial} ---有菌
         ) as e on d.ChartNo=e.ChartNo
         order by ChartNo asc
     '''
@@ -61,10 +61,9 @@ def TimeShow(request):
     else:
         hospitalized_string = '2131,3132,2133,2134,2135'
     query=f'''
-    select ChartNo,VisitNo,OrderNo,ItemNo,ExecDate,h.MedType,Ward,Division,Attibute,locationnow,TypeName,medTypeSource,eventCategory,i.ReportID 
-    from(
+    select * from(
     -----------------------------病床
-    select a.*,b.TypeName,b.medTypeSource,b.eventCategory from I_AllExam_Test0419 as a 
+    select a.*,b.TypeName,b.medTypeSource,b.eventCategory from I_AllExam_Test as a 
     inner join medTypeSet as b on a.MedType=b.MedType
     where ChartNo={ChartNo}/**/ and a.MedType in({hospitalized_string})
     '''
@@ -79,18 +78,16 @@ def TimeShow(request):
         query +=f'''
         -----------------------------導管
         union all
-        select a.*,b.TypeName,b.medTypeSource,b.eventCategory from I_AllExam_Test0419 as a 
+        select a.*,b.TypeName,b.medTypeSource,b.eventCategory from I_AllExam_Test as a 
         inner join medTypeSet as b on a.MedType=b.MedType
-        where ChartNo={ChartNo}/**/　and a.MedType in(30903)
+        where ChartNo={ChartNo}/**/　and a.MedType in(30901,30902)
         -----------------------------
     '''
     query +=f'''
     )as h
-    left join AnalyseText as i on h.OrderNo=i.ReportNo
     where ExecDate between DATEADD(DAY,-3 ,('{partystart}'))/*起始日期*/ and DATEADD(DAY,+3 ,('{partyend}'))/*終止日期*/ 
     order by ExecDate asc
     '''
-    print(query)
     cursor = connections['AIC_Infection'].cursor()
     ChartNo=[]
     VisitNo = []
@@ -102,7 +99,6 @@ def TimeShow(request):
     Ward = []
     Division=[]
     Attribute = []
-    locationnow = []
     TypeName = []
     cursor.execute(query)
     result = cursor.fetchall()
@@ -118,11 +114,10 @@ def TimeShow(request):
         Ward.append(result[i][6])
         Division.append(result[i][7])
         Attribute.append(result[i][8])
-        locationnow.append(result[i][9])
-        TypeName.append(result[i][10])
+        TypeName.append(result[i][9])
 
     return JsonResponse({'ChartNo': ChartNo,'VisitNo': VisitNo,'OrderNo': OrderNo,'ItemNo': ItemNo,
-                         'ExecDate':ExecDate,'ExecDateTime':ExecDateTime,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute,'Ward':Ward,'locationnow':locationnow})
+                         'ExecDate':ExecDate,'ExecDateTime':ExecDateTime,'MedType':MedType,'TypeName':TypeName,'Attribute':Attribute,'Ward':Ward})
 
 @csrf_exempt
 def PrimaryText(request):
@@ -133,7 +128,7 @@ def PrimaryText(request):
     ItemNo = request.POST.get('ItemNo')
     print(MedType)
     if MedType == '30801':
-        query = '''select top 10 CreateTime,Content from ProgessionNote where ChartNo=%s and CONVERT(varchar(100), CreateTime, 23)=%s'''
+        query = '''select CreateTime,Content from ProgessionNote where ChartNo=%s and CONVERT(varchar(100), CreateTime, 23)=%s'''
         cursor = connections['AIC_Infection'].cursor()
         cursor.execute(query,[ChartNo,ExecDate])
         result = cursor.fetchall()
@@ -145,59 +140,27 @@ def PrimaryText(request):
             ReportText.append(result[i][1])
 
         return JsonResponse({'ReportText': ReportText,'CreateTime':CreateTime})
-    elif MedType in ['99999']:
-        query = '''select TubeName,BodyPosition,BodyPart,TubeLength,TubeStatus,TubeInsertion,RemovalTime,RemovalReason,TubeRemark,TubeUsageNo,IsCenter from TubeUsage where TubeUsageNo=%s'''
+    elif MedType in ['30901','30902']:
+        query = '''select TubeName,BodyPosition,BodyPart,TubeLength,TubeStatus,TubeInsertion,RemovalTime,RemovalReason,TubeRemark from TubeUsage where TubeUsageNo=%s'''
         cursor = connections['AIC_Infection'].cursor()
         
-        cursor.execute(query,[OrderNo])
+        cursor.execute(query,[ItemNo])
         result = cursor.fetchall()
         object = f'''
-        <tr class="table-info" ><th colspan="2">導管名稱 </th><th  colspan="2">中心導管(1/0)</th></tr>
-        <tr class="table-light"><td  colspan="2">{result[0][0]}<br>({result[0][9]}) </td><td  colspan="2">{result[0][10]}</td></tr>
-        <tr class="table-info"><th  colspan="2">導管位置 </th><th  colspan="2">導管長度</th></tr>
-        <tr class="table-light"><td  colspan="2">{result[0][1]}{result[0][2]} </td><td  colspan="2">{result[0][3]}</td></tr>
-        <tr class="table-info"><th colspan="4">導管狀態</th></tr>
-        <tr class="table-light"><td colspan="4" class="noMarginAndPadding">{result[0][4]}<br><br>A:使用中 D:已刪除 R:已拔除</td></tr>
-        <tr class="table-info"><th  colspan="2">置入時間 </th><th  colspan="2">停用/取出時間</th></tr>
-        <tr class="table-light"><td  colspan="2">{result[0][5]} </td><td  colspan="2">{result[0][6]}</td></tr>
-        <tr class="table-info"><th colspan="4">導管停用/取出原因 </th></tr>
-        <tr class="table-light"><td colspan="4">{result[0][7]}</td></tr>
-        <tr class="table-info"><th colspan="4">標註 </th></tr>
-        <tr class="table-light"><td class="TubeRemark" colspan="4">{result[0][8]}</td></tr>
+        <tr class="table-secondary"><th >導管名稱 </th><th>是否為中心導管</th></tr>
+        <tr><td>{result[0][0]} </td><td></td></tr>
+        <tr class="table-secondary"><th>導管位置 </th><th>導管長度</th></tr>
+        <tr><td>{result[0][1]}{result[0][2]} </td><td>{result[0][3]}</td></tr>
+        <tr class="table-secondary"><th colspan="2">導管狀態</th></tr>
+        <tr><td colspan="2" class="noMarginAndPadding">{result[0][4]}<br><br>A:使用中 D:已刪除 R:已拔除</td></tr>
+        <tr class="table-secondary"><th>置入時間 </th><th>停用/取出時間</th></tr>
+        <tr><td>{result[0][5]} </td><td>{result[0][6]}</td></tr>
+        <tr class="table-secondary"><th colspan="2">導管停用/取出原因 </th></tr>
+        <tr><td colspan="2">{result[0][7]}</td></tr>
+        <tr class="table-secondary"><th colspan="2">標註 </th></tr>
+        <tr><td class="TubeRemark" colspan="2">{result[0][8]}</td></tr>
         '''
         return JsonResponse({'object': object})
-    elif MedType in ['30903']:
-        print(MedType)
-        query = '''select *,30901 as 'MedType' from TubeUsage as a inner join medTypeSet as b on b.MedType=30901
-        where ChartNo=%s/**/ and convert(date,TubeInsertion)=convert(date,%s)
-        UNION ALL
-        select *,30902 as 'MedType' from TubeUsage as a inner join medTypeSet as b on b.MedType=30902
-        where ChartNo=%s/**/ and  convert(date,RemovalTime)=convert(date,%s)
-        order by b.MedType,TubeInsertion asc
-        '''
-        cursor = connections['AIC_Infection'].cursor()
-        TubeUsageNo = []
-        TubeInsertion = []
-        TubeInsertionTime = []
-        RemovalTime = []
-        RemovalTimeTime = []
-        TubeName = []
-        IsCenter = []
-        MedType = []
-        cursor.execute(query,[ChartNo,ExecDate,ChartNo,ExecDate])
-        result = cursor.fetchall()
-        for i in range(len(result)):
-            TubeUsageNo.append(result[i][5])
-            TubeInsertion.append(result[i][6].date())
-            TubeInsertionTime.append(result[i][6].replace(microsecond=0).time())
-            RemovalTime.append(result[i][7].date())
-            RemovalTimeTime.append(result[i][7].replace(microsecond=0).time())
-            TubeName.append(result[i][9])
-            IsCenter.append(result[i][18])
-            MedType.append(result[i][19])
-        
-        return JsonResponse({'TubeUsageNo': TubeUsageNo,'TubeInsertion': TubeInsertion,'RemovalTime': RemovalTime,'IsCenter': IsCenter,
-                            'MedType':MedType,'TubeInsertionTime':TubeInsertionTime,'RemovalTimeTime':RemovalTimeTime,'TubeName':TubeName})    
     else:
         query = '''select * from AnalyseText where ReportNo ='''+OrderNo
         cursor = connections['AIC_Infection'].cursor()
@@ -237,7 +200,11 @@ def structureData(request):
     cursor.execute(queryCheck,[ReportID])
     check = cursor.fetchall()
 
-    queryExamItem='''select * from ReportContentTable where ReportID=%s and State=1 order by PosStart'''
+    queryExamItem='''
+        select * from ReportContent(%s,1278,1259)
+        union all
+        select * from ReportContent(%s,1259,109)
+    '''
     cursor.execute(queryExamItem,[ReportID,ReportID])
     resExamItem = cursor.fetchall()
 
@@ -314,71 +281,6 @@ def structureData(request):
             'ExamSourceText':ExamSourceText,
             'Bacteria':Bacteria,
         })
-@csrf_exempt
-def structureDatatest(request):
-   
-    ReportID = str(request.POST.get('ReportID')).replace(' ','')
-    
-    cursor = connections['AIC_Infection'].cursor()
-    queryExamItem='''select * from ReportContentTable where ReportID=%s and State=1 order by PosStart'''
-    #print(ReportID)
-        
-    ExamItem = []
-    ExamItemText = []
-    Category = []
-    cursor.execute(queryExamItem,[ReportID])
-    
-    result = cursor.fetchall()
-    
-    for i in range(len(result)):
-        ExamItem.append(result[i][3].replace('EndLine',''))
-        ExamItemText.append(result[i][5])
-        Category.append(result[i][8])
-    queryBacteria='''
-        select *,null as 'Token1',null as 'Token2',1 as 'State'  from DrugResistance_AnalyseText_test0408 where ReportID = %s/**/
-        union 
-        select qq,ReportID,Block,PosStart1,null,null,null,null,null,null,null,Token1,Token2,State from BacteriaTable where ReportID = %s /*47424*/ and State = 1
-        order by PosStart,Ordery asc
-    '''
-    cursor.execute(queryBacteria,[ReportID,ReportID])
-    resBacteria = cursor.fetchall()
-
-    Resistance1w=[]
-    Resistance1n=[]
-    Resistance2w=[]
-    Resistance2n=[]
-    Resistance3w=[]
-    Resistance3n=[]
-    drug=[]
-    Bacteria=[]
-    state=[]
-    for i in range(len(resBacteria)):
-        Resistance1w.append(resBacteria[i][4])
-        Resistance1n.append(resBacteria[i][5])
-        Resistance2w.append(resBacteria[i][6])
-        Resistance2n.append(resBacteria[i][7])
-        Resistance3w.append(resBacteria[i][8])
-        Resistance3n.append(resBacteria[i][9])
-        drug.append(resBacteria[i][10])
-        Bacteria.append(resBacteria[i][12])
-        state.append(resBacteria[i][13])
-    
-    return JsonResponse({
-        'ReportID':ReportID,
-        'ExamItem':ExamItem,
-        'ExamItemText':ExamItemText,
-        'Category':Category,
-
-        'Resistance1w':Resistance1w,
-        'Resistance1n':Resistance1n,
-        'Resistance2w':Resistance2w,
-        'Resistance2n':Resistance2n,
-        'Resistance3w':Resistance3w,
-        'Resistance3n':Resistance3n,
-        'drug':drug,
-        'Bacteria':Bacteria,
-        'state':state
-    })
 
 
 @csrf_exempt        
@@ -391,7 +293,6 @@ def getWard(request):
     for res in fetchallWard:
         ward.append(res[0])
     return JsonResponse({'ward': ward})
-    print(11111)
 
 @csrf_exempt        
 def getDivName(request):
