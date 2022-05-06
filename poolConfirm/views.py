@@ -88,7 +88,7 @@ def confirmpat2(request):
 	from allEvents as a
 	inner join medTypeSet as b on a.medType=b.medType
 	left join eventDetails as c on a.eventID=c.eventID
-	where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType is NULL) and eventID_F is null 
+	where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null 
     '''
     cursor = connections['coreDB'].cursor()
     cursor.execute(query,[PID])
