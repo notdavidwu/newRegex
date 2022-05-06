@@ -16,10 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from MEWS import views
+from MEWS import views_mews
 from MEWS import dash
 
 app_name='MEWS'
 urlpatterns = [
     path('', views.MEWS,name='MEWS'),
-
+    path('views_mews/', views_mews.MEWS,name='views_mews'),
 ]

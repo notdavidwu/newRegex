@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 def MEWS(request):
     au = request.session.get('au')
-    return render(request, 'app_mews/mews.html',{'au':au})
+    return render(request, 'MEWS/views_mews.html',{'au':au})
 
 ##############################################################################################
 
