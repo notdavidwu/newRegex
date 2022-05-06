@@ -498,8 +498,8 @@
             success: function (response) {
                 //alert(response.ReportID[0])
                 $('#priReport').empty()//or text('')
-
-                
+                const list =['2131','2132','2133','2134','2135','2136','2137']
+                alert('1')
                 if(MedType==30801){                                      //點擊護理紀錄
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
@@ -543,7 +543,7 @@
                     $('#tubeReport').append(a)
                     //$('.TubeRemark').height($('.Reportform').height()-$('#tubeReport').height())
 
-                }else if (MedType ==2133){                     //點擊檢驗報告
+                }else if (list.indexOF(MedType)>=0){                     //點擊檢驗報告
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
