@@ -55,10 +55,11 @@ def connect():
     mydf = SQL(sql3, colname3)
     
     sql4 =   '''
-            SELECT DISTINCT YEAR(StartTime) AS Year
-            FROM ProgressTransfer_ICURRT
-            WHERE (StartTime between (SELECT MIN(StartTime) FROM RRTRecord) and (SELECT MAX(StartTime) FROM RRTRecord))
-            ORDER BY Year
+                SELECT DISTINCT YEAR(StartTime) AS Year
+                FROM ProgressTransfer_ICURRTNormal
+                WHERE (YEAR(StartTime) between 2019 and 2021)
+                    and StartTime >= '2019-04-16'
+                ORDER BY Year
             '''
     colname4 = ['Year']
     unydf = SQL(sql4, colname4)
@@ -108,7 +109,6 @@ def RRTNum(year1, year2, ward):
     cursor.execute(sql)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
-    print(df)
     df.set_index(colname[0], inplace=True)
     return df, colname[1]
 
@@ -116,16 +116,17 @@ def RRTNum(year1, year2, ward):
 
 def RRTWardNum(year, avg):
     if avg:
-        sql = f'''
-              EXEC MEWS.RRTWardAvgData @Date={year}
+        sql = '''
+              EXEC MEWS.RRTWardAvgData @Date=%s
               '''
     else:
-        sql = f'''
-              EXEC MEWS.RRTWardData @Date={year}
+        sql = '''
+              EXEC MEWS.RRTWardData @Date=%s
               '''
     colname = ['Ward', '安全', '達三項', '可啟動', '系統啟動']
+    ID = [year]
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql)
+    cursor.execute(sql, ID)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
     df.set_index(colname[0], inplace=True)
@@ -192,14 +193,14 @@ def RRTTransferType(year, on):
         txt = '成人'
     
     sql = '''
-            EXEC MEWS.RRTTransferType_EXEC @Date=%(Year)s, @Age=%(Age)s
+            EXEC MEWS.RRTTransferTypeNormal_EXEC @Date=%(Year)s, @Age=%(Age)s
           '''
     colname = [str(year)+'年: '+txt+'之病程轉入原因', '就醫人數', '就醫人次', 'RRT偵測筆數']
     ID = {'Year': year, 'Age': age}
     conn = pymssql.connect(
         server='172.31.6.157',
-        user='E1339',
-        password='apple0218',
+        user='TEST',
+        password='81218',
         database='MEWS'
     )
     cursor = conn.cursor()
@@ -220,7 +221,7 @@ def RRTTransferNum(year):
         yeartxt = year
     
     sql = '''
-          EXEC MEWS.RRTTransferYear @Date=%s, @Yeartxt=%s
+          EXEC MEWS.RRTTransferYearNormal @Date=%s, @Yeartxt=%s
           '''
     colname = ['Year', '就醫人數', '就醫人次', '筆數']
     ID = [year, yeartxt]
@@ -233,13 +234,19 @@ def RRTTransferNum(year):
 
 ##############################################################################################
 
-def RRTTransferNullNum(year1, year2):
-    sql = f'''
-          EXEC MEWS.RRTTransferYearNull @Date1={year1}, @Date2={year2}
+def RRTTransferNullNum(year):
+    if year is None:
+        year = '%'
+    else:
+        pass
+
+    sql = '''
+           EXEC MEWS.RRTTransferYearNullNormal @Date=%s
           '''
     colname = ['Match', '就醫人數', '就醫人次', '筆數']
+    ID = [year]
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql)
+    cursor.execute(sql, ID)
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
     df.set_index(colname[0], inplace=True)
@@ -249,7 +256,7 @@ def RRTTransferNullNum(year1, year2):
 
 def RRTTransferEndMiss(year):
     sql = '''
-          EXEC MEWS.RRTTransferEndMiss @Date=%s
+          EXEC MEWS.RRTTransferEndMissNormal @Date=%s
           '''
     colname = ['RRTType', '就醫人數', '就醫人次', '筆數']
     ID = [year]
@@ -264,7 +271,7 @@ def RRTTransferEndMiss(year):
 
 def RRTTransferEndType(year):
     sql = '''
-          EXEC MEWS.RRTTransferEndType @Date=%s
+          EXEC MEWS.RRTTransferEndTypeNormal @Date=%s
           '''
     colname = ['EndType', '就醫人數', '就醫人次', '筆數']
     ID = [year]
@@ -1150,7 +1157,7 @@ def update_graph_RRT(year):
     fig.update_layout(uniformtext_minsize=12,
                       uniformtext_mode='hide',
                       hoverlabel=dict(font_size=15),
-                      title_text=(str(year1)+'/1/1~'+str(year2)+'/12/31: Percentage of RRTRecord')
+                      title_text=(str(year1)+'~'+str(year2)+': Percentage of RRTRecord')
                      )
     return fig
 
@@ -1184,7 +1191,7 @@ def update_graph_RRT(year, on):
             go.Bar(name=col4, x=df.index, y=df[col4], marker_color='red'),
            ]
     fig = go.Figure(data=data)
-    fig.update_layout(title_text=(str(year1)+'/1/1~'+str(year2)+'/12/31: Duration Between Nursing Date and RRT Date (Minute Unit)'),
+    fig.update_layout(title_text=(str(year1)+'~'+str(year2)+': Duration Between Nursing Date and RRT Date (Minute Unit)'),
                       hovermode='x unified',
                       barmode=bar,
                       hoverlabel=dict(font_size=15,
@@ -1240,7 +1247,7 @@ def update_graph_RRT(year):
         title = str(year)
     
     df1, col11, col12, col13 = RRTTransferNum(year)
-    df2, col21, col22, col23 = RRTTransferNullNum(year1, year2)
+    df2, col21, col22, col23 = RRTTransferNullNum(year)
 
     c1 = []
     for i in range(len(df1)):
@@ -1323,10 +1330,12 @@ def update_graph_RRT(year):
     for i in range(len(df2)):
         if df2.index[i]=='RRT到場處理':
             c2.append('green')
-        elif df2.index[i]=='啟動但RRT未到場':
+        elif df2.index[i]=='MEWS警示但未呼叫RRT':
             c2.append('#ffdd00')
         elif df2.index[i]=='未啟動':
             c2.append('red')
+        elif df2.index[i]=='空值':
+            c2.append('#adadad')
         else:
             pass
     
@@ -1338,6 +1347,12 @@ def update_graph_RRT(year):
         text = [col21+': '+str(df2[col21][0])+', '+col22+': '+str(df2[col22][0]),
                 col21+': '+str(df2[col21][1])+', '+col22+': '+str(df2[col22][1]),
                 col21+': '+str(df2[col21][2])+', '+col22+': '+str(df2[col22][2])
+                ]
+    elif len(df2.index)==4:
+        text = [col21+': '+str(df2[col21][0])+', '+col22+': '+str(df2[col22][0]),
+                col21+': '+str(df2[col21][1])+', '+col22+': '+str(df2[col22][1]),
+                col21+': '+str(df2[col21][2])+', '+col22+': '+str(df2[col22][2]),
+                col21+': '+str(df2[col21][3])+', '+col22+': '+str(df2[col22][3])
                 ]
     else:
         pass
@@ -1361,6 +1376,6 @@ def update_graph_RRT(year):
     fig.update_layout(uniformtext_minsize=12,
                       uniformtext_mode='hide',
                       hoverlabel=dict(font_size=15),
-                      title_text=(title+': 不可預期進ICU患者之HisRRT偵測失誤比例 (Conditional Exclusion: DNR, RRT EndReason is NULL)')
+                      title_text=(title+': 不可預期進ICU患者之HisRRT偵測失誤比例 (Conditional Exclusion: DNR)')
                      )
     return fig
