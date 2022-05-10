@@ -35,7 +35,8 @@ urlpatterns = [
     path('deleteEvent_F/', views.deleteEvent_F, name='deleteEvent_F'),
     path('getClinicalProcedures/', views.getClinicalProcedures, name='getClinicalProcedures'),
     path('getCancerRegistData/', views.getCancerRegistData, name='getCancerRegistData'),
-    path('status/', views.status, name='status'),
+    path('updatePatientStatus/', views.updatePatientStatus, name='updatePatientStatus'),
     path('getNum/', views.getNum, name='getNum'),
+    path('getPatientStatus/', views.getPatientStatus, name='getPatientStatus'),
     
 ]

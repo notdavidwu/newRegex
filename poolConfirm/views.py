@@ -227,15 +227,6 @@ def deleteDefinition(request):
     return JsonResponse({'sno':sno})
 
 
-@csrf_exempt
-def status(request):
-    chartNo = request.POST.get('chartNo')
-    status = request.POST.get('status')
-    disease = request.POST.get('disease')
-    query = '''UPDATE PatientDisease SET confirmed = %s where chartNo = %s and diseaseId = %s'''
-    cursor = connections['coreDB'].cursor()
-    cursor.execute(query,[status,chartNo,disease])
-    return JsonResponse({})
 
 @csrf_exempt
 def updatePhase(request):
@@ -529,3 +520,40 @@ def getNum(request):
     for row in res:
         num.append(row[1])
     return JsonResponse({'num':num})
+
+
+@csrf_exempt
+def updatePatientStatus(request):
+    PDSet = request.POST.getlist('PD[]')
+    diagCheckedSet = request.POST.getlist('diagChecked[]')
+    treatCheckedSet = request.POST.getlist('treatChecked[]')
+    fuCheckedSet = request.POST.getlist('fuChecked[]')
+    query = '''UPDATE PatientDisease SET diagChecked = %s,treatChecked=%s,fuChecked=%s where PD = %s'''
+    cursor = connections['practiceDB'].cursor()
+    for diagChecked,treatChecked,fuChecked,PD in zip(diagCheckedSet,treatCheckedSet,fuCheckedSet,PDSet):
+        cursor.execute(query,[diagChecked,treatChecked,fuChecked,PD])
+    return JsonResponse({})
+
+@csrf_exempt
+def getPatientStatus(request):
+    cursor = connections['practiceDB'].cursor()
+    chartNo = request.POST.get('chartNo')
+    disease = request.POST.get('diseaseId')
+    query=f'''
+    select PD, b.disease, caSeqNo, diagChecked, treatChecked, fuChecked 
+    from PatientDisease as a 
+    inner join diseasetList as b on a.diseaseID=b.diseaseID
+    where a.chartNo={chartNo} and a.diseaseID={disease}
+    '''
+    cursor.execute(query)
+    PD,disease,caSeqNo,diagChecked,treatChecked,fuChecked=[],[],[],[],[],[]
+    res = cursor.fetchall()
+    for row in res:
+        PD.append(row[0])
+        disease.append(row[1])
+        caSeqNo.append(row[2])
+        diagChecked.append(False if row[3] is None else row[3])
+        treatChecked.append(False if row[4] is None else row[4])
+        fuChecked.append(False if row[5] is None else row[5])
+    print(diagChecked)
+    return JsonResponse({'PD':PD,'disease':disease,'caSeqNo':caSeqNo,'diagChecked':diagChecked,'treatChecked':treatChecked,'fuChecked':fuChecked})

@@ -186,7 +186,7 @@
     #ascriptionPhase , #desPhase{height:150px;width:100%}
     #ascription select{pointer-events:none}
     .inductionEventID{display:none}
-    #ascriptionSubmit{height:20px;line-height:8px;width:calc(100% - 8px);position:absolute;bottom:5px;margin-left:4px}
+    .submit{height:20px;line-height:8px;width:calc(100% - 8px);position:absolute;bottom:5px;margin-left:4px}
     #cancerRegistCheck{width:500px}
     input[name='test']{display: none}/*radio  消失*/
     input[name='test'] +label{background:url("{% static 'image/texture.png' %}");width: 100%;}/*點擊顏色變長*/
@@ -198,13 +198,13 @@
     :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px; --formwidth: 500px; --form-mob-width: 500px; }
     #mycheckbox { position: absolute; left: -9999px; }
     .feedback-label,.form { position: fixed; top: 50%; right: 0; }
-    .feedback-label { transform-origin: top right; transform: rotate(-90deg) translate(50%, -100%); z-index: 10; }
-    .form {height:500px;background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--formwidth); max-height: 85vh;margin-top: 2%; transform: translate(100%, -50%); padding: 0px; overflow: auto; background-color: var(--form); z-index: 1; border-radius:10px}
+    .feedback-label { transform-origin: top right; transform:  translate(0%, -100%); z-index: 10; }
+    .form {height:500px;background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--formwidth); max-height: 85vh;margin-top: 2%; transform: translate(100%, -50%); padding: 0px; overflow: auto; background-color: var(--form); z-index: 10; border-radius:10px}
     .feedback-label { border-radius: var(--border-radius); }
-    .feedback-label { padding: 5px 10px; border-radius: var(--border-radius) var(--border-radius) 0 0; }
-    .feedback-label { background: brown; color: white; }
+    .feedback-label { padding: 5px 10px; border-radius: var(--border-radius)  0 0 var(--border-radius) ; }
+    .feedback-label { writing-mode: vertical-rl;background: brown; color: white; }
     .feedback-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
-    #mycheckbox:checked + .feedback-label { background: #e78632; transform: rotate(-90deg) translate(50%, calc((var(--formwidth) + 100%) * -1))}
+    #mycheckbox:checked + .feedback-label { background: #e78632; transform:  translate(calc((var(--formwidth) ) * -1),-100%)}
     #mycheckbox:checked ~ .form { transform: translate(0, -50%);z-index: 10;}
     .feedback-label, .form { transition: all 0.35s ease-in-out; }
     .form{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
@@ -212,6 +212,8 @@
     .status{padding:0px;padding-top:5px;padding-bottom:5px}
     #statusMenu{width:150px}
     .noted{color:#FFFF00}
+    .customCol{margin:0px;padding:0px;height:50px}
+    
 </style>
 
 
@@ -505,7 +507,7 @@
             target.prevAll('.IntervalNo').val(1)
             originSeqNo = 1
         }
-        alert(pdID)
+
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
@@ -603,6 +605,66 @@
         $('#desPhase').empty()
         $('#inductionEventID2').empty()
         $("#ascription").css('display', 'none');
+    }
+
+    function statusOpen(){
+        
+        let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let diseaseId = $('#ChangeDisease').val()
+        $("#patientStatusCheck").css('display', 'inline');
+        $("#statusMenu").css('display', 'none');
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getPatientStatus" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'diseaseId':diseaseId,
+            },
+            success:function (response){
+                $('#statusArea tbody').empty()
+                for(let i=0; i<response.PD.length; i++){
+                    $('#statusArea tbody').append(`
+                    <tr id=${response.PD[i]}>
+                        <td>${response.disease[i]}</td>
+                        <td>${response.caSeqNo[i]}</td>
+                        <td><input type="checkbox" class="diagChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" class="treatChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" class="fuChecked" name=${response.PD[i]}></td>
+                    </tr>
+                    `)
+                    $('.diagChecked').eq(i).prop('checked',response.diagChecked[i])
+                    $('.treatChecked').eq(i).prop('checked',response.treatChecked[i])
+                    $('.fuChecked').eq(i).prop('checked',response.fuChecked[i])
+                }
+            }
+        })
+    }
+
+    function patientStatusCheckClose(){
+        $('#statusArea tbody').empty()
+        $("#patientStatusCheck").css('display', 'none');
+    }
+
+    function patientStatusSubmit(){
+        let target = $('#statusArea').children('table').children('tbody').children('tr')
+        let PD = target.map(function(){return $(this).attr('id')}).get()
+        let diagChecked = target.map(function(){return Number($(this).children('td').children('.diagChecked').prop('checked'))}).get()
+        let treatChecked = target.map(function(){return Number($(this).children('td').children('.treatChecked').prop('checked'))}).get()
+        let fuChecked = target.map(function(){return Number($(this).children('td').children('.fuChecked').prop('checked'))}).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
+            data:{
+                'PD':PD,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                patientStatusCheckClose()
+            }
+        })
     }
 
     function cancerRegistCheck(){
@@ -750,25 +812,27 @@
         })
     }
 
-    function status(status){
-        $('#statusMenu').css('display','none')
-        let chartNo = $('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
-        let disease = $('#ChangeDisease').val()
-
-        $.ajax({
-            type: 'post',
-            url: '{% url "poolConfirm:status" %}', // this is the mapping between the url and view
-            data:{
-                'chartNo':chartNo,
-                'status':status,
-                'disease':disease,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function(){
-                getNum()
-            }
-        })
+    function move(id){
+        var move=false;//移動標記  
+        var _x,_y;//左上角位置 
+            $(`#${id}`).children('.ascriptionHeader').mousedown(function(e){  
+                move=true;  
+                _x=e.pageX-parseInt($(`#${id}`).css("left"));  
+                _y=e.pageY-parseInt($(`#${id}`).css("top"));       
+            });  
+            $(document).mousemove(function(e){  
+                if(move){  
+                    var x=e.pageX-_x;
+                    var y=e.pageY-_y;  
+                    $(`#${id}`).css({"top":y,"left":x}); 
+                    $(`#${id}`).css({"z-index":20});
+                }  
+            }).mouseup(function(){  
+                $(`#${id}`).css({"z-index":10});
+                move=false;
+        });
     }
+
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -778,6 +842,7 @@
         $('#defaultMenuBlock1').on('mousedown','td',function(d){
             $(this).children('input[type="radio"]').prop('checked',true)
             if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
+                GetTime()
                 var x = d.originalEvent.x || d.originalEvent.layerX || 0;
                 var y = d.originalEvent.y || d.originalEvent.layerY || 0;
                 $("#statusMenu").css('display', 'inline');
@@ -808,40 +873,9 @@
             }
         })
 
-
-        var move1=false;//移動標記  
-        var _x,_y;//左上角位置 
-            $("#ascription").children('.ascriptionHeader').mousedown(function(e){  
-                move1=true;  
-                _x=e.pageX-parseInt($("#ascription").css("left"));  
-                _y=e.pageY-parseInt($("#ascription").css("top"));       
-            });  
-            $(document).mousemove(function(e){  
-                if(move1){  
-                    var x=e.pageX-_x;
-                    var y=e.pageY-_y;  
-                    $("#ascription").css({"top":y,"left":x}); 
-                }  
-            }).mouseup(function(){  
-            move1=false;
-        });
-
-        var move2=false;//移動標記  
-        var _x,_y;//左上角位置 
-            $("#cancerRegistCheck").children('.ascriptionHeader').mousedown(function(e){  
-                move2=true;  
-                _x=e.pageX-parseInt($("#cancerRegistCheck").css("left"));  
-                _y=e.pageY-parseInt($("#cancerRegistCheck").css("top"));       
-            });  
-            $(document).mousemove(function(e){  
-                if(move2){  
-                    var x=e.pageX-_x;
-                    var y=e.pageY-_y;  
-                    $("#cancerRegistCheck").css({"top":y,"left":x}); 
-                }  
-            }).mouseup(function(){  
-            move2=false;
-        });
+        move('ascription')
+        move('cancerRegistCheck')
+        move('patientStatusCheck')
 
         $('.loader1').css('display','inline')
         $.ajax({
@@ -1084,7 +1118,7 @@
                 </div>
                 <p class="inductionEventID" id="inductionEventID2"></p>
             </div>
-            <button type="submit" class="btn btn-primary" id="ascriptionSubmit" onclick="ascriptionSubmit()">Submit</button>
+            <button type="submit" class="btn btn-primary submit"  onclick="ascriptionSubmit()">Submit</button>
         </div>
 
 
@@ -1096,23 +1130,36 @@
             <div id="checkArea"  class="row">
                 
             </div>
-            <button type="submit" class="btn btn-primary" id="ascriptionSubmit" onclick="cancerRegistSubmit()">Submit</button>
+            <button type="submit" class="btn btn-primary submit"  onclick="cancerRegistSubmit()">Submit</button>
         </div>
 
+        <div class="checkPannel" id="patientStatusCheck">
+            <div class="ascriptionHeader">
+                病患資料確認
+                <button type="button" class="btn-close close" aria-label="Close" onclick="patientStatusCheckClose()"></button>
+            </div>
+            <div id="statusArea"  class="row">
+                  <table class="table table-striped table-hover" >
+                    <thead>
+                        <tr>
+                            <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>F/U</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary submit" onclick="patientStatusSubmit()">Submit</button>
+        </div>
+
+
         <div id="statusMenu" class="customMenu">
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(1)">診斷</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(2)">治療</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(3)">追蹤</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(4)">診斷+治療</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(5)">診斷+追蹤</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(6)">治療+追蹤</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(7)">診斷+治療+追蹤</p>
-            <p class="btn btn-secondary resetbtn status" role="button" onclick="status(8)">Ignore</p>
+            <p class="btn btn-secondary resetbtn status" role="button" onclick="statusOpen()">病患資料確認</p>
         </div>
 
         <div id="menu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
             <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
+            <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="extractFactor()">擷取因子</p>
         </div>
     </div>    
 
@@ -1131,6 +1178,7 @@
         </form>
     </div>
 
+    
     <textarea id="text" readonly>
 
     </textarea>
