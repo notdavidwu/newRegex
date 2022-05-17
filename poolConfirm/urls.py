@@ -38,5 +38,8 @@ urlpatterns = [
     path('updatePatientStatus/', views.updatePatientStatus, name='updatePatientStatus'),
     path('getNum/', views.getNum, name='getNum'),
     path('getPatientStatus/', views.getPatientStatus, name='getPatientStatus'),
+    path('formGenerator/', views.formGenerator, name='formGenerator'),
+    path('insertExtractedFactors/', views.insertExtractedFactors, name='insertExtractedFactors'),
+    path('searchExtractedFactorsRecord/', views.searchExtractedFactorsRecord, name='searchExtractedFactorsRecord'),
     
 ]

@@ -101,12 +101,13 @@ def YearNum(year, on):
 ##############################################################################################
 
 def RRTNum(year1, year2, ward):
-    sql = f'''
-          EXEC MEWS.RRTData @Date1={year1}, @Date2={year2}, @Ward="{ward}"
+    print(year1, year2, ward)
+    sql = '''
+          EXEC MEWS.RRTData @Date1=%s, @Date2=%s, @Ward=%s
           '''
     colname = ['RRT', 'num']
     cursor = connections['MEWS'].cursor()
-    cursor.execute(sql)
+    cursor.execute(sql,[int(year1),int(year2),ward])
     row = cursor.fetchall()
     df = pd.DataFrame(row, columns=colname)
     df.set_index(colname[0], inplace=True)

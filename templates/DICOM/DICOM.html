@@ -1608,7 +1608,7 @@
         LabelName = $('#LabelName').val();
         LabelRecord = $('#LabelRecord').val();
         $('#tumor').children('select').css('border-color', 'black')
-
+        $('#annotation_factor_pannel').children('.menublock').remove()
 
         if (LabelGroup != '輸入病灶') {
             $('#tumor').css('display', 'none')
@@ -1702,8 +1702,10 @@
         });
     }
     function insertAnnotationFactor(id){
-        let annotation_factor = $('#tumor').children('#factor').children('.menublock').children('.factor').map(function(){return $(this).val()}).get()
-        let annotation_factor_detail = $('#tumor').children('#factor').children('.menublock').children('.detail').map(function(){return $(this).val()}).get()
+        let annotation_factor = $('.menublock').children('.factor').map(function(){return $(this).val()}).get()
+        let annotation_factor_detail = $('.menublock').children('.detail').map(function(){return $(this).val()}).get()
+        alert(annotation_factor)
+        alert(annotation_factor_detail)
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:insertAnnotationFactor" %}', // this is the mapping between the url and view
@@ -1712,6 +1714,9 @@
                 'factor':annotation_factor,
                 'detail':annotation_factor_detail,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('.menublock').remove()
             }
         });
     }

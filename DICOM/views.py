@@ -984,6 +984,7 @@ def insertAnnotationFactor(request):
     insert_query = '''insert into annotationFactor (a_id,factor,detail) values(%s,%s,%s)'''
     cursor = connections['AIC'].cursor()
     for perFactor, perDetail in zip(factor,detail):
+        print(a_id,perFactor,perDetail)
         cursor.execute(insert_query,[a_id,perFactor,perDetail])
     return JsonResponse({})
 
@@ -1006,7 +1007,7 @@ def insertLocation(request):
     Item = '' if (str(request.POST.get('Item')) == '') else str(request.POST.get('Item'))
     date = '' if (str(request.POST.get('date')) == '') else str(request.POST.get('date'))
     username = 'null' if (str(request.POST.get('username')) == '') else str(request.POST.get('username'))
-    SUV = '0' if (str(request.POST.get('SUV')) == '') else str(request.POST.get('SUV'))
+    SUV = '0' if (str(request.POST.get('SUV')) == '') else request.POST.get('SUV')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     Type = Item.replace(' ', '')
     now = datetime.now()
@@ -1040,19 +1041,20 @@ def insertLocation(request):
         Click_Y = math.floor(Click_Y)
         Click_Z = math.floor(Click_Z)
 
-    x,y,z = str(x),str(y),str(z)
-    Click_X, Click_Y, Click_Z = str(Click_X), str(Click_Y), str(Click_Z)
+    
+    
     LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
     LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
     LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
-
-    query = f'''
+    
+    query = '''
     insert into　annotation (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,seriesID) 
     output Inserted.id 
-    values({PID},'{SD}','{Item}','{current_time}','{username}',{SUV}, {x}, {y}, {z} ,'{LabelGroup}','{LabelName}','{LabelRecord}',{Click_X},{Click_Y},{Click_Z},{Disease},{StudyID},{SeriesID})
+    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     '''
+    print(PID,' ',SD,' ',Item,' ',current_time,' ',username,' ',SUV,' ',x,' ',y,' ',z,' ',LabelGroup,' ',LabelName,' ',LabelRecord,' ',Click_X,' ',Click_Y,' ',Click_Z,' ',Disease,' ',StudyID,' ',SeriesID)
     cursor = connections['AIC'].cursor()
-    cursor.execute(query)
+    cursor.execute(query,[PID,SD,Item,current_time,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,SeriesID])
     inserted_id = cursor.fetchone()[0]
 
     string = request.POST.getlist('str[]')
@@ -1187,7 +1189,7 @@ def deleteLocation(request):
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
     string = request.POST.getlist('str[]')
     Study_Date = request.POST.getlist('Study_Date[]')
-
+    username = request.POST.get('username')
     cursor = connections['AIC'].cursor()
 
     PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
@@ -1290,7 +1292,7 @@ def selectLocation(request):
     studyDate = request.POST.getlist('date[]')
     username = str(request.POST.get('username'))
     cursor = connections['AIC'].cursor()
-
+    
     if all_annotations==True:
         query = '''
         select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
@@ -1854,6 +1856,7 @@ def getusers(request):
 @csrf_exempt
 def getAnnotationFactor(request):
     a_id = request.POST.get('a_id')
+    print(a_id)
     cursor = connections['AIC'].cursor()
     query='''select f_id, factor, detail from annotationFactor where a_id=%s'''
     cursor.execute(query,[a_id])
@@ -1875,7 +1878,7 @@ def updateDrConfirm(request):
     id = request.POST.get('id')
     doctor_confirm = request.POST.get('doctor_confirm')
     print(id,' ',doctor_confirm)
-    query=f'''update annotation set doctor_confirm={doctor_confirm} where id={id}'''
+    query='''update annotation set doctor_confirm=%s where id=%s'''
     cursor = connections['AIC'].cursor()
-    cursor.execute(query)
+    cursor.execute(query,[doctor_confirm,id])
     return JsonResponse({}, status=200) 
