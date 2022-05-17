@@ -58,7 +58,7 @@
         .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
-        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;min-width:150px;width: 150px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;min-width:150px;width: 150px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
         #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;text-align: center}
         input[name='confirmPID']{display: none}
         input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
@@ -95,7 +95,7 @@
         .loader2{display:none;position:absolute;top:52%;left:38%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt;}
         #Report tr{padding: 0;margin: 0}
-        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 155px;width: 200px;height:calc(100% - 155px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
         #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 200px;text-align: center}
         input[name='confirmPID']{display: none}
         input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: 200px;}
@@ -122,7 +122,7 @@
         #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
 
         p{height: 100%;align-items: center;vertical-align: center}
-        #Disease{position: absolute;top: 55px;height: 100px;width: 200px;background-color: #11171a}
+        #Disease{position: absolute;top: 55px;height: 145px;width: 200px;background-color: #11171a}
         #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
         #header_date{width:18%}
         #header_note{width:45%}
@@ -225,6 +225,14 @@
         border-bottom:3px black solid;
     }
     #patientStatusCheck{width:600px}
+    #statusArea table{text-align:center}
+
+    #statusArea input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+    }
+    .statusFilter{padding:0px;padding-left:2px;padding-right:2px;width:60px;height:20px;font-size:12px;background-color:#FFF}
+    #statusFilterPannel{padding-left:5px}
 </style>
 
 
@@ -639,35 +647,35 @@
                     <tr id=${response.PD[i]}>
                         <td>${response.disease[i]}</td>
                         <td>${response.caSeqNo[i]}</td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="diagChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="treatChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="neoTreatChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="adjTreatChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="fuChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck()" class="pdConfirmed" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="diagChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="neoTreatChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="adjTreatChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${response.PD[i]}></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${response.PD[i]}></td>
                     </tr>
                     `)
-                    $('.diagChecked').eq(i).prop('checked',response.diagChecked[i])
-                    $('.treatChecked').eq(i).prop('checked',response.treatChecked[i])
-                    $('.neoTreatChecked').eq(i).prop('checked',response.neoTreatChecked[i])
-                    $('.adjTreatChecked').eq(i).prop('checked',response.adjTreatChecked[i])
-                    $('.fuChecked').eq(i).prop('checked',response.fuChecked[i])
-                    $('.pdConfirmed').eq(i).prop('checked',response.pdConfirmed[i])
+                    $('#statusArea .diagChecked').eq(i).prop('checked',response.diagChecked[i])
+                    $('#statusArea .neoTreatChecked').eq(i).prop('checked',response.neoTreatChecked[i])
+                    $('#statusArea .treatChecked').eq(i).prop('checked',response.treatChecked[i])
+                    $('#statusArea .adjTreatChecked').eq(i).prop('checked',response.adjTreatChecked[i])
+                    $('#statusArea .fuChecked').eq(i).prop('checked',response.fuChecked[i])
+                    $('#statusArea .pdConfirmed').eq(i).prop('checked',response.pdConfirmed[i])
                 }
             }
         })
     }
-    function excludeCheck(){
-        let targetClass=$(event.target).attr('class')
+    function excludeCheck(pannel){
+        let targetClass=$(event.target).attr('class').split(' ')[0]
         let targetName=$(event.target).attr('name')
         if(targetClass=='pdConfirmed'){
-            $(`#statusArea input[name="${targetName}"][class="diagChecked"]`).prop('checked',false)
-            $(`#statusArea input[name="${targetName}"][class="treatChecked"]`).prop('checked',false)
-            $(`#statusArea input[name="${targetName}"][class="neoTreatChecked"]`).prop('checked',false)
-            $(`#statusArea input[name="${targetName}"][class="adjTreatChecked"]`).prop('checked',false)
-            $(`#statusArea input[name="${targetName}"][class="fuChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="diagChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="treatChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="neoTreatChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="adjTreatChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="fuChecked"]`).prop('checked',false)
         }else{
-            $(`#statusArea input[name="${targetName}"][class="pdConfirmed"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class^="pdConfirmed"]`).prop('checked',false)
         }
     }
     function patientStatusCheckClose(){
@@ -683,7 +691,8 @@
         let treatChecked = target.map(function(){return Number($(this).children('td').children('.treatChecked').prop('checked'))}).get()
         let fuChecked = target.map(function(){return Number($(this).children('td').children('.fuChecked').prop('checked'))}).get()
         let pdConfirmed = target.map(function(){return Number($(this).children('td').children('.pdConfirmed').prop('checked'))}).get()
-
+        let adjTreatChecked = target.map(function(){return Number($(this).children('td').children('.adjTreatChecked').prop('checked'))}).get()
+        let neoTreatChecked = target.map(function(){return Number($(this).children('td').children('.neoTreatChecked').prop('checked'))}).get()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
@@ -693,6 +702,8 @@
                 'treatChecked':treatChecked,
                 'fuChecked':fuChecked,
                 'pdConfirmed':pdConfirmed,
+                'adjTreatChecked':adjTreatChecked,
+                'neoTreatChecked':neoTreatChecked,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -1011,11 +1022,15 @@
 
     function getNum(){
         let disease = $('#ChangeDisease').val()
+        let statusfilterNames = $(`input[name="disappear"]:checked`).map(function(){
+            return $(this).attr('class').split(' ')[0]
+        }).get()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:getNum" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
+                'statusfilterNames':statusfilterNames,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
@@ -1130,7 +1145,41 @@
         }
     }
 
-
+    function statusFilter(){
+        $('#Report').empty()
+        let name = $(event.target).attr('name')
+        let statusfilterNames = $(`input[name=${name}]:checked`).map(function(){
+            return $(this).attr('class').split(' ')[0]
+        }).get()
+        var disease = $('#ChangeDisease').val()
+        let filter = $('#filter').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
+            data:{
+                'filter':filter,
+                'Disease':disease,
+                'statusfilterNames':statusfilterNames,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#Report').append(response.examID) 
+                
+            },
+            complete:function(){
+                if("{{de_identification}}"=='False'){
+                    $('.ID').css('display','none')
+                    $('.PatientListID').css('display','inline')
+                }else{
+                    $('.ID').css('display','inline')
+                    $('.PatientListID').css('display','none')
+                }
+                $('.loader1').css('display','none')
+                getNum()
+            }
+        })
+        
+    }
 
     $(document).ready(function (e) {
         
@@ -1170,32 +1219,7 @@
                 }
             },
             complete:function (){
-                getNum()
-                var disease = $('#ChangeDisease').val()
-                let filter = $('#filter').val()
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
-                    data:{
-                        'filter':filter,
-                        'Disease':disease,
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-                        $('#Report').append(response.examID) 
-                        
-                    },
-                    complete:function(){
-                        if("{{de_identification}}"=='False'){
-                            $('.ID').css('display','none')
-                            $('.PatientListID').css('display','inline')
-                        }else{
-                            $('.ID').css('display','inline')
-                            $('.PatientListID').css('display','none')
-                        }
-                        $('.loader1').css('display','none')
-                    }
-                })
+                statusFilter()
             }
         })
 
@@ -1213,63 +1237,19 @@
         })
         
         $('#ChangeDisease').on('change',function (){
-            getNum()
+
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
             $('#Report').empty()
-            $.ajax({
-                type: 'post',
-                url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
-                data:{
-                    'filter':filter,
-                    'Disease':disease,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    $('#Report').append(response.examID) 
-                    
-                },
-                complete:function(){
-                    if("{{de_identification}}"=='False'){
-                        $('.ID').css('display','none')
-                        $('.PatientListID').css('display','inline')
-                    }else{
-                        $('.ID').css('display','inline')
-                        $('.PatientListID').css('display','none')
-                    }
-                    $('.loader1').css('display','none')
-                }
-            })
+            statusFilter()
         })
         $('#filter').on('change',function (){
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
             $('#Report').empty()
-            $.ajax({
-                type: 'post',
-                url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
-                data:{
-                    'filter':filter,
-                    'Disease':disease,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    $('#Report').append(response.examID) 
-                    
-                },
-                complete:function(){
-                    if("{{de_identification}}"=='False'){
-                        $('.ID').css('display','none')
-                        $('.PatientListID').css('display','inline')
-                    }else{
-                        $('.ID').css('display','inline')
-                        $('.PatientListID').css('display','none')
-                    }
-                    $('.loader1').css('display','none')
-                }
-            })
+            statusFilter()
         })
         
     })
@@ -1290,9 +1270,15 @@
             <option value=0>全部</option>
             <option value=1>尚未確認</option>
             <option value=2>已確認</option>
-
-
         </select>
+        <div id="statusFilterPannel">
+            <input type="checkbox" id="statusFilter1" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="diagChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter1">Diag</label>
+            <input type="checkbox" id="statusFilter3" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="neoTreatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter3">NeoTreat</label>
+            <input type="checkbox" id="statusFilter2" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="treatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter2">Treat</label>
+            <input type="checkbox" id="statusFilter4" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="adjTreatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter4">AdjTreat</label>
+            <input type="checkbox" id="statusFilter5" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="fuChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter5">F/U</label>
+            <input type="checkbox" id="statusFilter6" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="pdConfirmed btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter6">Exclude</label>
+        </div>            
     </div>
     <div id='defaultMenuBlock1'>  
         <div id="patient">
@@ -1416,7 +1402,7 @@
                   <table class="table table-striped table-hover" >
                     <thead>
                         <tr>
-                            <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>neoTreat</th><th>adjTreat</th><th>F/U</th><th>Exclude</th>
+                            <th>Disease</th><th>SeqNo</th><th>Diag</th><th>neoTreat</th><th>Treat</th><th>adjTreat</th><th>F/U</th><th>Exclude</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

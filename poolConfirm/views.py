@@ -12,11 +12,31 @@ def confirm(request):
     de_identification = request.session.get('de_identification')
     return render(request, 'poolConfirm/confirm.html',{'au':au,'de_identification':de_identification})
 
-
+def replaceCapitalAndLowCase(statusfilter):
+    statusfilter = re.compile("select", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("update", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("drop", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("delete", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("inner", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("outer", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("left", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("right", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("join", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("union", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("into", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("match", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("create", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("--", re.IGNORECASE).sub("", statusfilter)
+    statusfilter = re.compile("as", re.IGNORECASE).sub("", statusfilter)
+    if len(statusfilter)>15:
+        statusfilter=''
+    return statusfilter
+import re
 @csrf_exempt
 def confirmpat(request):
     filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
+    statusfilterNames = request.POST.getlist('statusfilterNames[]')
     cursor = connections['practiceDB'].cursor()
     if filter=='0':
         query = '''
@@ -24,9 +44,11 @@ def confirmpat(request):
         from(
             SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-            FROM [PatientDisease] where [diseaseID]=%s
-        ) as a where  a.Sort=1 and a.chartNo>0
-        '''
+            FROM [PatientDisease] where [diseaseID]=%s '''
+        for statusfilter in statusfilterNames:
+            statusfilter = replaceCapitalAndLowCase(statusfilter)
+            query +=f' and {statusfilter}=1 '
+        query += ') as a where  a.Sort=1 and a.chartNo>0'
     elif filter=='1':
         query = '''
         select a.PD,a.chartNo from(
@@ -34,8 +56,12 @@ def confirmpat(request):
             from(
                 SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s
-            ) as a where a.Sort=1 and a.chartNo>0
+                FROM [PatientDisease] where [diseaseID]=%s '''
+        for statusfilter in statusfilterNames:
+            statusfilter = replaceCapitalAndLowCase(statusfilter)
+            query +=f' and {statusfilter}=1 '
+
+        query +='''    ) as a where a.Sort=1 and a.chartNo>0
         ) as a
         left outer join allEvents as b on a.chartNo=b.chartNo
         where b.eventChecked is null
@@ -49,7 +75,11 @@ def confirmpat(request):
             from(
                 SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s
+                FROM [PatientDisease] where [diseaseID]=%s '''
+        for statusfilter in statusfilterNames:
+            statusfilter = replaceCapitalAndLowCase(statusfilter)
+            query +=f' and {statusfilter}=1 '
+        query +='''
             ) as a where a.Sort=1 and a.chartNo>0
         ) as a
         left outer join allEvents as b on a.chartNo=b.chartNo
@@ -519,14 +549,18 @@ def getClinicalProcedures(request):
 def getNum(request):
     cursor = connections['practiceDB'].cursor()
     disease = request.POST.get('disease')
-
+    statusfilterNames = request.POST.getlist('statusfilterNames[]')
 
     query = '''
     select COUNT(chartNo) as NUM 
     from(
         SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
         ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-        FROM [PatientDisease] where [diseaseID]=%s
+        FROM [PatientDisease] where [diseaseID]=%s'''
+    for statusfilter in statusfilterNames:
+        statusfilter = replaceCapitalAndLowCase(statusfilter)
+        query +=f' and {statusfilter}=1 '
+    query += '''    
     ) as a where  a.Sort=1 and a.chartNo>0
     UNION ALL
 
@@ -536,7 +570,11 @@ def getNum(request):
             from(
                 SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s
+                FROM [PatientDisease] where [diseaseID]=%s'''
+    for statusfilter in statusfilterNames:
+        statusfilter = replaceCapitalAndLowCase(statusfilter)
+        query +=f' and {statusfilter}=1 '                
+    query +='''
             ) as a where a.Sort=1 and a.chartNo>0
         ) as a
         left outer join allEvents as b on a.chartNo=b.chartNo
@@ -551,7 +589,11 @@ def getNum(request):
         from(
             SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-            FROM [PatientDisease] where [diseaseID]=%s
+            FROM [PatientDisease] where [diseaseID]=%s'''
+    for statusfilter in statusfilterNames:
+        statusfilter = replaceCapitalAndLowCase(statusfilter)
+        query +=f' and {statusfilter}=1 '
+    query +='''
         ) as a where a.Sort=1 and a.chartNo>0
     ) as a
     left outer join allEvents as b on a.chartNo=b.chartNo
@@ -575,10 +617,12 @@ def updatePatientStatus(request):
     treatCheckedSet = request.POST.getlist('treatChecked[]')
     fuCheckedSet = request.POST.getlist('fuChecked[]')
     pdConfirmedSet = request.POST.getlist('pdConfirmed[]')
-    query = '''UPDATE PatientDisease SET diagChecked = %s,treatChecked=%s,fuChecked=%s,pdConfirmed=%s where PD = %s'''
+    adjTreatCheckedSet = request.POST.getlist('adjTreatChecked[]')
+    neoTreatCheckedSet = request.POST.getlist('neoTreatChecked[]')
+    query = '''UPDATE PatientDisease SET diagChecked = %s,treatChecked=%s,fuChecked=%s,pdConfirmed=%s,adjTreatChecked=%s,neoTreatChecked=%s where PD = %s'''
     cursor = connections['practiceDB'].cursor()
-    for diagChecked,treatChecked,fuChecked,pdConfirmed,PD in zip(diagCheckedSet,treatCheckedSet,fuCheckedSet,pdConfirmedSet,PDSet):
-        cursor.execute(query,[diagChecked,treatChecked,fuChecked,pdConfirmed,PD])
+    for diagChecked,treatChecked,fuChecked,pdConfirmed,adjTreatChecked,neoTreatChecked,PD in zip(diagCheckedSet,treatCheckedSet,fuCheckedSet,pdConfirmedSet,adjTreatCheckedSet,neoTreatCheckedSet,PDSet):
+        cursor.execute(query,[diagChecked,treatChecked,fuChecked,pdConfirmed,adjTreatChecked,neoTreatChecked,PD])
     return JsonResponse({})
 
 @csrf_exempt
@@ -682,7 +726,7 @@ def formGenerator(request):
 
 
             type = structure[4].replace(' ','')
-
+            stop = structure[7]
             if type=='text':
                 formObject += f'''
                 <li>
@@ -691,12 +735,12 @@ def formGenerator(request):
                     <input type={type} name="formStructure_[1]_[{ind1}][{structure[6]}]" data-recorded=0 data-eventFactorID={structure[0]} id="item_{num}"></label>
                 </li>
                 '''
-                formObject += f'<li><label for="item_{num}">{structure[3]}</label></li>'
+                
             elif type=='NE':
                 formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
             else:
                 formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
-            stop = structure[7]
+            print(type)
             factorID=structure[0]
 
             if stop != True:
