@@ -210,8 +210,12 @@ def convert2draw(x, y, Ori_W, Ori_H, Ori_D, plane, width, height):
         y = round(y * (Ori_H / height))
     return x, y
 
-
-
+def searchFilePath(chartNo,eventDate,studyID,seriesID):
+    cursor = connections['AIC'].cursor()
+    searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%s and [eventDate]=%s and [studyID]=%s and [seriesID]=%s'''
+    cursor.execute(searchQuery,[chartNo,eventDate,studyID,seriesID])
+    filePath = cursor.fetchall()[0][0]
+    return filePath
 @csrf_exempt
 def load_DICOM(request):
 
@@ -220,10 +224,11 @@ def load_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+    filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
-        dir = os.path.join('/home','user','netapp','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir = os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
     else:
-        dir= os.path.join('D:\\','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
     fileDir = dir.replace('-', '')
     fileDir = fileDir.replace(' ', '')
