@@ -798,16 +798,34 @@
         let textRootArray = $('input[name^="formStructure"][type="text"]').map(function(){
             if($(this).val()!=''){return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')}
         }).get()
-        let textRecordedArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
+        let textRecordedArray = $('input[name^="formStructure"][type="text"]').map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
 
         //------------------------------------------------------------
-        let insertSeqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray)
-        let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray)
-        let insertValArray = checkboxValArray.concat(radioValArray,textValArray)
-        let insertRootArray = checkboxRootArray.concat(radioRootArray,textRootArray)
-        let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray)
+        let dateIDArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            if($(this).val()!=''){return $(this).attr('data-eventFactorID')}
+        }).get()
+        let dateValArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            if($(this).val()!=''){return $(this).val()}
+        }).get()
+        let dateSeqArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            if($(this).val()!=''){return $(this).parents('.mainBlock').attr('data-seq')}
+        }).get()
+        let dateRootArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            if($(this).val()!=''){return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')}
+        }).get()
+        let dateRecordedArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            if($(this).val()!=''){return $(this).attr('data-recorded')}
+        }).get()
+
+
+
+        let insertSeqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
+        let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
+        let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
+        let insertRootArray = checkboxRootArray.concat(radioRootArray,textRootArray,dateRootArray)
+        let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:insertExtractedFactors" %}', // this is the mapping between the url and view
@@ -863,11 +881,22 @@
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
         //------------------------------------------------------------
+        let dateIDArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            return $(this).attr('data-eventFactorID')
+        }).get()
+        let dateSeqArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            return $(this).parents('.mainBlock').attr('data-seq')
+        }).get()
+        let dateClassArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            return $(this).parents('.mainBlock').attr('class').split(' ')[1]
+        }).get()
+
+
         let eventID = $('#factorGroupArea').attr('data-eventID')
         let diseaseId = $('#ChangeDisease').val()
-        let seqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray)
-        let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray)
-        let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray)
+        let seqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
+        let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
+        let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
 
         $.ajax({
             type: 'post',
@@ -885,10 +914,10 @@
                 for(let i=0; i<response.seqRecorded.length; i++){
                     let targetObject = $(`.${response.classRecorded[i]}[data-Seq=${response.seqRecorded[i]}] [data-eventFactorID=${response.factorIdRecorded[i]}]`)
                     let type = targetObject.attr('type')
-                    if (type!='text'){
-                        targetObject.prop('checked',response.factorValueRecorded[i])
-                    }else{
+                    if (type=='text'||type=='date'){
                         targetObject.val(response.factorValueRecorded[i])
+                    }else{
+                        targetObject.prop('checked',response.factorValueRecorded[i])
                     }
                     targetObject.attr('data-recorded',1)
                 }

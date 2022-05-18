@@ -736,7 +736,7 @@ def formGenerator(request):
                 </li>
                 '''
             elif type=='date':
-                formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"></li>'''  
+                formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}" value="{structure[3]}"></li>'''  
             elif type=='NE':
                 formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
             else:
