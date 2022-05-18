@@ -135,7 +135,7 @@
         z-index:10;
         height:555px;
         width:400px;
-        left:60%;
+        left:30%;
         top:calc(50% - 200px);
         background-color:#FFFFFF;
         border:1px solid #AAAAAA;
@@ -231,7 +231,7 @@
         width: 20px;
         height: 20px;
     }
-    .statusFilter{padding:0px;padding-left:2px;padding-right:2px;width:60px;height:20px;font-size:12px;background-color:#FFF}
+    .statusFilter{color:#333;padding:0px;padding-left:2px;padding-right:2px;width:60px;height:20px;font-size:12px;background-color:#FFF}
     #statusFilterPannel{padding-left:5px}
 </style>
 
@@ -406,6 +406,8 @@
         $('.loader2').css('display','inline')
         ascriptionClose(detect=true)
         cancerRegistCheckClose()
+        patientStatusCheckClose()
+        extractedFactorClose()
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         IntervalNoOption='<option value="0">?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         $.ajax({
@@ -1237,7 +1239,10 @@
         })
         
         $('#ChangeDisease').on('change',function (){
-
+            ascriptionClose(detect=true)
+            cancerRegistCheckClose()
+            patientStatusCheckClose()
+            extractedFactorClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
@@ -1245,6 +1250,10 @@
             statusFilter()
         })
         $('#filter').on('change',function (){
+            ascriptionClose(detect=true)
+            cancerRegistCheckClose()
+            patientStatusCheckClose()
+            extractedFactorClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
@@ -1272,12 +1281,12 @@
             <option value=2>已確認</option>
         </select>
         <div id="statusFilterPannel">
-            <input type="checkbox" id="statusFilter1" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="diagChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter1">Diag</label>
-            <input type="checkbox" id="statusFilter3" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="neoTreatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter3">NeoTreat</label>
-            <input type="checkbox" id="statusFilter2" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="treatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter2">Treat</label>
-            <input type="checkbox" id="statusFilter4" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="adjTreatChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter4">AdjTreat</label>
-            <input type="checkbox" id="statusFilter5" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="fuChecked btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter5">F/U</label>
-            <input type="checkbox" id="statusFilter6" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="pdConfirmed btn-check" name="disappear"><label class="btn btn-outline-primary statusFilter" for="statusFilter6">Exclude</label>
+            <input type="checkbox" id="statusFilter1" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="diagChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter1">Diag</label>
+            <input type="checkbox" id="statusFilter3" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="neoTreatChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter3">NeoTreat</label>
+            <input type="checkbox" id="statusFilter2" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="treatChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter2">Treat</label>
+            <input type="checkbox" id="statusFilter4" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="adjTreatChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter4">AdjTreat</label>
+            <input type="checkbox" id="statusFilter5" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="fuChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter5">F/U</label>
+            <input type="checkbox" id="statusFilter6" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="pdConfirmed btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter6">Exclude</label>
         </div>            
     </div>
     <div id='defaultMenuBlock1'>  

@@ -735,7 +735,8 @@ def formGenerator(request):
                     <input type={type} name="formStructure_[1]_[{ind1}][{structure[6]}]" data-recorded=0 data-eventFactorID={structure[0]} id="item_{num}"></label>
                 </li>
                 '''
-                
+            elif type=='date':
+                formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"></li>'''  
             elif type=='NE':
                 formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
             else:
@@ -768,6 +769,8 @@ def formGenerator(request):
                         formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure3[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure3[0]} name=formStructure_[1]_[{ind1}][{structure3[6]}] id="item_{num}"></li>'''
                     elif type=='NE':
                         formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure3[3]}</label></li>'''
+                    elif type=='date':
+                        formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}"></li>'''
                     else:
                         formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}"><label for="item_{num}">{structure3[3]}</label></li>'''
                     
