@@ -700,7 +700,13 @@
         let neoTreatChecked = target.map(function(){return Number($(this).children('td').children('.neoTreatChecked').prop('checked'))}).get()
         let scrollTop = $('#patient').scrollTop()
         var excludes = 1
-        for(let i =0;i<pdConfirmed.length;i++){excludes=pdConfirmed[i]*excludes}
+        let checked = 0
+        for(let i =0;i<pdConfirmed.length;i++){checked+=pdConfirmed[i]}
+        for(let i =0;i<diagChecked.length;i++){checked+=diagChecked[i]}
+        for(let i =0;i<treatChecked.length;i++){checked+=treatChecked[i]}
+        for(let i =0;i<fuChecked.length;i++){checked+=fuChecked[i]}
+        for(let i =0;i<adjTreatChecked.length;i++){checked+=adjTreatChecked[i]}
+        for(let i =0;i<neoTreatChecked.length;i++){checked+=neoTreatChecked[i]}
         
         $.ajax({
             type: 'post',
@@ -722,6 +728,11 @@
                         $('input[name=confirmPID]:checked').next('label').css('color','red')
                     }else{
                         $('input[name=confirmPID]:checked').next('label').css('color','#FFFFFF')
+                    }
+                    if(checked>0){
+                        $('input[name=confirmPID]:checked').next('label').css('color','#FFFFFF')
+                    }else{
+                        $('input[name=confirmPID]:checked').next('label').css('color','#AAA')
                     }
                 }else{
                     statusFilter()
@@ -1234,6 +1245,7 @@
                     $('.PatientListID').css('display','none')
                 }
                 $('.loader1').css('display','none')
+                $('.PatientListID[data-checked=0]').parents('label').css('color','#AAA')
                 getNum()
             }
         })

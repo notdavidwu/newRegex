@@ -41,7 +41,14 @@ def confirmpat(request):
     cursor = connections['practiceDB'].cursor()
     if filter=='0':
         query = '''
-        select [PD],[chartNo],[pdConfirmed] 
+        select [PD],[chartNo],[pdConfirmed],
+        IIF( 
+            cast([diagChecked] as int)+
+            cast([treatChecked] as int)+
+            cast([fuChecked] as int)+
+            cast([neoTreatChecked] as int)+
+            cast([adjTreatChecked] as int)
+        >0, 1, 0 ) as 'check'
         from(
             SELECT *
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
@@ -100,9 +107,9 @@ def confirmpat(request):
         '''
         if filter=='0':
             if row[2] is True:
-                examID += f'''<label for={row[0]}><p class="PatientListID exclude">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
             else:
-                examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         else:    
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
