@@ -34,6 +34,7 @@ def replaceCapitalAndLowCase(statusfilter):
 import re
 @csrf_exempt
 def confirmpat(request):
+    scrollTop = request.session.get('poolConfirm_scrollTop')
     filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
     statusfilterNames = request.POST.getlist('statusfilterNames[]')
@@ -106,7 +107,7 @@ def confirmpat(request):
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
 
-    return JsonResponse({'examID': examID})
+    return JsonResponse({'examID': examID,'scrollTop':scrollTop})
 
 @csrf_exempt
 def Disease(request):
@@ -619,6 +620,9 @@ def getNum(request):
 
 @csrf_exempt
 def updatePatientStatus(request):
+    scrollTop = request.POST.get('scrollTop')
+    request.session['poolConfirm_scrollTop']=scrollTop
+
     PDSet = request.POST.getlist('PD[]')
     diagCheckedSet = request.POST.getlist('diagChecked[]')
     treatCheckedSet = request.POST.getlist('treatChecked[]')

@@ -696,6 +696,8 @@
         let pdConfirmed = target.map(function(){return Number($(this).children('td').children('.pdConfirmed').prop('checked'))}).get()
         let adjTreatChecked = target.map(function(){return Number($(this).children('td').children('.adjTreatChecked').prop('checked'))}).get()
         let neoTreatChecked = target.map(function(){return Number($(this).children('td').children('.neoTreatChecked').prop('checked'))}).get()
+        let scrollTop = $('#patient').scrollTop()
+
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
@@ -707,6 +709,7 @@
                 'pdConfirmed':pdConfirmed,
                 'adjTreatChecked':adjTreatChecked,
                 'neoTreatChecked':neoTreatChecked,
+                'scrollTop':scrollTop,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -1198,7 +1201,7 @@
             },
             success:function (response){
                 $('#Report').append(response.examID) 
-                
+                $('#patient').scrollTop(parseInt(response.scrollTop)*1.8616427135304192)
             },
             complete:function(){
                 if("{{de_identification}}"=='False'){
