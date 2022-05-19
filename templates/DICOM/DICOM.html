@@ -2085,7 +2085,7 @@
                                     $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageSeriesID').html()
                                 )
                                 $('#frame1').children('label').children('.main').children('div').children('.StudyDate').text(MedExecTime)
-
+                                alert(SeriesDesText)
                                 $('#frame1').children('label').children('.main').children('div').children('.SeriesDes').text(SeriesDesText)
                                 //alert($("#frame1").children('label').children('div').children('div').children('.StudyDate').text()+$("#frame1").children('label').children('div').children('div').children('.StudyID').text()+$("#frame1").children('label').children('div').children('div').children('.SeriesID').text())
                                 $.ajax({
@@ -2391,6 +2391,7 @@
             //if ($('#local').is(':checked')) {
             window_number=$("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
             let StudySeries = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyID').text()+'_'+$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text()
+            alert(StudySeries)
             if($('#trigger').is(':checked')==true) {
                 $.ajax({
                     type: 'post',

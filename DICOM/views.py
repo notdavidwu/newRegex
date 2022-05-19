@@ -238,7 +238,7 @@ def load_DICOM(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
-    
+    print(SeriesIdIndex)
     tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
     paths = sorted([os.path.join(filename) for filename in tempPath])[0]
     request.session['PET_' + WindowNo] = paths
@@ -1567,8 +1567,8 @@ def PatientImageInfo(request):
 
     query = ''' 
     select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
-    select b.chartNo,a.studyID,a.studyDes,a.studyDate,a.seriesID,a.sliceNo,a.note,a.seriesDes
-    ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_5  
+    select b.chartNo,a.studyID,a.category,a.studyDate,a.seriesID,a.sliceNo
+    ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_6
     as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
     as a　order by a.studyDate ASC,v2 ASC,v1 ASC
             '''
@@ -1585,10 +1585,14 @@ def PatientImageInfo(request):
     SeriesDes=[]
 
     for i in range(len(res)):
+
+        PID,MedExecTime,StudyIDText,SeriesIDText = res[i][0],res[i][3],res[i][1],res[i][4]
+        filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
         if platform.system()!='Windows':
-            fileDir = os.path.join('/home','user','netapp','image',str(res[i][0]),str(res[i][3]),str(res[i][1]),str(res[i][4]))
+            fileDir = os.path.join('/home','user','netapp',filePath)
         else:
-            fileDir = os.path.join('D:','image',str(res[i][0]),str(res[i][3]),str(res[i][1]),str(res[i][4]))
+            fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
+
         fileDir = fileDir.replace('-', '')
         fileDir = fileDir.replace(' ', '')
 
@@ -1602,17 +1606,20 @@ def PatientImageInfo(request):
             SeriesID.append(res[i][4])
             SliceNo.append(res[i][5])
             if res[i][6] is not None:
-                if res[i][6].replace(' ','')=='1':
-                    note.append('Axial')
-                elif res[i][6].replace(' ','') =='2':
-                    note.append('Coronal')
-                elif res[i][6].replace(' ','') =='3':
-                    note.append('Sagittal')
+                if res[i][2]=='MRI':
+                    if res[i][4][0]=='1':
+                        note.append('Axial')
+                    elif res[i][4][0] =='2':
+                        note.append('Coronal')
+                    elif res[i][4][0] =='3':
+                        note.append('Sagittal')
+                    else:
+                        note.append('')
                 else:
                     note.append('')
             else:
                 note.append('')
-            SeriesDes.append(res[i][7])
+            SeriesDes.append('')
     return JsonResponse({'ChartNo': ChartNo,
                          'StudyID': StudyID,
                          'StudyDes': StudyDes,

@@ -40,9 +40,9 @@ def confirmpat(request):
     cursor = connections['practiceDB'].cursor()
     if filter=='0':
         query = '''
-        select [PD],[chartNo]  
+        select [PD],[chartNo],[pdConfirmed] 
         from(
-            SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
+            SELECT *
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
             FROM [PatientDisease] where [diseaseID]=%s '''
         for statusfilter in statusfilterNames:
@@ -54,7 +54,7 @@ def confirmpat(request):
         select a.PD,a.chartNo from(
             select [PD],[chartNo] 
             from(
-                SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
+                SELECT *
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
                 FROM [PatientDisease] where [diseaseID]=%s '''
         for statusfilter in statusfilterNames:
@@ -73,7 +73,7 @@ def confirmpat(request):
         select a.PD,a.chartNo from(
             select [PD],[chartNo] 
             from(
-                SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
+                SELECT *
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
                 FROM [PatientDisease] where [diseaseID]=%s '''
         for statusfilter in statusfilterNames:
@@ -96,9 +96,16 @@ def confirmpat(request):
         examID += f'''
         <tr><td>
         <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]}>
-        <label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>
-        </td></tr>
         '''
+        if filter=='0':
+            if row[2] is True:
+                examID += f'''<label for={row[0]}><p class="PatientListID exclude">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+            else:
+                examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+        else:    
+            examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+        examID += f'''</td></tr>'''    
+
     return JsonResponse({'examID': examID})
 
 @csrf_exempt
@@ -770,7 +777,7 @@ def formGenerator(request):
                     elif type=='NE':
                         formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure3[3]}</label></li>'''
                     elif type=='date':
-                        formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}"></li>'''
+                        formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}" value="{structure3[3]}"></li>'''
                     else:
                         formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}"><label for="item_{num}">{structure3[3]}</label></li>'''
                     
