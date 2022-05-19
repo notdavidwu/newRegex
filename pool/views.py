@@ -154,7 +154,13 @@ def Patient_num(request):
     labeled = res[2][0]
     return JsonResponse({'all': all,'unlabeled':unlabeled,'labeled':labeled})
 
-
+def searchFilePath(chartNo,eventDate,studyID,seriesID):
+    print(chartNo,eventDate,studyID,seriesID)
+    cursor = connections['AIC'].cursor()
+    searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%s and [eventDate]=%s and [studyID]=%s and [seriesID]=%s'''
+    cursor.execute(searchQuery,[chartNo,eventDate,studyID,seriesID])
+    filePath = cursor.fetchall()[0][0]
+    return filePath
 
 @csrf_exempt
 def PatientList(request):
@@ -211,11 +217,13 @@ def PatientList(request):
             Study.append(0)
             Series.append(0)
             SeriesDes.append(0)
+
+        filePath = searchFilePath(res[j][0],res[j][1],StudyID,SeriesID)
         if platform.system()!='Windows':
-            fileDir = os.path.join('/home','user','netapp','image',str(res[j][0]),str(res[j][1]),str(StudyID),str(SeriesID))
+            fileDir = os.path.join('/home','user','netapp',filePath)
         else:
-            fileDir = os.path.join('D:','image',str(res[j][0]),str(res[j][1]),str(StudyID),str(SeriesID))
-        
+            fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
+
         fileDir = fileDir.replace('-', '')
         fileDir = fileDir.replace(' ', '')
 

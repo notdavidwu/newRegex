@@ -226,7 +226,7 @@ def load_DICOM(request):
     SeriesIDText = request.POST.get('SeriesIDText')
     filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
-        dir = os.path.join('/home','user','netapp','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir = os.path.join('/home','user','netapp',filePath)
     else:
         dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
@@ -291,10 +291,11 @@ def load_RT_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+    filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
-        dir = os.path.join('/home','user','netapp','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir = os.path.join('/home','user','netapp',filePath)
     else:
-        dir= os.path.join('D:\\','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
     fileDir = dir.replace('-', '')
     fileDir = fileDir.replace(' ', '')
@@ -348,10 +349,11 @@ def load_CT_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+    filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
-        dir = os.path.join('/home','user','netapp','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir = os.path.join('/home','user','netapp',filePath)
     else:
-        dir= os.path.join('D:\\','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
     fileDir = dir.replace('-', '')
     fileDir = fileDir.replace(' ', '')
@@ -386,10 +388,11 @@ def load_MRI_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+    filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
-        dir = os.path.join('/home','user','netapp','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir = os.path.join('/home','user','netapp',filePath)
     else:
-        dir= os.path.join('D:\\','image',PID,MedExecTime,StudyIDText,SeriesIDText)
+        dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
     fileDir = dir.replace('-', '')
     fileDir = fileDir.replace(' ', '')
