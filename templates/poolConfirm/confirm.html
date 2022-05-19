@@ -411,19 +411,18 @@
         extractedFactorClose()
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         IntervalNoOption='<option value="0">?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
+        let scrollTop = $('#patient').scrollTop()
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
             data:{
                 'ID':text,
+                'scrollTop':scrollTop,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                
                 $('#time').children('tbody').children('tr').remove()
                 var HeavyDisease=[30001,30002]
-
-
                 if(response.objectArray.length!=0){
                     $('#accordionExample').empty()
                     for(var i=0;i<response.objectArray.length;i++){
@@ -688,7 +687,7 @@
     }
 
     function patientStatusSubmit(){
-        let target = $('#statusArea').children('table').children('tbody').children('tr')
+        var target = $('#statusArea').children('table').children('tbody').children('tr')
         let PD = target.map(function(){return $(this).attr('id')}).get()
         let diagChecked = target.map(function(){return Number($(this).children('td').children('.diagChecked').prop('checked'))}).get()
         let treatChecked = target.map(function(){return Number($(this).children('td').children('.treatChecked').prop('checked'))}).get()
@@ -697,7 +696,9 @@
         let adjTreatChecked = target.map(function(){return Number($(this).children('td').children('.adjTreatChecked').prop('checked'))}).get()
         let neoTreatChecked = target.map(function(){return Number($(this).children('td').children('.neoTreatChecked').prop('checked'))}).get()
         let scrollTop = $('#patient').scrollTop()
-
+        var excludes = 1
+        for(let i =0;i<pdConfirmed.length;i++){excludes=pdConfirmed[i]*excludes}
+        
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
@@ -713,7 +714,15 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                statusFilter()
+                if($('input[name="disappear"]').is(':checked')==0){
+                    if(excludes==1){
+                        $('input[name=confirmPID]:checked').next('label').css('color','red')
+                    }else{
+                        $('input[name=confirmPID]:checked').next('label').css('color','#FFFFFF')
+                    }
+                }else{
+                    statusFilter()
+                }
                 patientStatusCheckClose()
             }
         })
@@ -1201,6 +1210,7 @@
             },
             success:function (response){
                 $('#Report').append(response.examID) 
+
                 $('#patient').scrollTop(parseInt(response.scrollTop)*1.8616427135304192)
             },
             complete:function(){

@@ -135,7 +135,8 @@ def confirmpat2(request):
     # where b.chartNo=%s and g.descriptionType=3
     # order by f.eventDate DESC
     # '''
-
+    scrollTop = request.POST.get('scrollTop')
+    request.session['poolConfirm_scrollTop']=scrollTop
     query = '''
     select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID 
 	from allEvents as a

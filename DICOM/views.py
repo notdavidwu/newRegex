@@ -1567,7 +1567,7 @@ def PatientImageInfo(request):
 
     query = ''' 
     select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
-    select b.chartNo,a.studyID,a.category,a.studyDate,a.seriesID,a.sliceNo
+    select b.chartNo,a.studyID,a.category,a.studyDate,a.seriesID,a.sliceNo,a.seriesDes
     ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_6
     as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
     as a　order by a.studyDate ASC,v2 ASC,v1 ASC
@@ -1605,21 +1605,20 @@ def PatientImageInfo(request):
             ExecDate.append(res[i][3])
             SeriesID.append(res[i][4])
             SliceNo.append(res[i][5])
-            if res[i][6] is not None:
-                if res[i][2]=='MRI':
-                    if res[i][4][0]=='1':
-                        note.append('Axial')
-                    elif res[i][4][0] =='2':
-                        note.append('Coronal')
-                    elif res[i][4][0] =='3':
-                        note.append('Sagittal')
-                    else:
-                        note.append('')
+
+            if res[i][2]=='MRI':
+                if res[i][4][0]=='1':
+                    note.append('Axial')
+                elif res[i][4][0] =='2':
+                    note.append('Coronal')
+                elif res[i][4][0] =='3':
+                    note.append('Sagittal')
                 else:
                     note.append('')
             else:
                 note.append('')
-            SeriesDes.append('')
+
+            SeriesDes.append(res[i][6])
     return JsonResponse({'ChartNo': ChartNo,
                          'StudyID': StudyID,
                          'StudyDes': StudyDes,
