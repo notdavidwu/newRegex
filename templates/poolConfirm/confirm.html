@@ -234,6 +234,7 @@
     .statusFilter{color:#333;padding:0px;padding-left:2px;padding-right:2px;width:60px;height:20px;font-size:12px;background-color:#FFF}
     #statusFilterPannel{padding-left:5px}
     .exclude{color:red}
+    #header_disabled{width:50px;font-size:10pt}
 </style>
 
 
@@ -412,12 +413,14 @@
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         IntervalNoOption='<option value="0">?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
         let scrollTop = $('#patient').scrollTop()
+        let excludeFilter = $('#excludeFilter').is(':checked')
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
             data:{
                 'ID':text,
                 'scrollTop':scrollTop,
+                'excludeFilter':excludeFilter,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -454,7 +457,7 @@
                     $('#timetable').css('visibility','visible')
                     $('.loader2').css('display','none')
                 }
-                
+                $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
             }
         })
         
@@ -1172,6 +1175,15 @@
                 }else if(d.which == 1){
                     $(".customMenu").css('display', 'none');
                 }
+                if(menu=="menu"){
+                    if($('input[name="timePID"]:checked').attr('data-eventCheck')=='True'){
+                        $(`#${menu}`).children('#disableEvent').attr('data-eventCheck','0');
+                        $(`#${menu}`).children('#disableEvent').html('disabled')
+                    }else{
+                        $(`#${menu}`).children('#disableEvent').attr('data-eventCheck','1');
+                        $(`#${menu}`).children('#disableEvent').html('undisabled')
+                    }
+                }
             })
         }else{
             $(`#${pannel}`).on('mousedown',function(d){
@@ -1226,6 +1238,33 @@
             }
         })
         
+    }
+    function excludeFilter(){
+        GetTime()
+    }
+    function disableEvent(){
+        let eventID = $('input[name=timePID]:checked').next('label').children('.eventID').html()
+        let disable = $(event.target).attr('data-eventCheck')
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updateEventConfirm" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'disable':disable,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(){
+                let excludeFilter = $('#excludeFilter').is(':checked')
+                if(excludeFilter==false){
+                    $('input[name=timePID]:checked').parents('tr').remove()
+                }
+                alert(disable)
+                if(disable=='1'){
+                    $('input[name=timePID]:checked').parents('td').css('background-color','transparent')
+                }
+                $('#menu').css('display','none')
+            }
+        })
     }
 
     $(document).ready(function (e) {
@@ -1355,7 +1394,7 @@
         <div id="title">
         <table  class="thead-dark">
             <thead>
-            <th class="header" id ="header_date">日期</th>
+            <th class="header" id ="header_date"><label style="font-size:5pt;position:absolute;left:0px;top:20px"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label>日期</th>
             <th class="header" id ="header_exam">檢查項目</th>
             <th class="header" id ="header_note">註記</th>
             <th class="header" id ="header_confirm">確認階段</th>
@@ -1473,7 +1512,8 @@
         <div id="menu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
             <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
-            <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="extractedFactorOpen()">報告萃取</p>
+            <p class="btn btn-secondary resetbtn" id="extract" role="button" onclick="extractedFactorOpen()">報告萃取</p>
+            <p class="btn btn-secondary resetbtn" id="disableEvent" role="button" data-eventCheck=1 onclick="disableEvent()">disabled</p>
         </div>
 
         <div id="extraFactorMenu" class="customMenu">

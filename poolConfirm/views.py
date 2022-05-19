@@ -123,9 +123,17 @@ def Disease(request):
     return JsonResponse({'DiseaseNo': DiseaseNo,'Disease': Disease})
 
 @csrf_exempt
+def updateEventConfirm(request):
+    cursor = connections['practiceDB'].cursor()
+    eventID=request.POST.get('eventID')
+    disable=request.POST.get('disable')
+    query='UPDATE allEvents SET eventChecked=%s WHERE eventID=%s'
+    cursor.execute(query,[disable,eventID])
+    return JsonResponse({}) 
+@csrf_exempt
 def confirmpat2(request):
     PID=request.POST.get('ID')
-
+    excludeFilter = request.POST.get('excludeFilter')
     # query = '''
     # select b.chartNo,f.orderNo,f.eventDate,f.medType,e.typeName,g.descriptionType,g.reportText,f.eventID,b.PD
     # from diseasetList as a inner join PatientDisease as b on a.diseaseId=b.diseaseId
@@ -137,14 +145,23 @@ def confirmpat2(request):
     # '''
     scrollTop = request.POST.get('scrollTop')
     request.session['poolConfirm_scrollTop']=scrollTop
-    query = '''
-    select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID 
-	from allEvents as a
-	inner join medTypeSet as b on a.medType=b.medType
-	left join eventDetails as c on a.eventID=c.eventID
-	where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null 
-    '''
-    cursor = connections['coreDB'].cursor()
+    if excludeFilter=='false':
+        query = '''
+        select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.eventChecked
+        from allEvents as a
+        inner join medTypeSet as b on a.medType=b.medType
+        left join eventDetails as c on a.eventID=c.eventID
+        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
+        '''
+    else:
+        query = '''
+        select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.eventChecked
+        from allEvents as a
+        inner join medTypeSet as b on a.medType=b.medType
+        left join eventDetails as c on a.eventID=c.eventID
+        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null 
+        '''
+    cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[PID])
     objectArray=[]
     MedType=[]
@@ -153,12 +170,15 @@ def confirmpat2(request):
     for i in range(len(con)):
         MedType.append(con[i][3])
         eventID.append(con[i][7])
+        eventChecked = con[i][8]
+        if eventChecked is None:
+            eventChecked=True
         object = f'''<tr><td>'''
         if con[i][3] == 30001 or con[i][3]==30002:
-            object += f'''<input type="radio" onclick="GetReport()" name="timePID" id=timePID{i} disabled>
+            object += f'''<input type="radio"  onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i} disabled>
                             <label for=timePID{i}>'''
         else:
-            object += f'''<input type="radio" onclick="GetReport()" name="timePID" id=timePID{i}>
+            object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
                             <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>

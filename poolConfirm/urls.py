@@ -41,5 +41,6 @@ urlpatterns = [
     path('formGenerator/', views.formGenerator, name='formGenerator'),
     path('insertExtractedFactors/', views.insertExtractedFactors, name='insertExtractedFactors'),
     path('searchExtractedFactorsRecord/', views.searchExtractedFactorsRecord, name='searchExtractedFactorsRecord'),
+    path('updateEventConfirm/', views.updateEventConfirm, name='updateEventConfirm'),
     
 ]
