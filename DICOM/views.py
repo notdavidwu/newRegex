@@ -1567,10 +1567,10 @@ def PatientImageInfo(request):
 
     query = ''' 
     select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
-    select b.chartNo,a.studyID,a.category,a.studyDate,a.seriesID,a.sliceNo,a.seriesDes
+    select b.chartNo,a.studyID,a.category,a.eventDate,a.seriesID,a.sliceNo,a.seriesDes
     ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_6
     as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
-    as a　order by a.studyDate ASC,v2 ASC,v1 ASC
+    as a　order by a.eventDate ASC,v2 ASC,v1 ASC
             '''
     cursor = connections['AIC'].cursor()
     cursor.execute(query, [PID])
@@ -1583,10 +1583,11 @@ def PatientImageInfo(request):
     SliceNo = []
     note = []
     SeriesDes=[]
-
+    
     for i in range(len(res)):
-
+        
         PID,MedExecTime,StudyIDText,SeriesIDText = res[i][0],res[i][3],res[i][1],res[i][4]
+        print(PID,' ',MedExecTime,' ',StudyIDText,' ',SeriesIDText)
         filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
         if platform.system()!='Windows':
             fileDir = os.path.join('/home','user','netapp',filePath)

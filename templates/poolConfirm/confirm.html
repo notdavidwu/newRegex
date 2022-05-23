@@ -235,6 +235,15 @@
     #statusFilterPannel{padding-left:5px}
     .exclude{color:red}
     #header_disabled{width:50px;font-size:10pt}
+    #formVersion{position:absolute;width:100px;top:2px;right:50px;height:26px}
+    #formDesignPannel{display:inline;width:1400px}
+    .formFilter{width:calc(20% - 5px);display:inline}
+    #designArea{width:50%;height:calc(100% - 100px);background-color:#AAA;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden}
+    #preview{width:50%;height:calc(100% - 100px);background-color:#AADDAF;position:absolute;right:0px;overflow-y:scroll;overflow-x:hidden}
+    .designFactor{width:100%;display:inline;font-size:10pt;padding:0px;margin:0px;border-radius:0}
+    #designArea table{text-align:center;font-size:8pt;padding:0px;margin:0px;height:0px}
+    #designArea table td{font-size:8pt;padding:0px;padding-bottom:2px}
+    #designArea table th{font-size:8pt;padding:0px;}
 </style>
 
 
@@ -618,7 +627,7 @@
         
         if(detect==false){
             let inductionID = $('#inductionID').text()
-            $(`label[for=${inductionID}]`).parents('td').css('background-color','#4D5139') 
+            $(`label[for=${inductionID}]`).parents('td').css('background-color','transparent') 
         }
         $('#date').empty()
         $('#exam').empty()
@@ -743,6 +752,7 @@
     }
 
     function extractedFactorOpen(){
+        let pd = $('input[name="timePID"]:checked').next('label').children('.pdID').html()
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
         let diseaseId = $('#ChangeDisease').val()
@@ -752,21 +762,53 @@
         $('#factorGroupArea .addButton').prevAll().remove()
         $('#factorGroupArea').attr('data-eventID',eventID)
 
-        
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:formGenerator" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:searchEventFactorCode" %}', // this is the mapping between the url and view
             data:{
+                'pd':pd,
                 'eventID':eventID,
                 'medType':medType,
                 'diseaseId':diseaseId,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('#factorGroupArea').prepend(response.formObject)
+                $('#formVersion').empty()
+                for(let i=0;i<response.eventFactorCode.length;i++){
+                    $('#formVersion').append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                }
             },
             complete:function(){
-                searchExtractedFactorsRecord()
+                let eventFactorCode = $('#formVersion').val()
+                formGenerator(eventID,eventFactorCode,'#factorGroupArea','prepend',searchExtractedFactorsRecord())
+            }
+        })
+    }
+    
+    function changeForm(){
+        let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+        let eventFactorCode = $('#formVersion').val()
+        formGenerator(eventID,eventFactorCode,'#factorGroupArea','prepend',searchExtractedFactorsRecord())
+    }
+
+    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:formGenerator" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'eventFactorCode':eventFactorCode,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                if(method=='prepend'){
+                    $(pannel).prepend(response.formObject)
+                }else if(method=='append'){
+                    $(pannel).html(response.formObject)
+                }
+            },
+            complete:function(){
+                otherFunction
             }
         })
     }
@@ -1277,14 +1319,100 @@
             }
         })
     }
+    function searchForm(){
+        let code = $('.formFilter').map(function(){return $(this).val()}).get()
+        if(code.includes('')==false){
+            //alert('a')
+            formGenerator(-999999,code[0],'#preview','append','')
+            getFromStructure(code[0])
+        }
+    }
+    function getFromStructure(eventFactorCode){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getFromStructure" %}', // this is the mapping between the url and view
+            data:{
+                'eventFactorCode':eventFactorCode,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
 
+                $('#designArea tbody').empty()
+                let object = ''
+                for(let i=0;i<response.eventFactorID.length;i++){
+                    object += '<tr>'
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value="${response.eventFactorID[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorCode" value="${response.eventFactorCode[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value="${response.serialNo[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value="${response.factorName[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor itemType" value="${response.itemType[i]}"</td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor labeled" value="${response.labeled[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value="${response.F_eventFactorID[i]}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor isLeaf" value="${response.isLeaf[i]}"></td>`
+                    object += '</tr>'
+                }
+                object += '<tr><td colspan=8><div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div></td></tr>'
+                $('#designArea tbody').html(object)
+            }
+        })
+    }
+    function updateStructure(){
+        let code = $('.formFilter').map(function(){return $(this).val()}).get()
+        let eventFactorID = $('#designArea .eventFactorID').map(function(){return $(this).val()}).get()
+        let eventFactorCode = $('#designArea .eventFactorCode').map(function(){return $(this).val()}).get()
+        let serialNo = $('#designArea .serialNo').map(function(){return $(this).val()}).get()
+        let factorName = $('#designArea .factorName').map(function(){return $(this).val()}).get()
+        let itemType = $('#designArea .itemType').map(function(){return $(this).val()}).get()
+        let labeled = $('#designArea .labeled').map(function(){return $(this).val()}).get()
+        let F_eventFactorID = $('#designArea .F_eventFactorID').map(function(){return $(this).val()}).get()
+        let isLeaf = $('#designArea .isLeaf').map(function(){return $(this).val()}).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updateFromStructure" %}', // this is the mapping between the url and view
+            data:{
+                'code':code,
+                'eventFactorID':eventFactorID,
+                'eventFactorCode':eventFactorCode,
+                'serialNo':serialNo,
+                'factorName':factorName,
+                'itemType':itemType,
+                'labeled':labeled,
+                'F_eventFactorID':F_eventFactorID,
+                'isLeaf':isLeaf,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                formGenerator(-999999,code[0],'#preview','append','')
+            }
+        })
+    }
+    function addFactor(){
+        let code = $('.formFilter').map(function(){return $(this).val()}).get()
+        let object = ''
+        if(code.includes('')==false){
+            object += '<tr>'
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorCode" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor itemType" value=""</td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor labeled" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value=""></td>`
+            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor isLeaf" value=""></td>`
+            object += '</tr>'
+            $(event.target).parents('tr').before(object)
+        }
+    }
+    
+    function formDesignClose(){
+        
+        $("#formDesignPannel").css('display', 'none');
+    }
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
             return false
         };
-
-
 
         $('#defaultMenuBlock2','body').get(0).oncontextmenu = function() {
             return false
@@ -1297,7 +1425,7 @@
         move('cancerRegistCheck')
         move('patientStatusCheck')
         move('extractedFactor')
-
+        move('formDesignPannel')
         
 
 
@@ -1525,6 +1653,7 @@
             <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
             <p class="btn btn-secondary resetbtn" id="extract" role="button" onclick="extractedFactorOpen()">報告萃取</p>
             <p class="btn btn-secondary resetbtn" id="disableEvent" role="button" data-eventCheck=1 onclick="disableEvent()">disabled</p>
+            <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="formDesign()">表單設計</p>
         </div>
 
         <div id="extraFactorMenu" class="customMenu">
@@ -1534,6 +1663,8 @@
         <div class="checkPannel" id="extractedFactor">
             <div class="ascriptionHeader">
                 報告萃取
+                <select class="form-select form-select-sm" onchange="changeForm()" id="formVersion">
+                </select>
                 <button type="button" class="btn-close close" aria-label="Close" onclick="extractedFactorClose()"></button>
             </div>
             <div id="factorGroupArea"  class="row">
@@ -1542,6 +1673,58 @@
             </div>
             <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit()">Submit</button>
         </div>
+
+        <div class="checkPannel" id="formDesignPannel">
+            <div class="ascriptionHeader">
+                表單設計
+                <button type="button" class="btn-close close" aria-label="Close" onclick="formDesignClose()"></button>
+            </div>
+            <div id="formFilter">
+                <input placeholder="eventFactorCode" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="eventFactorCode">
+                <datalist id="eventFactorCode">
+                    <option value="3">
+                </datalist>
+                <input placeholder="groupNo" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="groupNo">
+                <datalist id="groupNo">
+                    <option value="2">
+                </datalist>
+                <input placeholder="diseaseID" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="diseaseID">
+                <datalist id="diseaseID">
+                    <option value="1">
+                </datalist>
+                <input placeholder="procedureID" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="procedureID">
+                <datalist id="procedureID">
+                    <option value="3">
+                </datalist>
+                <input placeholder="version" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="version">
+                <datalist id="version">
+                    <option value="7">
+                </datalist>
+            </div>
+            <div id="designArea"  class="row">
+                <table class='table table-striped'>
+                    <thead>
+                        <th>eventFactorID</th>
+                        <th>eventFactorCode</th>
+                        <th>serialNo</th>
+                        <th>factorName</th>
+                        <th>itemType</th>
+                        <th>labeled</th>
+                        <th>F_eventFactorID</th>
+                        <th>isLeaf</th>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan=8><div class="addButton"><button type="button" onclick="addFactor()" class="add btn btn-outline-primary">+</button></div></td></tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div id="preview"  class="row">
+                
+            </div>
+        </div>
+
+
     </div>    
 
     <div id="slideout">

@@ -1426,11 +1426,11 @@ def PatientImageInfo(request):
     PID = fernet.decrypt(request.POST.get('PID').encode()).decode()
 
 
-    query = '''  select b.chartNo,a.studyID,a.studyDes,a.studyDate,a.sliceNo,a.eventID from ExamStudySeries_5  
+    query = '''  select b.chartNo,a.studyID,a.studyDes,a.studyDate,a.sliceNo,a.eventID from ExamStudySeries_6  
                 as a inner join allEvents as b on a.eventID=b.eventID where sliceNo in
                 (select MAX(sliceNo) from (
                 select eventID,orderNo,studyID,studyDes,seriesID,seriesDes,sliceNo,studyDate
-                from ExamStudySeries_5) as a left outer join allEvents as b on a.eventID=b.eventID 
+                from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
                 where b.chartNo=%s group by a.studyID,a.studyDate) and b.chartNo=%s
                 group by b.chartNo,a.studyID,a.studyDes,a.studyDate,a.sliceNo,a.eventID
             '''

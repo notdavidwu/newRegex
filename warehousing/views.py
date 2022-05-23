@@ -49,7 +49,7 @@ def SubjectPatientList(request):
                 select distinct a.chartNo
                 from correlationPatientDisease as a 
                     inner join allEvents as f on a.chartNo=f.chartNo
-                    inner join ExamStudySeries_5 as g on f.eventID=g.eventID
+                    inner join ExamStudySeries_6 as g on f.eventID=g.eventID
                     where a.diseaseNo=%s and f.hospital like %s　order by a.chartNo
         '''
         cursor.execute(query,[Disease,hospital])
@@ -58,7 +58,7 @@ def SubjectPatientList(request):
         select distinct chartNo from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
+				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
                 ) as all_list
                 left outer join (
@@ -73,7 +73,7 @@ def SubjectPatientList(request):
         select distinct chartNo from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
+				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
                 ) as all_list
                 left outer join (
@@ -101,7 +101,7 @@ def Patient_num(request):
             select count(distinct a.chartNo)
             from correlationPatientDisease as a 
                 inner join allEvents as f on a.chartNo=f.chartNo
-                inner join ExamStudySeries_5 as g on f.eventID=g.eventID
+                inner join ExamStudySeries_6 as g on f.eventID=g.eventID
                 where a.diseaseNo=%s and hospital like %s
     '''
     cursor.execute(query,[Disease,hospital])
@@ -111,7 +111,7 @@ def Patient_num(request):
         select count(chartNo) from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
+				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
                 ) as all_list
                 left outer join (
@@ -127,7 +127,7 @@ def Patient_num(request):
         select count(chartNo) from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
+				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like %s
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
                 ) as all_list
                 left outer join (
@@ -148,14 +148,14 @@ def searchSQL(condition):
         select a.chartNo,a.eventDate,a.TypeName,a.eventID,a.studyDes,a.studyID,a.seriesID,a.seriesDes,a.sliceNo from (
             select b.chartNo,b.eventDate,d.TypeName,b.eventID,e.studyDes,studyID,seriesID,seriesDes,sliceNo from allEvents as b 
                     inner join medTypeSet as d on  b.medType=d.MedType
-                    inner join ExamStudySeries_5 as e on b.eventID=e.eventID
+                    inner join ExamStudySeries_6 as e on b.eventID=e.eventID
                     inner join correlationPatientDisease as g on g.chartNo=b.chartNo
                     where g.diseaseNo=%s
         ) as a
         inner join (
             select b.chartNo,b.eventDate,d.TypeName,b.eventID,e.studyDes,studyID,MAX(sliceNo) as 'slice' from allEvents as b 
                     inner join medTypeSet as d on  b.medType=d.MedType
-                    inner join ExamStudySeries_5 as e on b.eventID=e.eventID
+                    inner join ExamStudySeries_6 as e on b.eventID=e.eventID
                     inner join correlationPatientDisease as g on g.chartNo=b.chartNo
                     where g.diseaseNo=%s
                     group by b.chartNo,b.eventDate,d.TypeName,b.eventID,e.studyDes,studyID

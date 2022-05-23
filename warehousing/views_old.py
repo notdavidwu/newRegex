@@ -16,7 +16,7 @@ def SubjectPatientList(request):
             from correlationPatientDisease as a 
                 inner join diseaseGroup as e on a.diseaseNo=e.DiseaseNo
                 inner join allEvents as f on a.chartNo=f.chartNo
-                inner join ExamStudySeries_5 as g on f.eventID=g.eventID
+                inner join ExamStudySeries_6 as g on f.eventID=g.eventID
                 where a.diseaseNo=%s
     '''
     cursor = connections['default'].cursor()
@@ -32,21 +32,21 @@ def PatientList(request):
     Disease = request.POST.get('Disease')
 
     query =  '''
-  select b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.studyDes from allEvents as b 
+  select b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category from allEvents as b 
 		left join EventDefinition as c on b.eventID=c.eventID
 		inner join medTypeSet as d on  b.medType=d.MedType
-        inner join ExamStudySeries_5 as e on b.eventID=e.eventID
+        inner join ExamStudySeries_6 as e on b.eventID=e.eventID
 		left join ClinicalEvents as f on c.EventID=f.EventID
         where b.chartNo=%s
-        group by b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.studyDes
+        group by b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category
 		order by b.eventDate DESC
     '''
 
     query2 = '''
-        select studyID from ExamStudySeries_5 where sliceNo in
+        select studyID from ExamStudySeries_6 where sliceNo in
                 (select MAX(sliceNo) from (
-                select eventID,orderNo,studyID,studyDes,seriesID,seriesDes,sliceNo
-                from ExamStudySeries_5) as a left outer join allEvents as b on a.eventID=b.eventID 
+                select eventID,studyID,category,seriesID,seriesDes,sliceNo
+                from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
                 where b.eventID=%s ) and eventID=%s group by studyID
         '''
 

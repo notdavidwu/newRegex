@@ -42,5 +42,8 @@ urlpatterns = [
     path('insertExtractedFactors/', views.insertExtractedFactors, name='insertExtractedFactors'),
     path('searchExtractedFactorsRecord/', views.searchExtractedFactorsRecord, name='searchExtractedFactorsRecord'),
     path('updateEventConfirm/', views.updateEventConfirm, name='updateEventConfirm'),
+    path('searchEventFactorCode/', views.searchEventFactorCode, name='searchEventFactorCode'),
+    path('getFromStructure/', views.getFromStructure, name='getFromStructure'),
+    path('updateFromStructure/', views.updateFromStructure, name='updateFromStructure'),
     
 ]

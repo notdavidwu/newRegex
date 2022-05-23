@@ -51,7 +51,7 @@ def SQL(cursor,filter,hospital,Disease,username):
         query = f"""
             select * from correlationPatientDisease as a
             inner join allEvents as b on a.chartNo=b.chartNo
-            inner join ExamStudySeries_5 as c on b.eventID=c.eventID
+            inner join ExamStudySeries_6 as c on b.eventID=c.eventID
             where a.diseaseNo = {Disease} 
         """
         if len(hospital)!=0:
@@ -65,7 +65,7 @@ def SQL(cursor,filter,hospital,Disease,username):
             select *,ISNULL(PID,0) as 'checked' from(
                 select a.* from correlationPatientDisease as a
                 inner join allEvents as b on a.chartNo=b.chartNo
-                inner join ExamStudySeries_5 as c on b.eventID=c.eventID
+                inner join ExamStudySeries_6 as c on b.eventID=c.eventID
                 where a.diseaseNo = {Disease} """
         if(len(hospital))!=0:
             query += f"""and b.hospital=1"""
@@ -128,13 +128,13 @@ def Patient_num(request):
         select count(distinct a.chartNo),'1' AS seq
         from correlationPatientDisease as a 
             inner join allEvents as f on a.chartNo=f.chartNo
-            inner join ExamStudySeries_5 as g on f.eventID=g.eventID
+            inner join ExamStudySeries_6 as g on f.eventID=g.eventID
             where a.diseaseNo={Disease} and hospital like '{hospital}'
         UNION
         select count(chartNo) ,'2' AS seq from (
             select *,ISNULL(PID,0) as checked from (
 			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_5 as a inner join allEvents as b on a.eventID=b.eventID where hospital like '{hospital}'
+				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like '{hospital}'
 				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
                 ) as all_list
                 left outer join (
@@ -170,25 +170,25 @@ def PatientList(request):
     request.session['scrollTop']=scrollTop
     
     query =  '''
-  select b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.studyDes from allEvents as b 
+  select b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category from allEvents as b 
 		left join EventDefinition as c on b.eventID=c.eventID
 		inner join medTypeSet as d on  b.medType=d.MedType
-        inner join ExamStudySeries_5 as e on b.eventID=e.eventID
+        inner join ExamStudySeries_6 as e on b.eventID=e.eventID
 		left join ClinicalEvents as f on c.EventID=f.EventID
         where b.chartNo=%s
-        group by b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.studyDes
+        group by b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category
 		order by b.eventDate DESC
     '''
 
     query2 = '''
-        select studyID,seriesID,seriesDes from ExamStudySeries_5 where sliceNo in
+        select studyID,seriesID,seriesDes from ExamStudySeries_6 where sliceNo in
                 (select MAX(sliceNo) from (
-                select eventID,orderNo,studyID,studyDes,seriesID,seriesDes,sliceNo
-                from ExamStudySeries_5) as a left outer join allEvents as b on a.eventID=b.eventID 
+                select eventID,studyID,category,seriesID,seriesDes,sliceNo
+                from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
                 where b.eventID=%s ) and eventID=%s group by studyID,seriesID,seriesDes
         '''
     queryMRI = '''
-        select top(1)* from ExamStudySeries_5 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
+        select top(1)* from ExamStudySeries_6 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
     '''
 
     cursor = connections['AIC'].cursor()
