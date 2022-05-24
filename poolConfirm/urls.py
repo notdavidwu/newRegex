@@ -45,5 +45,7 @@ urlpatterns = [
     path('searchEventFactorCode/', views.searchEventFactorCode, name='searchEventFactorCode'),
     path('getFromStructure/', views.getFromStructure, name='getFromStructure'),
     path('updateFromStructure/', views.updateFromStructure, name='updateFromStructure'),
+    path('getEventFactorCode/', views.getEventFactorCode, name='getEventFactorCode'),
+    path('searchEventFactorCode/', views.searchEventFactorCode, name='searchEventFactorCode'),
     
 ]

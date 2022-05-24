@@ -176,11 +176,14 @@
         border-radius:10px 10px 0px 0px;
         width:100%;
         height:30px;
-        background-color:#DDDDDD;
+        background:url("{% static 'image/texture.png' %}");
+        background-color:#000;
         text-align:center;
         line-height:30px;
+        font-weight:900;
+        color:#FFFFFF;
     }
-    .close{position:absolute;right:5px;margin-top:3px}
+    .close{position:absolute;right:5px;margin-top:3px;filter: invert(1)}
     .item{margin:2px;width:calc(100% - 4px);border:1px solid #AAAAAA;border-radius:5px;}
     .content{height:50px;text-align:center;padding-top:5px}
     #ascriptionPhase , #desPhase{height:150px;width:100%}
@@ -236,14 +239,16 @@
     .exclude{color:red}
     #header_disabled{width:50px;font-size:10pt}
     #formVersion{position:absolute;width:100px;top:2px;right:50px;height:26px}
-    #formDesignPannel{display:inline;width:1400px}
-    .formFilter{width:calc(20% - 5px);display:inline}
-    #designArea{width:50%;height:calc(100% - 100px);background-color:#AAA;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden}
-    #preview{width:50%;height:calc(100% - 100px);background-color:#AADDAF;position:absolute;right:0px;overflow-y:scroll;overflow-x:hidden}
-    .designFactor{width:100%;display:inline;font-size:10pt;padding:0px;margin:0px;border-radius:0}
+    #formDesignPannel{display:none;width:1400px;background:url("{% static 'image/texture.png' %}") #08192D;left:10%;}
+    .formFilter{width:calc(20% - 3.2px);display:inline;border-radius:0}
+    #designArea{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFFFFF;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden;border-right:1px solid}
+    #preview{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFF;position:absolute;right:0px;overflow-y:scroll;overflow-x:hidden}
+    .designFactor{width:100%;display:inline;font-size:10pt;;margin:0px;border-radius:0}
     #designArea table{text-align:center;font-size:8pt;padding:0px;margin:0px;height:0px}
-    #designArea table td{font-size:8pt;padding:0px;padding-bottom:2px}
+    #designArea table td{font-size:8pt;padding:0px;padding-bottom:2px;width:20px}
     #designArea table th{font-size:8pt;padding:0px;}
+    .formTitle{width:calc(20% - 3.2px);text-align:center;margin:0px;background:url("{% static 'image/texture.png' %}") #ECB88A}
+    .delete{margin-top:10px}
 </style>
 
 
@@ -1320,11 +1325,28 @@
         })
     }
     function searchForm(){
-        let code = $('.formFilter').map(function(){return $(this).val()}).get()
+        let code = $('input[name="formFilter"]').map(function(){return $(this).val().split('(')[0]}).get()
         if(code.includes('')==false){
-            //alert('a')
-            formGenerator(-999999,code[0],'#preview','append','')
-            getFromStructure(code[0])
+            $.ajax({
+                type: 'post',
+                url: '{% url "poolConfirm:searchEventFactorCode" %}', // this is the mapping between the url and view
+                data:{
+                    'groupNo':code[0],
+                    'diseaseID':code[1],
+                    'procedureID':code[2],
+                    'version':code[3],
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function(response){
+                    $('input[list="eventFactorCode"]').val(response.eventFactorCode)
+                    formGenerator(-999999,response.eventFactorCode,'#preview','append','')
+                    getFromStructure(response.eventFactorCode)
+                }
+            })
+
+        }else{
+            $('#designArea tbody').empty()
+            $('#preview').empty()
         }
     }
     function getFromStructure(eventFactorCode){
@@ -1342,24 +1364,31 @@
                 for(let i=0;i<response.eventFactorID.length;i++){
                     object += '<tr>'
                     object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value="${response.eventFactorID[i]}"></td>`
-                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorCode" value="${response.eventFactorCode[i]}"></td>`
                     object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value="${response.serialNo[i]}"></td>`
                     object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value="${response.factorName[i]}"></td>`
-                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor itemType" value="${response.itemType[i]}"</td>`
-                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor labeled" value="${response.labeled[i]}"></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor itemType" ><option value="NE">NE</option><option value="text">text</option><option value="radio">radio</option><option value="checkbox">checkbox</option><option value="date">date</option></select></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor labeled" ><option value="true">true</option><option value="false">false</option></select></td>`
                     object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value="${response.F_eventFactorID[i]}"></td>`
-                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor isLeaf" value="${response.isLeaf[i]}"></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor isLeaf" ><option value="true">true</option><option value="false">false</option></select></td>`
+                    object += `<td><button type="button" class="btn-close delete" aria-label="Close" onclick="deleteFactor()"></button></td>`
                     object += '</tr>'
                 }
-                object += '<tr><td colspan=8><div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div></td></tr>'
+                object += '<tr><td colspan=8><div class="addButton"><button type="button" onclick="addFactor()" class="add btn btn-outline-primary">+</button></div></td></tr>'
                 $('#designArea tbody').html(object)
+                for(let j=0;j<response.isLeaf.length;j++){$('.isLeaf').eq(j).val(response.isLeaf[j].toString().replaceAll(' ',''))}
+                for(let j=0;j<response.labeled.length;j++){$('.labeled').eq(j).val(response.labeled[j].toString().replaceAll(' ',''))}
+                for(let j=0;j<response.itemType.length;j++){$('.itemType').eq(j).val(response.itemType[j].toString().replaceAll(' ',''))}
             }
         })
     }
+    function deleteFactor(){
+        $(event.target).parents('tr').remove()
+        updateStructure()
+    }
     function updateStructure(){
-        let code = $('.formFilter').map(function(){return $(this).val()}).get()
+        let code = $('.formFilter').map(function(){return $(this).val().split('(')[0]}).get()
         let eventFactorID = $('#designArea .eventFactorID').map(function(){return $(this).val()}).get()
-        let eventFactorCode = $('#designArea .eventFactorCode').map(function(){return $(this).val()}).get()
+        let eventFactorCode = $('input[list="eventFactorCode"]').val()
         let serialNo = $('#designArea .serialNo').map(function(){return $(this).val()}).get()
         let factorName = $('#designArea .factorName').map(function(){return $(this).val()}).get()
         let itemType = $('#designArea .itemType').map(function(){return $(this).val()}).get()
@@ -1392,20 +1421,45 @@
         if(code.includes('')==false){
             object += '<tr>'
             object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value=""></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorCode" value=""></td>`
             object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value=""></td>`
             object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value=""></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor itemType" value=""</td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor labeled" value=""></td>`
+            object += `<td><select onchange="updateStructure()" class="form-control designFactor itemType" ><option value="NE">NE</option><option value="text">text</option><option value="radio">radio</option><option value="checkbox">checkbox</option><option value="date">date</option></select></td>`
+            object += `<td><select onchange="updateStructure()" class="form-control designFactor labeled" ><option value="true">true</option><option value="false">false</option></select></td>`
             object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value=""></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor isLeaf" value=""></td>`
+            object += `<td><select onchange="updateStructure()" class="form-control designFactor isLeaf" ><option value="true">true</option><option value="false">false</option></select></td>`
             object += '</tr>'
             $(event.target).parents('tr').before(object)
         }
     }
-    
+    function formDesign(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getEventFactorCode" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                //formGenerator(-999999,code[0],'#preview','append','')
+                $('#formFilter #eventFactorCode').empty()
+                $('#formFilter #groupNo').empty()
+                $('#formFilter #diseaseID').empty()
+                $('#formFilter #procedureID').empty()
+                $('#formFilter #version').empty()
+                for(let i=0;i<response.eventFactorCode.length;i++){$('#formFilter #eventFactorCode').append(`<option value="${response.eventFactorCode[i]}">`)}
+                for(let i=0;i<response.groupNo.length;i++){$('#formFilter #groupNo').append(`<option value="${response.groupNo[i]}">`)}
+                for(let i=0;i<response.diseaseID.length;i++){$('#formFilter #diseaseID').append(`<option value="${response.diseaseID[i]}(${response.disease[i].replaceAll(' ','')})">`)}
+                for(let i=0;i<response.procedureID.length;i++){$('#formFilter #procedureID').append(`<option value="${response.procedureID[i]}(${response.procedureName[i].replaceAll(' ','')})">`)}
+                for(let i=0;i<response.version.length;i++){$('#formFilter #version').append(`<option value="${response.version[i]}">`)}
+            }
+        })
+        $("#formDesignPannel").css('display', 'inline');
+        $("#menu").css('display', 'none');
+        $("#statusMenu").css('display', 'none');
+    }
     function formDesignClose(){
-        
+        $(".formFilter").val('')
+        $("#preview").empty()
+        $("#designArea tbody").empty()
         $("#formDesignPannel").css('display', 'none');
     }
     $(document).ready(function (e) {
@@ -1646,6 +1700,7 @@
 
         <div id="statusMenu" class="customMenu">
             <p class="btn btn-secondary resetbtn status" role="button" onclick="statusOpen()">病患資料確認</p>
+            <p class="btn btn-secondary resetbtn" role="button"  onclick="formDesign()">表單設計</p>
         </div>
 
         <div id="menu" class="customMenu">
@@ -1679,39 +1734,36 @@
                 表單設計
                 <button type="button" class="btn-close close" aria-label="Close" onclick="formDesignClose()"></button>
             </div>
+            <div id="formTitle">
+                <label class="formTitle form-label">eventFactorCode</label>
+                <label class="formTitle form-label">groupNo</label>
+                <label class="formTitle form-label">diseaseID</label>
+                <label class="formTitle form-label">procedureID</label>
+                <label class="formTitle form-label">version</label>
+            </div>
             <div id="formFilter">
-                <input placeholder="eventFactorCode" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="eventFactorCode">
-                <datalist id="eventFactorCode">
-                    <option value="3">
-                </datalist>
-                <input placeholder="groupNo" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="groupNo">
-                <datalist id="groupNo">
-                    <option value="2">
-                </datalist>
-                <input placeholder="diseaseID" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="diseaseID">
-                <datalist id="diseaseID">
-                    <option value="1">
-                </datalist>
-                <input placeholder="procedureID" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="procedureID">
-                <datalist id="procedureID">
-                    <option value="3">
-                </datalist>
-                <input placeholder="version" onchange="searchForm()" autocomplete=true class="formFilter form-control" list="version">
-                <datalist id="version">
-                    <option value="7">
-                </datalist>
+                <input placeholder="eventFactorCode"  autocomplete=on  class="formFilter form-control" list="eventFactorCode" disabled>
+                <datalist id="eventFactorCode"></datalist>
+                <input placeholder="groupNo" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="groupNo">
+                <datalist id="groupNo"></datalist>
+                <input placeholder="diseaseID" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="diseaseID">
+                <datalist id="diseaseID"></datalist>
+                <input placeholder="procedureID" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="procedureID">
+                <datalist id="procedureID"></datalist>
+                <input placeholder="version" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="version">
+                <datalist id="version"></datalist>
             </div>
             <div id="designArea"  class="row">
                 <table class='table table-striped'>
                     <thead>
                         <th>eventFactorID</th>
-                        <th>eventFactorCode</th>
                         <th>serialNo</th>
                         <th>factorName</th>
                         <th>itemType</th>
                         <th>labeled</th>
                         <th>F_eventFactorID</th>
                         <th>isLeaf</th>
+                        <th>刪除</th>
                     </thead>
                     <tbody>
                         <tr><td colspan=8><div class="addButton"><button type="button" onclick="addFactor()" class="add btn btn-outline-primary">+</button></div></td></tr>

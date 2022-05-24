@@ -949,6 +949,25 @@ def searchExtractedFactorsRecord(request):
     return JsonResponse({'seqRecorded':seqRecorded,'classRecorded':classRecorded,'factorIdRecorded':factorIdRecorded,'factorValueRecorded':factorValueRecorded})
 
 @csrf_exempt
+def searchEventFactorCode(request):
+    groupNo = request.POST.get('groupNo')
+    diseaseID = request.POST.get('diseaseID')
+    procedureID = request.POST.get('procedureID')
+    version = request.POST.get('version')
+    cursor = connections['practiceDB'].cursor()
+    query='select eventFactorCode from eventFactorCode where groupNo=%s and diseaseID=%s and procedureID=%s and version=%s'
+    maxQuery='select max(eventFactorCode) from eventFactorCode'
+    print(groupNo,' ',diseaseID,' ',procedureID,' ',version)
+    cursor.execute(query,[groupNo,diseaseID,procedureID,version])
+    result = cursor.fetchall()
+    if len(result)!=0:
+        eventFactorCode = result[0][0]
+    else:
+        cursor.execute(maxQuery,[])
+        eventFactorCode = int(cursor.fetchall()[0][0])+1
+    return JsonResponse({'eventFactorCode':eventFactorCode})
+
+@csrf_exempt
 def getFromStructure(request):
     cursor = connections['practiceDB'].cursor()
     eventFactorCode = request.POST.get('eventFactorCode')
@@ -972,7 +991,7 @@ def updateFromStructure(request):
     cursor = connections['practiceDB'].cursor()
     code = request.POST.getlist('code[]')
     eventFactorIDSet = request.POST.getlist('eventFactorID[]')
-    eventFactorCodeSet = request.POST.getlist('eventFactorCode[]')
+    eventFactorCode = request.POST.get('eventFactorCode')
     serialNoSet = request.POST.getlist('serialNo[]')
     factorNameSet = request.POST.getlist('factorName[]')
     itemTypeSet = request.POST.getlist('itemType[]')
@@ -987,10 +1006,62 @@ def updateFromStructure(request):
         cursor.execute(insertQuery,[code[0],code[1],code[2],code[3],code[4]])
 
     deleteQuery = 'delete from eventFactor where eventFactorCode=%s'
-    cursor.execute(deleteQuery,[eventFactorCodeSet[0]])
+    cursor.execute(deleteQuery,[eventFactorCode])
     
-    for eventFactorID,eventFactorCode,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf in zip(eventFactorIDSet,eventFactorCodeSet,serialNoSet,factorNameSet,itemTypeSet,labeledSet,F_eventFactorIDSet,isLeafSet):
+    for eventFactorID,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf in zip(eventFactorIDSet,serialNoSet,factorNameSet,itemTypeSet,labeledSet,F_eventFactorIDSet,isLeafSet):
         insertQuery='insert into eventFactor values(%s,%s,%s,%s,%s,%s,%s,%s)'
         cursor.execute(insertQuery,[eventFactorID,eventFactorCode,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf])
 
     return JsonResponse({})
+
+@csrf_exempt
+def getEventFactorCode(request):
+    cursor = connections['practiceDB'].cursor()
+    queryEventFactorCode='''
+    SELECT distinct eventFactorCode
+    FROM [practiceDB].[dbo].[eventFactorCode] as a
+    inner join clinicalProcedures as b on a.procedureID=b.procedureID
+    inner join diseasetList as c on a.diseaseID=c.diseaseID
+    order by eventFactorCode
+    '''
+    queryGroupNo='''
+    SELECT distinct groupNo
+    FROM [practiceDB].[dbo].[eventFactorCode] as a
+    inner join clinicalProcedures as b on a.procedureID=b.procedureID
+    inner join diseasetList as c on a.diseaseID=c.diseaseID
+
+    '''
+    queryDiseaseID='''
+    SELECT distinct diseaseID,disease
+    FROM   diseasetList
+    '''
+    queryProcedureID='''
+    SELECT distinct procedureID,procedureName
+    FROM clinicalProcedures
+    '''
+    queryVersion='''
+    SELECT distinct a.version
+    FROM [practiceDB].[dbo].[eventFactorCode] as a
+    inner join clinicalProcedures as b on a.procedureID=b.procedureID
+    inner join diseasetList as c on a.diseaseID=c.diseaseID
+    '''
+    result_EventFactorCode = cursor.execute(queryEventFactorCode)
+    eventFactorCode,groupNo,diseaseID,disease,procedureID,procedureName,version = [],[],[],[],[],[],[]
+    for row in result_EventFactorCode:
+        eventFactorCode.append(row[0])
+    result_GroupNo = cursor.execute(queryGroupNo)
+    for row in result_GroupNo:
+        groupNo.append(row[0])
+    result_DiseaseID = cursor.execute(queryDiseaseID)
+    for row in result_DiseaseID:
+        diseaseID.append(row[0])
+        disease.append(row[1])
+    result_ProcedureID = cursor.execute(queryProcedureID)
+    for row in result_ProcedureID:
+        procedureID.append(row[0])
+        procedureName.append(row[1])
+    result_Version = cursor.execute(queryVersion)
+    for row in result_Version:
+        version.append(row[0])
+    print(eventFactorCode)
+    return JsonResponse({'eventFactorCode':eventFactorCode,'groupNo':groupNo,'diseaseID':diseaseID,'disease':disease,'procedureID':procedureID,'procedureName':procedureName,'version':version})
