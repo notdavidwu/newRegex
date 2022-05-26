@@ -971,7 +971,7 @@ def searchEventFactorCode(request):
 def getFromStructure(request):
     cursor = connections['practiceDB'].cursor()
     eventFactorCode = request.POST.get('eventFactorCode')
-    query='''SELECT *  FROM [practiceDB].[dbo].[eventFactor] where [eventFactorCode]=%s'''
+    query='''SELECT *  FROM [practiceDB].[dbo].[eventFactor] where [eventFactorCode]=%s order by eventFactorID'''
     cursor.execute(query,[eventFactorCode])
     eventFactorID,eventFactorCode,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf=[],[],[],[],[],[],[],[]
     result = cursor.fetchall()
@@ -1065,3 +1065,4 @@ def getEventFactorCode(request):
         version.append(row[0])
     print(eventFactorCode)
     return JsonResponse({'eventFactorCode':eventFactorCode,'groupNo':groupNo,'diseaseID':diseaseID,'disease':disease,'procedureID':procedureID,'procedureName':procedureName,'version':version})
+
