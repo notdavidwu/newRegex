@@ -546,7 +546,9 @@
             target.prevAll('.IntervalNo').val(1)
             originSeqNo = 1
         }
-
+        if(pdID=='Infinity'){
+            pdID =  target.parents('label').children('.pdID').html()
+        }
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
@@ -767,10 +769,10 @@
         $("#menu").css('display', 'none');
         $('#factorGroupArea .addButton').prevAll().remove()
         $('#factorGroupArea').attr('data-eventID',eventID)
-
+        
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchEventFactorCode" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
             data:{
                 'pd':pd,
                 'eventID':eventID,
