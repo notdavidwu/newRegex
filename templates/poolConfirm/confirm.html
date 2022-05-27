@@ -760,7 +760,7 @@
     }
 
     function extractedFactorOpen(){
-        let pd = $('input[name="timePID"]:checked').next('label').children('.pdID').html()
+        let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
         let diseaseId = $('#ChangeDisease').val()
@@ -1330,6 +1330,8 @@
     function searchForm(){
         let code = $('input[name="formFilter"]').map(function(){return $(this).val().split('(')[0]}).get()
         if(code.includes('')==false){
+            $('#designArea tbody').empty()
+            $('#preview').empty()
             $.ajax({
                 type: 'post',
                 url: '{% url "poolConfirm:searchEventFactorCode" %}', // this is the mapping between the url and view

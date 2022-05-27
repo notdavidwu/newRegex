@@ -762,6 +762,7 @@ def formGenerator(request):
         formObject = '<div class="formStructure">'
         num=0
         for ind1,mainSubject in enumerate(mainSubjectSet):
+            
             step = 2
             if mainSubject[4] is None:
                 seq = 1
@@ -782,6 +783,7 @@ def formGenerator(request):
             
             formObject += '<ul>'
             for ind2,structure in enumerate(structureSet):
+                print(ind1,'_',ind2)
                 num += 1
                 type = structure[4].replace(' ','')
                 stop = structure[7]
@@ -834,6 +836,7 @@ def formGenerator(request):
                         
                         factorID=structure3[0]
                         if stop != True:
+                            print(num)
                             step = 4
                             query =f'''
                             select a{step}.*
