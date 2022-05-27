@@ -1066,3 +1066,10 @@ def getEventFactorCode(request):
     print(eventFactorCode)
     return JsonResponse({'eventFactorCode':eventFactorCode,'groupNo':groupNo,'diseaseID':diseaseID,'disease':disease,'procedureID':procedureID,'procedureName':procedureName,'version':version})
 
+@csrf_exempt
+def getNewEventFactorID(request):
+    cursor = connections['practiceDB'].cursor()
+    query = 'SELECT  MAX([eventFactorID])+1 FROM [practiceDB].[dbo].[eventFactor]'
+    cursor.execute(query,[])
+    newEventFactorID = cursor.fetchall()[0][0]
+    return JsonResponse({'newEventFactorID':newEventFactorID})

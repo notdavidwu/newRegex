@@ -47,5 +47,6 @@ urlpatterns = [
     path('updateFromStructure/', views.updateFromStructure, name='updateFromStructure'),
     path('getEventFactorCode/', views.getEventFactorCode, name='getEventFactorCode'),
     path('searchEventFactorCode/', views.searchEventFactorCode, name='searchEventFactorCode'),
+    path('getNewEventFactorID/', views.getNewEventFactorID, name='getNewEventFactorID'),
     
 ]

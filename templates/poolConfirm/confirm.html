@@ -249,6 +249,7 @@
     #designArea table th{font-size:8pt;padding:0px;}
     .formTitle{width:calc(20% - 3.2px);text-align:center;margin:0px;background:url("{% static 'image/texture.png' %}") #ECB88A}
     .delete{margin-top:10px}
+    input[name="deleteFactorRow"]{display:none}
 </style>
 
 
@@ -1370,7 +1371,7 @@
                     object += `<td><select onchange="updateStructure()" class="form-control designFactor labeled" ><option value="true">true</option><option value="false">false</option></select></td>`
                     object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value="${response.F_eventFactorID[i]}"></td>`
                     object += `<td><select onchange="updateStructure()" class="form-control designFactor isLeaf" ><option value="true">true</option><option value="false">false</option></select></td>`
-                    object += `<td><button type="button" class="btn-close delete" aria-label="Close" onclick="deleteFactor()"></button></td>`
+                    object += `<td><input type="radio" name="deleteFactorRow"><button type="button" onclick="deleteFactorRow()" class="btn-close delete" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deleteleModal"></button></td>`
                     object += '</tr>'
                 }
                 object += '<tr><td colspan=8><div class="addButton"><button type="button" onclick="addFactor()" class="add btn btn-outline-primary">+</button></div></td></tr>'
@@ -1382,8 +1383,11 @@
         })
     }
     function deleteFactor(){
-        $(event.target).parents('tr').remove()
+        $('input[name="deleteFactorRow"]:checked').parents('tr').remove()
         updateStructure()
+    }
+    function deleteFactorRow(){
+        $(event.target).prev('input').prop('checked',true)
     }
     function updateStructure(){
         let code = $('.formFilter').map(function(){return $(this).val().split('(')[0]}).get()
@@ -1418,19 +1422,30 @@
     function addFactor(){
         let code = $('.formFilter').map(function(){return $(this).val()}).get()
         let object = ''
-
-        if(code.includes('')==false){
-            object += '<tr>'
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value=""></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value=""></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value=""></td>`
-            object += `<td><select onchange="updateStructure()" class="form-control designFactor itemType" ><option value="NE">NE</option><option value="text">text</option><option value="radio">radio</option><option value="checkbox">checkbox</option><option value="date">date</option></select></td>`
-            object += `<td><select onchange="updateStructure()" class="form-control designFactor labeled" ><option value="true">true</option><option value="false">false</option></select></td>`
-            object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value=""></td>`
-            object += `<td><select onchange="updateStructure()" class="form-control designFactor isLeaf" ><option value="true">true</option><option value="false">false</option></select></td>`
-            object += '</tr>'
-            $(event.target).parents('tr').before(object)
-        }
+        let target = $(event.target)
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:getNewEventFactorID" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                if(code.includes('')==false){
+                    object += '<tr>'
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor eventFactorID" value="${response.newEventFactorID}"></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor serialNo" value=""></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor factorName" value=""></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor itemType" ><option value="NE">NE</option><option value="text">text</option><option value="radio">radio</option><option value="checkbox">checkbox</option><option value="date">date</option></select></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor labeled" ><option value="true">true</option><option value="false">false</option></select></td>`
+                    object += `<td><input onchange="updateStructure()" type='text' class="form-control designFactor F_eventFactorID" value=""></td>`
+                    object += `<td><select onchange="updateStructure()" class="form-control designFactor isLeaf" ><option value="true">true</option><option value="false">false</option></select></td>`
+                    object += `<td><input type="radio" name="deleteFactorRow"><button type="button" onclick="deleteFactorRow()" class="btn-close delete" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deleteleModal"></button></td>`
+                    object += '</tr>'
+                    target.parents('tr').before(object)
+                    updateStructure()
+                }
+            }
+        })
     }
     function formDesign(){
         $.ajax({
@@ -1807,7 +1822,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteAnnotation()">刪除</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteFactor()">刪除</button>
                 </div>
             </div>
         </div>
