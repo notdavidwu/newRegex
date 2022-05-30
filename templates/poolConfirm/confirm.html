@@ -668,8 +668,8 @@
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="diagChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${response.PD[i]}></td>
-                        <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="ambiguousChecked" name=${response.PD[i]}></td>
-                        <td><input type="text" onchange="ambiguous()" class="ambiguousNote" name=ambiguousNote></td>
+                        <td><input type="checkbox" onclick="excludeCheck('statusArea');ambiguous();" class="ambiguousChecked" name=${response.PD[i]}></td>
+                        <td><input type="text" class="ambiguousNote"  ></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${response.PD[i]}></td>
                     </tr>
                     `)
@@ -679,17 +679,21 @@
                     $('#statusArea .ambiguousChecked').eq(i).prop('checked',response.ambiguousChecked[i])
                     $('#statusArea .ambiguousNote').eq(i).val(response.ambiguousNote[i])
                     $('#statusArea .pdConfirmed').eq(i).prop('checked',response.pdConfirmed[i])
+                    if(response.ambiguousChecked[i]=='true'){
+                        $('#statusArea .ambiguousNote').eq(i).prop('disabled',false)
+                    }else{
+                        $('#statusArea .ambiguousNote').eq(i).prop('disabled',true)
+                    }
                 }
             }
         })
     }
     function ambiguous(){
-        let target = $(event.target)
-        console.log(target.val()=='')
-        if (target.val()==''){
-            target.parents('td').prev().children('.ambiguousChecked').prop('checked',false)
+        let trID = $(event.target).attr('name')
+        if ($(event.target).prop('checked')==true){
+            $(event.target).parent('td').next().children('.ambiguousNote').prop('disabled',false)
         }else{
-            target.parents('td').prev().children('.ambiguousChecked').prop('checked',true)
+            $(event.target).parent('td').next().children('.ambiguousNote').prop('disabled',true)
         }
     }
     function excludeCheck(pannel){
@@ -705,7 +709,7 @@
         }
     }
     function patientStatusCheckClose(){
-        $('#statusArea tbody').empty()
+        $('#statusArea .ambiguousNote').val('')
         $("#patientStatusCheck").css('display', 'none');
         
     }
@@ -1711,23 +1715,7 @@
             <button type="submit" class="btn btn-primary submit"  onclick="cancerRegistSubmit()">Submit</button>
         </div>
 
-        <div class="checkPannel" id="patientStatusCheck">
-            <div class="ascriptionHeader">
-                病患資料確認
-                <button type="button" class="btn-close close" aria-label="Close" onclick="patientStatusCheckClose()"></button>
-            </div>
-            <div id="statusArea"  class="row">
-                  <table class="table table-striped table-hover" >
-                    <thead>
-                        <tr>
-                            <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>F/U</th><th>Ambiguous</th><th>AmbiguousNote</th><th>Exclude</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <button type="submit" class="btn btn-primary submit" onclick="patientStatusSubmit()">Submit</button>
-        </div>
+        
 
 
         <div id="statusMenu" class="customMenu">
@@ -1844,7 +1832,23 @@
         </div>
     </div>
 
-
+    <div class="checkPannel" id="patientStatusCheck">
+        <div class="ascriptionHeader">
+            病患資料確認
+            <button type="button" class="btn-close close" aria-label="Close" onclick="patientStatusCheckClose()"></button>
+        </div>
+        <div id="statusArea"  class="row">
+              <table class="table table-striped table-hover" >
+                <thead>
+                    <tr>
+                        <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>F/U</th><th>Ambiguous</th><th>AmbiguousNote</th><th>Exclude</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <button type="submit" class="btn btn-primary submit" onclick="patientStatusSubmit()">Submit</button>
+    </div>
 
     <textarea id="text" readonly>
 

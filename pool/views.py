@@ -23,13 +23,20 @@ def pool(request):
 
 @csrf_exempt
 def Disease(request):
+    cursor = connections['AIC'].cursor()
     au = '%' if (str(request.POST.get('username')) == 'AIC') else  request.POST.get('username')+'%'
-    query = '''select distinct b.* from auth_disease as a
-            inner join diseaseGroup as b on a.disease=b.DiseaseNo
-            where username like %s 
-            '''
-    cursor = connections['default'].cursor()
-    cursor.execute(query,[au])
+    if str(request.POST.get('username')) == 'AIC':
+        query = '''
+        SELECT DiseaseNo,Disease FROM [AIC].[dbo].[diseaseGroup]
+        '''
+        cursor.execute(query,[])
+    else:
+        query = '''select distinct b.* from auth_disease as a
+                inner join diseaseGroup as b on a.disease=b.DiseaseNo
+                where username like %s 
+                '''
+        cursor.execute(query,[au])
+    
     DiseaseNo = []
     Disease = []
     res = cursor.fetchall()
@@ -58,6 +65,7 @@ def SQL(cursor,filter,hospital,Disease,username):
             query += f"""and b.hospital = {hospital}　"""
         
         query += f"""order by a.chartNo"""
+        print(query)
         cursor.execute(query)
     elif filter=='1':
         query = f"""
@@ -76,6 +84,7 @@ def SQL(cursor,filter,hospital,Disease,username):
             ) as b on a.chartNo=b.PID
         ) as c where checked=0 order by chartNo
         """
+        print(query)
         cursor.execute(query)
     elif filter=='2':
         query = '''
@@ -84,6 +93,7 @@ def SQL(cursor,filter,hospital,Disease,username):
         where a.Disease=%s and a.username=%s and b.diseaseNo=%s
         order by b.sno
         '''
+        print(query)
         cursor.execute(query,[Disease,username,Disease])
     return cursor
 @csrf_exempt
@@ -102,8 +112,8 @@ def SubjectPatientList(request):
     res = cursor.fetchall()
     object = ''
     for i in range(len(res)):
-        PatientListID.append(str(res[i][0]))
-        sno.append(str(res[i][2]))
+        PatientListID.append(str(res[i][1]))
+        sno.append(str(res[i][0]))
     PatientListID=list(OrderedDict.fromkeys(PatientListID))    
     sno=list(OrderedDict.fromkeys(sno)) 
     for i in range(len(PatientListID)):

@@ -40,7 +40,7 @@ def confirmpat(request):
     statusfilterNames = request.POST.getlist('statusfilterNames[]')
     statusfilterValue = request.POST.getlist('statusfilterValue[]')
     statusfilterValueSum = np.sum(np.array(statusfilterValue).astype(int))
-    print(statusfilterNames)
+
     cursor = connections['practiceDB'].cursor()
     if filter=='0':
         query = '''
@@ -49,8 +49,7 @@ def confirmpat(request):
             cast([diagChecked] as int)+
             cast([treatChecked] as int)+
             cast([fuChecked] as int)+
-            cast([ambiguousChecked] as int)+
-            cast([ambiguousNote] as int)
+            cast([ambiguousChecked] as int)
         >0, 1, 0 ) as 'check'
         from(
             SELECT *
@@ -327,7 +326,7 @@ def updatePhase(request):
     diseaseId = request.POST.get('diseaseId')
     originSeqNo = request.POST.get('originSeqNo')
     cursor = connections['practiceDB'].cursor()
-    print('EDID:',EDID,' PDID:',PDID,' eventID:',eventID,' procedureID',procedureID,' chartNo:',chartNo,' diseaseId:',diseaseId,' originSeqNo:',originSeqNo)
+    
     if procedureID=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
@@ -368,7 +367,7 @@ def updateInterval(request):
     query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
     cursor.execute(query_presearch,[chartNo,newSeqNo,diseaseId])
     searchResult = cursor.fetchall()
-    print('EDID:',EDID,' PDID:',PDID,' eventID:',eventID,' procedureID',procedureID,' chartNo:',chartNo,' diseaseId:',diseaseId,' originSeqNo:',originSeqNo)
+    
     if int(newSeqNo)==0:
         query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
         cursor.execute(query_presearch,[chartNo,originSeqNo,diseaseId])
@@ -699,9 +698,9 @@ def getPatientStatus(request):
         treatChecked.append(False if row[4] is None else row[4])
         fuChecked.append(False if row[5] is None else row[5])
         pdConfirmed.append(False if row[6] is None else row[6])
-        ambiguousNote.append(row[7])
+        ambiguousNote.append('' if row[7] is None else row[7])
         ambiguousChecked.append(False if row[8] is None else row[8])
-    print(ambiguousNote)
+
     return JsonResponse({'PD':PD,'disease':disease,'caSeqNo':caSeqNo,'diagChecked':diagChecked,'treatChecked':treatChecked,'fuChecked':fuChecked,'pdConfirmed':pdConfirmed,'ambiguousNote':ambiguousNote,'ambiguousChecked':ambiguousChecked})
 
 @csrf_exempt
@@ -710,7 +709,7 @@ def searchExtractedEventFactorCode(request):
     diseaseId = request.POST.get('diseaseId')
     eventID = request.POST.get('eventID')
     pd = request.POST.get('pd')
-    print(pd,' ',eventID,' ',diseaseId,' ',medType)
+
     '''--------------取得procedureID------------'''
     cursor = connections['practiceDB'].cursor()
     getProcedureID='''select procedureID from eventDefinitions where eventID=%s and PDID=%s'''
@@ -796,7 +795,7 @@ def formGenerator(request):
             
             formObject += '<ul>'
             for ind2,structure in enumerate(structureSet):
-                print(ind1,'_',ind2)
+
                 num += 1
                 type = structure[4].replace(' ','')
                 stop = structure[7]
@@ -849,7 +848,7 @@ def formGenerator(request):
                         
                         factorID=structure3[0]
                         if stop != True:
-                            print(num)
+
                             step = 4
                             query =f'''
                             select a{step}.*
@@ -968,7 +967,7 @@ def searchEventFactorCode(request):
     cursor = connections['practiceDB'].cursor()
     query='select eventFactorCode from eventFactorCode where groupNo=%s and diseaseID=%s and procedureID=%s and version=%s'
     maxQuery='select max(eventFactorCode) from eventFactorCode'
-    print(groupNo,' ',diseaseID,' ',procedureID,' ',version)
+
     cursor.execute(query,[groupNo,diseaseID,procedureID,version])
     result = cursor.fetchall()
     if len(result)!=0:
@@ -1074,7 +1073,7 @@ def getEventFactorCode(request):
     result_Version = cursor.execute(queryVersion)
     for row in result_Version:
         version.append(row[0])
-    print(eventFactorCode)
+
     return JsonResponse({'eventFactorCode':eventFactorCode,'groupNo':groupNo,'diseaseID':diseaseID,'disease':disease,'procedureID':procedureID,'procedureName':procedureName,'version':version})
 
 @csrf_exempt
