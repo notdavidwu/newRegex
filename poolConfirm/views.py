@@ -4,7 +4,7 @@ from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
-
+import numpy as np
 
 @csrf_exempt
 def confirm(request):
@@ -28,7 +28,7 @@ def replaceCapitalAndLowCase(statusfilter):
     statusfilter = re.compile("create", re.IGNORECASE).sub("", statusfilter)
     statusfilter = re.compile("--", re.IGNORECASE).sub("", statusfilter)
     statusfilter = re.compile("as", re.IGNORECASE).sub("", statusfilter)
-    if len(statusfilter)>15:
+    if len(statusfilter)>20:
         statusfilter=''
     return statusfilter
 import re
@@ -38,6 +38,9 @@ def confirmpat(request):
     filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
     statusfilterNames = request.POST.getlist('statusfilterNames[]')
+    statusfilterValue = request.POST.getlist('statusfilterValue[]')
+    statusfilterValueSum = np.sum(np.array(statusfilterValue).astype(int))
+    print(statusfilterNames)
     cursor = connections['practiceDB'].cursor()
     if filter=='0':
         query = '''
@@ -46,17 +49,20 @@ def confirmpat(request):
             cast([diagChecked] as int)+
             cast([treatChecked] as int)+
             cast([fuChecked] as int)+
-            cast([neoTreatChecked] as int)+
-            cast([adjTreatChecked] as int)
+            cast([ambiguousChecked] as int)+
+            cast([ambiguousNote] as int)
         >0, 1, 0 ) as 'check'
         from(
             SELECT *
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
             FROM [PatientDisease] where [diseaseID]=%s '''
-        for statusfilter in statusfilterNames:
-            statusfilter = replaceCapitalAndLowCase(statusfilter)
-            query +=f' and {statusfilter}=1 '
+        if statusfilterValueSum !=0:
+            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+                filterName = replaceCapitalAndLowCase(filterName)
+                filterValue = replaceCapitalAndLowCase(filterValue)
+                query +=f' and {filterName}={filterValue} '
         query += ') as a where  a.Sort=1 and a.chartNo>0'
+    
     elif filter=='1':
         query = '''
         select a.PD,a.chartNo from(
@@ -65,9 +71,11 @@ def confirmpat(request):
                 SELECT *
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
                 FROM [PatientDisease] where [diseaseID]=%s '''
-        for statusfilter in statusfilterNames:
-            statusfilter = replaceCapitalAndLowCase(statusfilter)
-            query +=f' and {statusfilter}=1 '
+        if statusfilterValueSum !=0:
+            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+                filterName = replaceCapitalAndLowCase(filterName)
+                filterValue = replaceCapitalAndLowCase(filterValue)
+                query +=f' and {filterName}={filterValue} '
 
         query +='''    ) as a where a.Sort=1 and a.chartNo>0
         ) as a
@@ -84,9 +92,11 @@ def confirmpat(request):
                 SELECT *
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
                 FROM [PatientDisease] where [diseaseID]=%s '''
-        for statusfilter in statusfilterNames:
-            statusfilter = replaceCapitalAndLowCase(statusfilter)
-            query +=f' and {statusfilter}=1 '
+        if statusfilterValueSum !=0:
+            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+                filterName = replaceCapitalAndLowCase(filterName)
+                filterValue = replaceCapitalAndLowCase(filterValue)
+                query +=f' and {filterName}={filterValue} '
         query +='''
             ) as a where a.Sort=1 and a.chartNo>0
         ) as a
@@ -158,7 +168,7 @@ def confirmpat2(request):
         from allEvents as a
         inner join medTypeSet as b on a.medType=b.medType
         left join eventDetails as c on a.eventID=c.eventID
-        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
+        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=4 or  c.descriptionType is NULL) and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
         '''
     else:
         query = '''
@@ -166,7 +176,7 @@ def confirmpat2(request):
         from allEvents as a
         inner join medTypeSet as b on a.medType=b.medType
         left join eventDetails as c on a.eventID=c.eventID
-        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=5 or  c.descriptionType is NULL) and eventID_F is null 
+        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=4 or  c.descriptionType is NULL) and eventID_F is null 
         '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[PID])
@@ -182,7 +192,7 @@ def confirmpat2(request):
             eventChecked=True
         object = f'''<tr><td>'''
         if con[i][3] == 30001 or con[i][3]==30002:
-            object += f'''<input type="radio"  onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i} disabled>
+            object += f'''<input type="radio"  onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i} >
                             <label for=timePID{i}>'''
         else:
             object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
@@ -196,16 +206,12 @@ def confirmpat2(request):
         <div class="medType">{con[i][3]}</div>
         <div class="type2">{con[i][4].replace(' ','')}</div>
         ''' 
-        if con[i][3] == 30001 or con[i][3]==30002:
-            object += f'''
-                <p class="report2">{con[i][5]}</p>
-            '''
-        else:
-            object += f'''
-                <div class="note"></div>
-                <div class="menu"></div>
-                <p class="report2">{con[i][6]}</p>
-            '''
+
+        object += f'''
+            <div class="note"></div>
+            <div class="menu"></div>
+            <p class="report2">{con[i][6]}</p>
+        '''
         object += f'''</label></tr></td>'''
         objectArray.append(object)
 
@@ -321,7 +327,7 @@ def updatePhase(request):
     diseaseId = request.POST.get('diseaseId')
     originSeqNo = request.POST.get('originSeqNo')
     cursor = connections['practiceDB'].cursor()
-
+    print('EDID:',EDID,' PDID:',PDID,' eventID:',eventID,' procedureID',procedureID,' chartNo:',chartNo,' diseaseId:',diseaseId,' originSeqNo:',originSeqNo)
     if procedureID=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
@@ -345,7 +351,7 @@ def updatePhase(request):
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
             cursor.execute(query,[procedureID,EDID])
-    return JsonResponse({'sno':[EDID],'originSeqNo':[originSeqNo]})
+    return JsonResponse({'sno':[EDID],'originSeqNo':[originSeqNo],'PDID':PDID})
 @csrf_exempt
 def updateInterval(request):
     EDID = 'NULL' if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
@@ -362,7 +368,7 @@ def updateInterval(request):
     query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
     cursor.execute(query_presearch,[chartNo,newSeqNo,diseaseId])
     searchResult = cursor.fetchall()
-    
+    print('EDID:',EDID,' PDID:',PDID,' eventID:',eventID,' procedureID',procedureID,' chartNo:',chartNo,' diseaseId:',diseaseId,' originSeqNo:',originSeqNo)
     if int(newSeqNo)==0:
         query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
         cursor.execute(query_presearch,[chartNo,originSeqNo,diseaseId])
@@ -586,16 +592,19 @@ def getNum(request):
     cursor = connections['practiceDB'].cursor()
     disease = request.POST.get('disease')
     statusfilterNames = request.POST.getlist('statusfilterNames[]')
-
+    statusfilterValue = request.POST.getlist('statusfilterValue[]')
+    statusfilterValueSum = np.sum(np.array(statusfilterValue).astype(int))
     query = '''
     select COUNT(chartNo) as NUM 
     from(
         SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
         ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
         FROM [PatientDisease] where [diseaseID]=%s'''
-    for statusfilter in statusfilterNames:
-        statusfilter = replaceCapitalAndLowCase(statusfilter)
-        query +=f' and {statusfilter}=1 '
+    if statusfilterValueSum != 0:
+        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+            filterName = replaceCapitalAndLowCase(filterName)
+            filterValue = replaceCapitalAndLowCase(filterValue)
+            query +=f' and {filterName}={filterValue} '
     query += '''    
     ) as a where  a.Sort=1 and a.chartNo>0
     UNION ALL
@@ -607,9 +616,11 @@ def getNum(request):
                 SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
                 ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
                 FROM [PatientDisease] where [diseaseID]=%s'''
-    for statusfilter in statusfilterNames:
-        statusfilter = replaceCapitalAndLowCase(statusfilter)
-        query +=f' and {statusfilter}=1 '                
+    if statusfilterValueSum != 0:
+        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+            filterName = replaceCapitalAndLowCase(filterName)
+            filterValue = replaceCapitalAndLowCase(filterValue)
+            query +=f' and {filterName}={filterValue} '         
     query +='''
             ) as a where a.Sort=1 and a.chartNo>0
         ) as a
@@ -626,9 +637,11 @@ def getNum(request):
             SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
             ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
             FROM [PatientDisease] where [diseaseID]=%s'''
-    for statusfilter in statusfilterNames:
-        statusfilter = replaceCapitalAndLowCase(statusfilter)
-        query +=f' and {statusfilter}=1 '
+    if statusfilterValueSum != 0:
+        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
+            filterName = replaceCapitalAndLowCase(filterName)
+            filterValue = replaceCapitalAndLowCase(filterValue)
+            query +=f' and {filterName}={filterValue} '
     query +='''
         ) as a where a.Sort=1 and a.chartNo>0
     ) as a
@@ -656,12 +669,12 @@ def updatePatientStatus(request):
     treatCheckedSet = request.POST.getlist('treatChecked[]')
     fuCheckedSet = request.POST.getlist('fuChecked[]')
     pdConfirmedSet = request.POST.getlist('pdConfirmed[]')
-    adjTreatCheckedSet = request.POST.getlist('adjTreatChecked[]')
-    neoTreatCheckedSet = request.POST.getlist('neoTreatChecked[]')
-    query = '''UPDATE PatientDisease SET diagChecked = %s,treatChecked=%s,fuChecked=%s,pdConfirmed=%s,adjTreatChecked=%s,neoTreatChecked=%s where PD = %s'''
+    ambiguousCheckedSet = request.POST.getlist('ambiguousChecked[]')
+    ambiguousNoteSet = request.POST.getlist('ambiguousNote[]')
+    query = '''UPDATE PatientDisease SET diagChecked = %s,treatChecked=%s,fuChecked=%s,pdConfirmed=%s,ambiguousChecked=%s,ambiguousNote=%s where PD = %s'''
     cursor = connections['practiceDB'].cursor()
-    for diagChecked,treatChecked,fuChecked,pdConfirmed,adjTreatChecked,neoTreatChecked,PD in zip(diagCheckedSet,treatCheckedSet,fuCheckedSet,pdConfirmedSet,adjTreatCheckedSet,neoTreatCheckedSet,PDSet):
-        cursor.execute(query,[diagChecked,treatChecked,fuChecked,pdConfirmed,adjTreatChecked,neoTreatChecked,PD])
+    for diagChecked,treatChecked,fuChecked,pdConfirmed,ambiguousChecked,ambiguousNote,PD in zip(diagCheckedSet,treatCheckedSet,fuCheckedSet,pdConfirmedSet,ambiguousCheckedSet,ambiguousNoteSet,PDSet):
+        cursor.execute(query,[diagChecked,treatChecked,fuChecked,pdConfirmed,ambiguousChecked,ambiguousNote,PD])
     return JsonResponse({})
 
 @csrf_exempt
@@ -670,13 +683,13 @@ def getPatientStatus(request):
     chartNo = request.POST.get('chartNo')
     disease = request.POST.get('diseaseId')
     query='''
-    select PD, b.disease, caSeqNo, diagChecked, treatChecked, fuChecked, pdConfirmed, neoTreatChecked, adjTreatChecked
+    select PD, b.disease, caSeqNo, diagChecked, treatChecked, fuChecked, pdConfirmed, ambiguousNote, ambiguousChecked
     from PatientDisease as a 
     inner join diseasetList as b on a.diseaseID=b.diseaseID
     where a.chartNo=%s and a.diseaseID=%s 
     '''
     cursor.execute(query,[chartNo,disease])
-    PD,disease,caSeqNo,diagChecked,treatChecked,fuChecked,pdConfirmed,neoTreatChecked,adjTreatChecked=[],[],[],[],[],[],[],[],[]
+    PD,disease,caSeqNo,diagChecked,treatChecked,fuChecked,pdConfirmed,ambiguousNote,ambiguousChecked=[],[],[],[],[],[],[],[],[]
     res = cursor.fetchall()
     for row in res:
         PD.append(row[0])
@@ -686,10 +699,10 @@ def getPatientStatus(request):
         treatChecked.append(False if row[4] is None else row[4])
         fuChecked.append(False if row[5] is None else row[5])
         pdConfirmed.append(False if row[6] is None else row[6])
-        neoTreatChecked.append(False if row[7] is None else row[7])
-        adjTreatChecked.append(False if row[8] is None else row[8])
-
-    return JsonResponse({'PD':PD,'disease':disease,'caSeqNo':caSeqNo,'diagChecked':diagChecked,'treatChecked':treatChecked,'fuChecked':fuChecked,'pdConfirmed':pdConfirmed,'neoTreatChecked':neoTreatChecked,'adjTreatChecked':adjTreatChecked})
+        ambiguousNote.append(row[7])
+        ambiguousChecked.append(False if row[8] is None else row[8])
+    print(ambiguousNote)
+    return JsonResponse({'PD':PD,'disease':disease,'caSeqNo':caSeqNo,'diagChecked':diagChecked,'treatChecked':treatChecked,'fuChecked':fuChecked,'pdConfirmed':pdConfirmed,'ambiguousNote':ambiguousNote,'ambiguousChecked':ambiguousChecked})
 
 @csrf_exempt
 def searchExtractedEventFactorCode(request):
