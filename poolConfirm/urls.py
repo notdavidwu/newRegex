@@ -48,5 +48,9 @@ urlpatterns = [
     path('getEventFactorCode/', views.getEventFactorCode, name='getEventFactorCode'),
     path('searchEventFactorCode/', views.searchEventFactorCode, name='searchEventFactorCode'),
     path('getNewEventFactorID/', views.getNewEventFactorID, name='getNewEventFactorID'),
+    path('getSeqNoOption/', views.getSeqNoOption, name='getSeqNoOption'),
+    path('addPatientDiease/', views.addPatientDiease, name='addPatientDiease'),
+    path('deletelePatientDisease/', views.deletelePatientDisease, name='deletelePatientDisease'),
+    path('updateDiseaseAndSeq/', views.updateDiseaseAndSeq, name='updateDiseaseAndSeq'),
     
 ]

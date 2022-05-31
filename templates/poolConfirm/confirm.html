@@ -110,8 +110,9 @@
         #title table{width: 100%}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
-        .type2{position:flex;width: 30%;padding-left: 20px;padding-top:5px;height: auto}
-        .note{width: 25%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;}
+        .type2{position:flex;width: 25%;padding-left: 20px;padding-top:5px;height: auto}
+        .note{width: 25%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;padding-top:5px}
+        .eventNote{height:100%}
         .menu{width: 25%;right:0;position:absolute;padding-top:5px}
         .add{width:92%;height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
         
@@ -227,7 +228,7 @@
     .mainBlock{
         border-bottom:3px black solid;
     }
-    #patientStatusCheck{width:600px}
+    #patientStatusCheck{width:650px}
     #statusArea table{text-align:center}
     #statusArea table th{font-size:10pt}
     #statusArea input[type="checkbox"] {
@@ -250,6 +251,9 @@
     .formTitle{width:calc(20% - 3.2px);text-align:center;margin:0px;background:url("{% static 'image/texture.png' %}") #ECB88A}
     .delete{margin-top:10px}
     input[name="deleteFactorRow"]{display:none}
+    input[name="deletePatientDisease"]{display:none}
+    .deletePatientDisease{width:20px}
+    .form-control{font-size:10pt}
 </style>
 
 
@@ -280,10 +284,10 @@
         $('#timePID'+i).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
 
     }
-    function addPhaseAndSeq(pannel,medType,IntervalNoOption,appendOrPrepend){
+    function addPhaseAndSeq(pannel,medType,seqNoOption,appendOrPrepend){
         let selection = getClinicalProcedures(medType)
         let addObject = '<div class=menublock id="sno_-1">'+
-            '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+IntervalNoOption+'</select>'+
+            '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+seqNoOption+'</select>'+
             '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
             '</div>'
         if(appendOrPrepend=='append'){
@@ -312,7 +316,7 @@
     function addMenu(){
         let id = $(event.target).parents('label').prevAll('input').attr('id')
         let IND = id.split('timePID')[1]
-        addPhaseAndSeq(id,selection,IntervalNoOption,'prepend')
+        addPhaseAndSeq(id,selection,seqNoOption,'prepend')
         setdisplay(IND)
     }
 
@@ -374,7 +378,7 @@
         })
 
     }
-    function searchRecord(IND,eventID,medType,IntervalNoOption,total){
+    function searchRecord(IND,eventID,medType,seqNoOption,total){
         let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         $.ajax({
             type: 'post',
@@ -388,7 +392,7 @@
             success:function (response){
                 for(var i =0 ;i<response.Record;i++){
                     let id = 'timePID'+IND.toString()
-                    addPhaseAndSeq(id,medType,IntervalNoOption,'append')
+                    addPhaseAndSeq(id,medType,seqNoOption,'append')
                     let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
                     
                     $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).attr('id',RecordedID)
@@ -426,54 +430,69 @@
         patientStatusCheckClose()
         extractedFactorClose()
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
-        IntervalNoOption='<option value="0">?</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option  value="8">8</option><option  value="9">9</option><option  value="10">10</option>'
+        seqNoOption='<option value=0>?</option>'
         let scrollTop = $('#patient').scrollTop()
         let excludeFilter = $('#excludeFilter').is(':checked')
+        
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
+            url: '{% url "poolConfirm:getSeqNoOption" %}', // this is the mapping between the url and view
             data:{
-                'ID':text,
-                'scrollTop':scrollTop,
-                'excludeFilter':excludeFilter,
+                'chartNo':text,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('#time').children('tbody').children('tr').remove()
-                var HeavyDisease=[30001,30002]
-                if(response.objectArray.length!=0){
-                    $('#accordionExample').empty()
-                    for(var i=0;i<response.objectArray.length;i++){
-                        if(response.MedType[i]==30001 || response.MedType[i]==30002){
-                            $('#time').append(response.objectArray[i])
-                            $('#timePID'+i).parents('td').css('background-color', '#33333a')
-                            $('#timePID'+i).next('label').css('color', 'red')
-                            searchRecord(i,response.eventID[i],response.MedType[i],IntervalNoOption,response.objectArray.length)
-                            setdisplay(i)
+                seqNoOption+=response.seqNo
+            },
+            complete:function(){
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
+                    data:{
+                        'ID':text,
+                        'scrollTop':scrollTop,
+                        'excludeFilter':excludeFilter,
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                    },
+                    success:function (response){
+                        $('#time').children('tbody').children('tr').remove()
+                        var HeavyDisease=[30001,30002]
+                        if(response.objectArray.length!=0){
+                            $('#accordionExample').empty()
+                            for(var i=0;i<response.objectArray.length;i++){
+                                if(response.MedType[i]==30001 || response.MedType[i]==30002){
+                                    $('#time').append(response.objectArray[i])
+                                    $('#timePID'+i).parents('td').css('background-color', '#33333a')
+                                    $('#timePID'+i).next('label').css('color', 'red')
+                                    searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
+                                    setdisplay(i)
+                                }else{
+                                    $('#time').append(response.objectArray[i])
+                                    searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
+                                }
+                            }
+                            total_num = response.objectArray.length
+                            for(let i=0;i<response.eventID_F.length;i++){
+                                let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
+                                let index = eventIDGroup.indexOf(response.eventID_F[i])
+                                let target = $('#timetable .eventID').eq(index)
+                                let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
+        
+                                target.parents('label').append(`<div class="btn btn-primary accordion" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
+                                target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
+                                addInducedEvent(i,response.eventID_F[i],targetID)
+                            }
                         }else{
-                            $('#time').append(response.objectArray[i])
-                            searchRecord(i,response.eventID[i],response.MedType[i],IntervalNoOption,response.objectArray.length)
+                            $('#accordionExample').html('<p style="postion:absolute;width:100%;font-size: 40pt;font-weight:700;text-align: center;font-family: font-family: "LiGothic", "FangSong", Arial, serif;">查無資料</p>')
+                            $('#timetable').css('visibility','visible')
+                            $('.loader2').css('display','none')
                         }
+                        $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
                     }
-                    total_num = response.objectArray.length
-                    for(let i=0;i<response.eventID_F.length;i++){
-                        let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
-                        let index = eventIDGroup.indexOf(response.eventID_F[i])
-                        let target = $('#timetable .eventID').eq(index)
-                        let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
-
-                        target.parents('label').append(`<div class="btn btn-primary accordion" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
-                        target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
-                        addInducedEvent(i,response.eventID_F[i],targetID)
-                    }
-                }else{
-                    $('#accordionExample').html('<p style="postion:absolute;width:100%;font-size: 40pt;font-weight:700;text-align: center;font-family: font-family: "LiGothic", "FangSong", Arial, serif;">查無資料</p>')
-                    $('#timetable').css('visibility','visible')
-                    $('.loader2').css('display','none')
-                }
-                $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
+                })
             }
         })
+        
         
         $.ajax({
             type: 'post',
@@ -508,11 +527,11 @@
         })
     }
     function showReport(){
-        $('#text').text($('input[name=timePID]:checked').next('label').children('.report2').text())
+        $('#text').html($('input[name=timePID]:checked').next('label').children('.report2').text())
     }
     function GetReport() {
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
-        $('#text').text(reporttext)
+        $('#text').html(reporttext)
         if($('#ascription').css('display')!='none'){
             let pdID = $('input[name="timePID"]:checked').next('label').children('.pdID').html()
             let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
@@ -572,20 +591,18 @@
         let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
         let EDID = target.parents('.menublock').attr('id').split('_')[1]
         let pdID = target.parents('.menublock').attr('id').split('_')[3]
+        let seqNo = target.val()
         let eventID = target.parents('.menu').prevAll('.eventID').html()
-        let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
-        let originSeqNo = target.parents('.menublock').attr('id').split('_')[4]
-        let newSeqNo = target.val()
         let procedureID = target.next('.phase').val()
+        let PDIDGroup = $('#accordionExample .menublock').map(function(){return parseInt($(this).attr('id').split('_')[3])}).get()
+        let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
         let diseaseId = $('#ChangeDisease').val()
-
-        if(originSeqNo == 0){
-            target.next('.phase').children('option').eq(1).attr('selected','selected')
-            procedureID = target.next('.phase').val()
-        }else if(newSeqNo == 0){
-            target.next('.phase').val(0)
+        target.css('border','none')
+        if(pdID==-1){
+            pdID = Math.min(...PDIDGroup.filter(PDID => PDID > 0))
+            target.next('.phase').children('option').eq(1).prop('selected',true)
+            procedureID =  target.next('.phase').val()
         }
-
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updateInterval" %}', // this is the mapping between the url and view
@@ -593,18 +610,17 @@
                 'EDID':EDID,
                 'PDID':pdID,
                 'eventID':eventID,
-                'chartNo':chartNo,
-                'originSeqNo':originSeqNo,
-                'newSeqNo':newSeqNo,
-                'diseaseId':diseaseId,
                 'procedureID':procedureID,
+                'chartNo':chartNo,
+                'diseaseId':diseaseId,
+                'seqNo':seqNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                target.parents('.menublock').attr('id',`sno_${response.EDID}_${eventID}_${response.returnPDID}_${newSeqNo}`)
+                target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.seqNo}`)
+                //searchNote(IND,eventID)
             }
         })
-        
     }
 
 
@@ -645,7 +661,8 @@
     }
 
     function statusOpen(){
-        
+        let seq = ''
+        for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
         let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         let diseaseId = $('#ChangeDisease').val()
         $("#patientStatusCheck").css('display', 'inline');
@@ -662,15 +679,16 @@
 
                 for(let i=0; i<response.PD.length; i++){
                     $('#statusArea tbody').append(`
-                    <tr id=${response.PD[i]}>
-                        <td>${response.disease[i]}</td>
-                        <td>${response.caSeqNo[i]}</td>
+                    <tr data-prepareAdd='true' id=${response.PD[i]}>
+                        <td><select onchange="updateDiseaseAndSeq()" class="diseaseCheck form-control">${$('#ChangeDisease').html()}</select></td>
+                        <td><select onchange="updateDiseaseAndSeq()" class="seqCheck form-control">${seq}</select></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="diagChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea');ambiguous();" class="ambiguousChecked" name=${response.PD[i]}></td>
                         <td><input type="text" class="ambiguousNote"  ></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${response.PD[i]}></td>
+                        <td><input type="radio" name="deletePatientDisease"><button type="button" onclick="deletelePatientDiseaseRow()" class="btn-close delete deletePatientDisease" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deletelePatientDiseaseModal"></button></td>
                     </tr>
                     `)
                     $('#statusArea .diagChecked').eq(i).prop('checked',response.diagChecked[i])
@@ -684,7 +702,57 @@
                     }else{
                         $('#statusArea .ambiguousNote').eq(i).prop('disabled',true)
                     }
+                    $('#statusArea .diseaseCheck').eq(i).val(response.disease[i])
+                    $('#statusArea .seqCheck').eq(i).val(response.caSeqNo[i])
                 }
+                $('#statusArea tbody').append('<tr><td colspan=9><div class="addButton"><button type="button" onclick="addPatientStatus()" class="add btn btn-outline-primary">+</button></div></td></tr>')
+            }
+        })
+    }
+
+    function addPatientStatus(){
+        let chartNo = $('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let seq = ''
+        for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:addPatientDiease" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                let PD = response.PD
+                $(` <tr data-prepareAdd='true' id=${PD}>
+                    <td><select onchange="updateDiseaseAndSeq()" class="form-control diseaseCheck">${$('#ChangeDisease').html()}</select></td>
+                    <td><select onchange="updateDiseaseAndSeq()" class="form-control seqCheck">${seq}</select></td>
+                    <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="diagChecked" name=${PD}></td>
+                    <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${PD}></td>
+                    <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${PD}></td>
+                    <td><input type="checkbox" onclick="excludeCheck('statusArea');ambiguous();" class="ambiguousChecked" name=${PD}></td>
+                    <td><input type="text" class="ambiguousNote"  ></td>
+                    <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${PD}></td>
+                    <td><input type="radio" name="deletePatientDisease"><button type="button" onclick="deletelePatientDiseaseRow()" class="btn-close delete deletePatientDisease" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deletelePatientDiseaseModal"></button></td>
+                </tr>
+                `).insertBefore($('#statusArea .addButton').parents('tr'))
+            }
+        })
+    }
+    function updateDiseaseAndSeq(){
+        let PDID = $(event.target).parents('tr').attr('id')
+        let diseaseID = $(event.target).parents('tr').children('td').eq(0).children('select').val()
+        let caSeqNo = $(event.target).parents('tr').children('td').eq(1).children('select').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updateDiseaseAndSeq" %}', // this is the mapping between the url and view
+            data:{
+                'PDID':PDID,
+                'diseaseID':diseaseID,
+                'caSeqNo':caSeqNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(){
+
             }
         })
     }
@@ -713,9 +781,25 @@
         $("#patientStatusCheck").css('display', 'none');
         
     }
-
+    function deletelePatientDiseaseRow(){
+        $(event.target).prev('input').prop('checked',true)
+    }
+    function deletelePatientDisease(){
+        let PDID = $('input[name="deletePatientDisease"]:checked').parents('tr').attr('id')
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:deletelePatientDisease" %}', // this is the mapping between the url and view
+            data:{
+                'PDID':PDID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('input[name="deletePatientDisease"]:checked').parents('tr').remove()
+            }
+        })
+    }
     function patientStatusSubmit(){
-        var target = $('#statusArea').children('table').children('tbody').children('tr')
+        var target = $('#statusArea').children('table').children('tbody').children('tr[data-prepareAdd="true"]')
         let PD = target.map(function(){return $(this).attr('id')}).get()
         let diagChecked = target.map(function(){return Number($(this).children('td').children('.diagChecked').prop('checked'))}).get()
         let treatChecked = target.map(function(){return Number($(this).children('td').children('.treatChecked').prop('checked'))}).get()
@@ -723,16 +807,26 @@
         let pdConfirmed = target.map(function(){return Number($(this).children('td').children('.pdConfirmed').prop('checked'))}).get()
         let ambiguousChecked = target.map(function(){return Number($(this).children('td').children('.ambiguousChecked').prop('checked'))}).get()
         let ambiguousNote = target.map(function(){return $(this).children('td').children('.ambiguousNote').val()}).get()
+        let total = $('#statusArea .diagChecked').length
         let scrollTop = $('#patient').scrollTop()
         var excludes = 1
+        let checked_pdConfirmed = 0
+        let checked_diagChecked = 0
+        let checked_treatChecked = 0
+        let checked_fuChecked = 0
+        let checked_ambiguousChecked = 0
         let checked = 0
-        for(let i =0;i<pdConfirmed.length;i++){checked+=pdConfirmed[i]}
-        for(let i =0;i<diagChecked.length;i++){checked+=diagChecked[i]}
-        for(let i =0;i<treatChecked.length;i++){checked+=treatChecked[i]}
-        for(let i =0;i<fuChecked.length;i++){checked+=fuChecked[i]}
-        for(let i =0;i<ambiguousChecked.length;i++){checked+=ambiguousChecked[i]}
-        for(let i =0;i<ambiguousNote.length;i++){checked+=ambiguousNote[i]}
-        
+        for(let i =0;i<pdConfirmed.length;i++){checked_pdConfirmed+=pdConfirmed[i]}
+        for(let i =0;i<diagChecked.length;i++){checked_diagChecked+=diagChecked[i]}
+        for(let i =0;i<treatChecked.length;i++){checked_treatChecked+=treatChecked[i]}
+        for(let i =0;i<fuChecked.length;i++){checked_fuChecked+=fuChecked[i]}
+        for(let i =0;i<ambiguousChecked.length;i++){checked_ambiguousChecked+=ambiguousChecked[i]}
+        if(checked_pdConfirmed==total||checked_diagChecked==total||checked_treatChecked==total||checked_fuChecked==total||checked_ambiguousChecked==total){
+            checked=1
+        }
+        let caSeqNo = $('#statusArea .seqCheck')
+        let caSeqNoObject = '<option value=0>?</option>'
+        for(let i=0;i<caSeqNo.length;i++){caSeqNoObject+=`<option value=${caSeqNo.eq(i).val()}>${caSeqNo.eq(i).val()}</option>`}
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
@@ -761,6 +855,12 @@
                     }
                 }else{
                     statusFilter()
+                }
+                let IntervalNoObject = $('.menublock .IntervalNo')
+                if(IntervalNoObject.eq(0).html!=undefined){
+                    IntervalNoObject.map(function(){
+                        return $(this).html(caSeqNoObject)
+                    }).get()
                 }
                 patientStatusCheckClose()
             }
@@ -804,6 +904,7 @@
     function changeForm(){
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let eventFactorCode = $('#formVersion').val()
+        $('#factorGroupArea .formStructure').remove()
         formGenerator(eventID,eventFactorCode,'#factorGroupArea','prepend',searchExtractedFactorsRecord())
     }
 
@@ -1813,7 +1914,24 @@
             </table>
         </form>
     </div>
-
+    
+    <div class="modal fade" id="deletelePatientDiseaseModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="InsertMessage" class="modal-body">
+                    確定要刪除?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deletelePatientDisease()">刪除</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="deleteleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1831,7 +1949,6 @@
             </div>
         </div>
     </div>
-
     <div class="checkPannel" id="patientStatusCheck">
         <div class="ascriptionHeader">
             病患資料確認
@@ -1841,10 +1958,12 @@
               <table class="table table-striped table-hover" >
                 <thead>
                     <tr>
-                        <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>F/U</th><th>Ambiguous</th><th>AmbiguousNote</th><th>Exclude</th>
+                        <th>Disease</th><th>SeqNo</th><th>Diag</th><th>Treat</th><th>F/U</th><th>Ambiguous</th><th>AmbiguousNote</th><th>Exclude</th><th>刪除</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    
+                </tbody>
             </table>
         </div>
         <button type="submit" class="btn btn-primary submit" onclick="patientStatusSubmit()">Submit</button>

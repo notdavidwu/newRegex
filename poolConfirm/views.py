@@ -150,35 +150,11 @@ def updateEventConfirm(request):
 def confirmpat2(request):
     PID=request.POST.get('ID')
     excludeFilter = request.POST.get('excludeFilter')
-    # query = '''
-    # select b.chartNo,f.orderNo,f.eventDate,f.medType,e.typeName,g.descriptionType,g.reportText,f.eventID,b.PD
-    # from diseasetList as a inner join PatientDisease as b on a.diseaseId=b.diseaseId
-    #     left outer join allEvents as f on b.chartNo=f.chartNo 
-    #     inner join medTypeSet as e on e.medType=f.medType
-    #     left outer join eventDetails as g on f.eventID=g.eventID
-    # where b.chartNo=%s and g.descriptionType=3
-    # order by f.eventDate DESC
-    # '''
     scrollTop = request.POST.get('scrollTop')
     request.session['poolConfirm_scrollTop']=scrollTop
-    if excludeFilter=='false':
-        query = '''
-        select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.eventChecked
-        from allEvents as a
-        inner join medTypeSet as b on a.medType=b.medType
-        left join eventDetails as c on a.eventID=c.eventID
-        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=4 or  c.descriptionType is NULL) and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
-        '''
-    else:
-        query = '''
-        select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.eventChecked
-        from allEvents as a
-        inner join medTypeSet as b on a.medType=b.medType
-        left join eventDetails as c on a.eventID=c.eventID
-        where a.chartNo=%s and (c.descriptionType=3 or c.descriptionType=4 or  c.descriptionType is NULL) and eventID_F is null 
-        '''
+    query = '''EXEC getPatientEvent @chartNo = %s, @filter = %s'''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[PID])
+    cursor.execute(query,[PID,excludeFilter])
     objectArray=[]
     MedType=[]
     eventID=[]
@@ -190,12 +166,9 @@ def confirmpat2(request):
         if eventChecked is None:
             eventChecked=True
         object = f'''<tr><td>'''
-        if con[i][3] == 30001 or con[i][3]==30002:
-            object += f'''<input type="radio"  onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i} >
-                            <label for=timePID{i}>'''
-        else:
-            object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
-                            <label for=timePID{i}>'''
+
+        object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
+                    <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>
         <div class="eventID">{con[i][7]}</div>
@@ -204,13 +177,11 @@ def confirmpat2(request):
         <div class="edate">{con[i][2]}</div>
         <div class="medType">{con[i][3]}</div>
         <div class="type2">{con[i][4].replace(' ','')}</div>
+        <div class="note"><input type="text" class="form-control eventNote"></div>
+        <div class="menu"></div>
+        <p class="report2">{con[i][6]}</p>
         ''' 
 
-        object += f'''
-            <div class="note"></div>
-            <div class="menu"></div>
-            <p class="report2">{con[i][6]}</p>
-        '''
         object += f'''</label></tr></td>'''
         objectArray.append(object)
 
@@ -238,7 +209,7 @@ def getCancerRegistData(request):
                 inner join diseasetList as b on a.diseaseID=b.diseaseID
                 inner join eventDefinitions as c on a.PD=c.PDID
                 inner join clinicalProcedures as d on c.procedureID=d.procedureID
-                where chartNo=%s and c.caregExecDate is not NULL
+                where chartNo=%s and c.caregExecDate is not NULL order by c.caregExecDate
             '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo])
@@ -322,27 +293,12 @@ def updatePhase(request):
     PDID = request.POST.get('PDID')
     eventID = request.POST.get('eventID')
     procedureID = request.POST.get('procedureID')
-    chartNo = request.POST.get('chartNo')
-    diseaseId = request.POST.get('diseaseId')
     originSeqNo = request.POST.get('originSeqNo')
     cursor = connections['practiceDB'].cursor()
-    
     if procedureID=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
     else:
-        
-        if PDID == 'Infinity':
-            query = 'SELECT top(1)PD,caSeqNo FROM PatientDisease WHERE chartNo = %s'
-            cursor.execute(query,[chartNo])
-            res=cursor.fetchall()
-            PDID = res[0][0]
-            originSeqNo = res[0][1]
-            
-            if len(res)==0:
-                queryInsert = '''INSERT INTO PatientDisease (chartNo,diseaseID,caSeqNo) OUTPUT INSERTED .PD VALUES(%s,%s,%s)'''
-                cursor.execute(queryInsert,[chartNo,diseaseId,1])
-                PDID = cursor.fetchall()[0][0]
         if EDID == 'NULL': #insert
             query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
             cursor.execute(query,[eventID,PDID,procedureID])
@@ -354,78 +310,26 @@ def updatePhase(request):
 @csrf_exempt
 def updateInterval(request):
     EDID = 'NULL' if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
-    PDID = 'NULL' if request.POST.get('PDID')=='-1' else request.POST.get('PDID')
-    eventID = request.POST.get('eventID')
-    chartNo = request.POST.get('chartNo')
-    procedureID=request.POST.get('procedureID')
-
-    newSeqNo = request.POST.get('newSeqNo')
-    originSeqNo = int(request.POST.get('originSeqNo'))
-    diseaseId = request.POST.get('diseaseId')
-    cursor = connections['practiceDB'].cursor()
-    '''先搜尋該seqNo有沒有預設在PatientDease'''
-    query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
-    cursor.execute(query_presearch,[chartNo,newSeqNo,diseaseId])
-    searchResult = cursor.fetchall()
+    PDID = request.POST.get('PDID')
     
-    if int(newSeqNo)==0:
-        query_presearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
-        cursor.execute(query_presearch,[chartNo,originSeqNo,diseaseId])
-        searchResult3 = cursor.fetchall()
-        
-        diagStatus = searchResult3[0][1]
-        treatStatus = searchResult3[0][2]
-        if diagStatus is None and treatStatus is None:
-            queryDelete='''DELETE FROM PatientDisease WHERE PD=%s'''
-            cursor.execute(queryDelete,[PDID])
+    eventID = request.POST.get('eventID')
+    procedureID = request.POST.get('procedureID')
+    seqNo = request.POST.get('seqNo')
+    cursor = connections['practiceDB'].cursor()
+    print('EDID:',EDID,' seqNo:',seqNo)
+    if seqNo=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
-        returnPDID=-1
         EDID=-1
     else:
-        if len(searchResult)==0:
-            '''insert new caSeqNo into PatientDease'''
-            queryInsert = '''INSERT INTO PatientDisease (chartNo,diseaseID,caSeqNo) OUTPUT INSERTED .PD VALUES(%s,%s,%s)'''
-            cursor.execute(queryInsert,[chartNo,diseaseId,newSeqNo])
-            newPDID = cursor.fetchall()[0][0]
-            if PDID != 'NULL':
-                '''修改 eventDefinitions PDID'''
-                queryModify = '''UPDATE eventDefinitions SET PDID=%s where PDID=%s and eventID=%s'''
-                cursor.execute(queryModify,[newPDID,PDID,eventID])
-            else:
-                queryInsert = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
-                cursor.execute(queryInsert,[eventID,newPDID,procedureID])
-                EDID = cursor.fetchall()[0]
-            returnPDID=newPDID
-        else:
-            '''先找舊的PDID'''
-            querySearch='''select PD,diagStatus,treatStatus from PatientDisease where chartNo=%s and caSeqNo=%s and diseaseID=%s'''
-            if int(originSeqNo)!=0:
-                cursor.execute(querySearch,[chartNo,originSeqNo,diseaseId])
-            else:
-                cursor.execute(querySearch,[chartNo,newSeqNo,diseaseId])
-            searchResult2 = cursor.fetchall()
-            oldPDID = searchResult2[0][0]
-            diagStatus = searchResult2[0][1]
-            treatStatus = searchResult2[0][2]
-
-            returnPDID=searchResult[0][0]
-
-            '''如果 diagStatus or treatStatus 不是null 代表是癌登資料，不刪除'''
-            if diagStatus is None and treatStatus is None:
-                queryDelete='''DELETE FROM PatientDisease WHERE PD=%s'''
-                cursor.execute(queryDelete,[oldPDID])
-            if PDID != 'NULL':
-                '''修改 eventDefinitions PDID'''
-                queryModify = '''UPDATE eventDefinitions SET PDID=%s where PDID=%s and eventID=%s'''
-                cursor.execute(queryModify,[returnPDID,oldPDID,eventID])
-            else:
-                queryInsert = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
-                cursor.execute(queryInsert,[eventID,oldPDID,procedureID])
-                EDID = cursor.fetchall()[0]
-
-        
-    return JsonResponse({'EDID':EDID,'returnPDID':returnPDID})
+        if EDID == 'NULL': #insert
+            query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
+            cursor.execute(query,[eventID,PDID,procedureID])
+            EDID = cursor.fetchall()[0]
+        else: #update
+            query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
+            cursor.execute(query,[procedureID,EDID])
+    return JsonResponse({'sno':[EDID],'seqNo':[seqNo],'PDID':PDID})
 
 @csrf_exempt
 def searchNote(request):
@@ -497,18 +401,7 @@ def searchRecord(request):
     eventID = request.POST.get('eventID')
 
     query = '''
-        select * from (
-        select b.caSeqNo,c.EDID,c.eventID,c.procedureID,f.eventID as 'eventID_F',b.PD,c.caregExecDate,f.eventDate
-        from diseasetList as a inner join PatientDisease as b on a.diseaseID=b.diseaseID
-            inner join eventDefinitions as c on b.PD=c.PDID
-            inner join ProcedureEvent as d on c.procedureID=d.procedureID
-            inner join medTypeSet as e on d.groupNo=e.groupNo
-            left outer join allEvents as f on b.chartNo=f.chartNo and e.medType=f.medType
-            left outer join eventDetails as g on f.eventID=g.eventID
-        where b.chartNo=%s and f.eventDate is not null  and descriptionType=3 
-        and  (DATEDIFF(DAY, c.caregExecDate, f.eventDate) between -5 and 5 or  c.caregExecDate is null)  
-        and ((c.eventID is null and f.eventID is not null) or (c.eventID is not null and c.eventID=f.eventID))
-        ) as res  where res.eventID_F=%s
+        EXEC searchRecord @chartNo = %s,@eventID=%s
     '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo,eventID])
@@ -572,11 +465,7 @@ def deleteEvent_F(request):
 def getClinicalProcedures(request):
     medType = request.POST.get('medType')
     query = '''
-        select c.procedureID,c.procedureName from medTypeSet as a
-        inner join ProcedureEvent as b on a.groupNo=b.groupNo
-        inner join clinicalProcedures as c on b.[procedureID]=c.[procedureID]
-        where medType=%s
-        order by c.procedureID
+        EXEC getClinicalProcedures @medType = %s
     '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[medType])
@@ -682,12 +571,12 @@ def getPatientStatus(request):
     chartNo = request.POST.get('chartNo')
     disease = request.POST.get('diseaseId')
     query='''
-    select PD, b.disease, caSeqNo, diagChecked, treatChecked, fuChecked, pdConfirmed, ambiguousNote, ambiguousChecked
+    select PD, a.diseaseID, caSeqNo, diagChecked, treatChecked, fuChecked, pdConfirmed, ambiguousNote, ambiguousChecked
     from PatientDisease as a 
     inner join diseasetList as b on a.diseaseID=b.diseaseID
-    where a.chartNo=%s and a.diseaseID=%s 
+    where a.chartNo=%s
     '''
-    cursor.execute(query,[chartNo,disease])
+    cursor.execute(query,[chartNo])
     PD,disease,caSeqNo,diagChecked,treatChecked,fuChecked,pdConfirmed,ambiguousNote,ambiguousChecked=[],[],[],[],[],[],[],[],[]
     res = cursor.fetchall()
     for row in res:
@@ -1083,3 +972,44 @@ def getNewEventFactorID(request):
     cursor.execute(query,[])
     newEventFactorID = cursor.fetchall()[0][0]
     return JsonResponse({'newEventFactorID':newEventFactorID})
+
+@csrf_exempt
+def getSeqNoOption(request):
+    chartNo=request.POST.get('chartNo')
+    query = '''
+        select caSeqNo from PatientDisease where chartNo=%s 
+    '''
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[chartNo])
+    result = cursor.fetchall()
+    seqNo=''
+    for row in result:
+        seqNo += f'<option value={row[0]}>{row[0]}</option>'
+    return JsonResponse({'seqNo':seqNo})
+
+@csrf_exempt
+def addPatientDiease(request):
+    chartNo=request.POST.get('chartNo')
+    query = 'insert  into [PatientDisease] (chartNo,diseaseID) output inserted.PD values(%s,%s) '
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[chartNo,1])
+    PD = cursor.fetchall()[0][0]
+    return JsonResponse({'PD':PD})
+
+@csrf_exempt
+def deletelePatientDisease(request):
+    PDID = request.POST.get('PDID')
+    query = 'delete from PatientDisease where PD=%s;delete from eventDefinitions where PDID=%s;'
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[PDID,PDID])
+    return JsonResponse({})
+
+@csrf_exempt
+def updateDiseaseAndSeq(request):
+    PDID = request.POST.get('PDID')
+    diseaseID = request.POST.get('diseaseID')
+    caSeqNo = request.POST.get('caSeqNo')
+    query = 'update [PatientDisease] set diseaseID=%s,caSeqNo=%s where PD=%s'
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[diseaseID,caSeqNo,PDID])
+    return JsonResponse({})
