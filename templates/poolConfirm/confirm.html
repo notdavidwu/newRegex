@@ -686,7 +686,7 @@
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea');ambiguous();" class="ambiguousChecked" name=${response.PD[i]}></td>
-                        <td><input type="text" class="ambiguousNote"  ></td>
+                        <td><input type="text" class="ambiguousNote"  name=ambiguousNote_${response.PD[i]}></td>
                         <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${response.PD[i]}></td>
                         <td><input type="radio" name="deletePatientDisease"><button type="button" onclick="deletelePatientDiseaseRow()" class="btn-close delete deletePatientDisease" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deletelePatientDiseaseModal"></button></td>
                     </tr>
@@ -730,7 +730,7 @@
                     <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="treatChecked" name=${PD}></td>
                     <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="fuChecked" name=${PD}></td>
                     <td><input type="checkbox" onclick="excludeCheck('statusArea');ambiguous();" class="ambiguousChecked" name=${PD}></td>
-                    <td><input type="text" class="ambiguousNote"  ></td>
+                    <td><input type="text" class="ambiguousNote"  disabled></td>
                     <td><input type="checkbox" onclick="excludeCheck('statusArea')" class="pdConfirmed" name=${PD}></td>
                     <td><input type="radio" name="deletePatientDisease"><button type="button" onclick="deletelePatientDiseaseRow()" class="btn-close delete deletePatientDisease" aria-label="Close"  data-bs-toggle="modal" data-bs-target="#deletelePatientDiseaseModal"></button></td>
                 </tr>
@@ -780,6 +780,7 @@
             $(`#${pannel} input[name="${targetName}"][class^="treatChecked"]`).prop('checked',false)
             $(`#${pannel} input[name="${targetName}"][class^="ambiguousChecked"]`).prop('checked',false)
             $(`#${pannel} input[name="${targetName}"][class^="fuChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="ambiguousNote_${targetName}"][class="ambiguousNote"]`).prop('disabled',true)
         }else{
             $(`#${pannel} input[name="${targetName}"][class^="pdConfirmed"]`).prop('checked',false)
         }
