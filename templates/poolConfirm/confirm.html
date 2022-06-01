@@ -752,7 +752,15 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(){
-
+                let caSeqNo = $('#statusArea .seqCheck')
+                let caSeqNoObject = '<option value=0>?</option>'
+                for(let i=0;i<caSeqNo.length;i++){caSeqNoObject+=`<option value=${caSeqNo.eq(i).val()}>${caSeqNo.eq(i).val()}</option>`}
+                let IntervalNoObject = $('.menublock .IntervalNo')
+                if(IntervalNoObject.eq(0).html!=undefined){
+                    IntervalNoObject.map(function(){
+                        return $(this).html(caSeqNoObject)
+                    }).get()
+                }
             }
         })
     }
@@ -795,6 +803,15 @@
             },
             success:function (response){
                 $('input[name="deletePatientDisease"]:checked').parents('tr').remove()
+                let caSeqNo = $('#statusArea .seqCheck')
+                let caSeqNoObject = '<option value=0>?</option>'
+                for(let i=0;i<caSeqNo.length;i++){caSeqNoObject+=`<option value=${caSeqNo.eq(i).val()}>${caSeqNo.eq(i).val()}</option>`}
+                let IntervalNoObject = $('.menublock .IntervalNo')
+                if(IntervalNoObject.eq(0).html!=undefined){
+                    IntervalNoObject.map(function(){
+                        return $(this).html(caSeqNoObject)
+                    }).get()
+                }
             }
         })
     }
@@ -824,9 +841,7 @@
         if(checked_pdConfirmed==total||checked_diagChecked==total||checked_treatChecked==total||checked_fuChecked==total||checked_ambiguousChecked==total){
             checked=1
         }
-        let caSeqNo = $('#statusArea .seqCheck')
-        let caSeqNoObject = '<option value=0>?</option>'
-        for(let i=0;i<caSeqNo.length;i++){caSeqNoObject+=`<option value=${caSeqNo.eq(i).val()}>${caSeqNo.eq(i).val()}</option>`}
+        
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
@@ -855,12 +870,6 @@
                     }
                 }else{
                     statusFilter()
-                }
-                let IntervalNoObject = $('.menublock .IntervalNo')
-                if(IntervalNoObject.eq(0).html!=undefined){
-                    IntervalNoObject.map(function(){
-                        return $(this).html(caSeqNoObject)
-                    }).get()
                 }
                 patientStatusCheckClose()
             }
@@ -1699,7 +1708,6 @@
             <input type="checkbox" id="statusFilter2" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="treatChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter2">Treat</label>
             <input type="checkbox" id="statusFilter5" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="fuChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter5">F/U</label>
             <input type="checkbox" id="statusFilter4" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="ambiguousChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter4">Ambiguous</label>
-            <input type="checkbox" id="statusFilter3" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="ambiguousNote btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter3">AmbiguousNote</label>
             <input type="checkbox" id="statusFilter6" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="pdConfirmed btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter6">Exclude</label>
         </div>            
     </div>
