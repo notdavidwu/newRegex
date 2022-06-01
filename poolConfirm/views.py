@@ -177,7 +177,7 @@ def confirmpat2(request):
         <div class="edate">{con[i][2]}</div>
         <div class="medType">{con[i][3]}</div>
         <div class="type2">{con[i][4].replace(' ','')}</div>
-        <div class="note"><input type="text" class="form-control eventNote"></div>
+        <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()"></div>
         <div class="menu"></div>
         <p class="report2">{con[i][6]}</p>
         ''' 
@@ -1012,4 +1012,13 @@ def updateDiseaseAndSeq(request):
     query = 'update [PatientDisease] set diseaseID=%s,caSeqNo=%s where PD=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[diseaseID,caSeqNo,PDID])
+    return JsonResponse({})
+
+@csrf_exempt
+def updateEventNote(request):
+    eventID = request.POST.get('eventID')
+    note = request.POST.get('note')
+    query = 'update allEvents set note=%s where eventID=%s'
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[eventID,note])
     return JsonResponse({})

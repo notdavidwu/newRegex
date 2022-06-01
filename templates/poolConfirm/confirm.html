@@ -1608,6 +1608,21 @@
         $("#designArea tbody").empty()
         $("#formDesignPannel").css('display', 'none');
     }
+
+    function updateEventNote(){
+        let eventID = $(event.target).parent('.note').prevAll('.eventID').html()
+        let note = $(event.target).val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "poolConfirm:updateEventNote" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'note':note,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            }
+        })
+    }
+
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {

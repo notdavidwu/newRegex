@@ -52,5 +52,6 @@ urlpatterns = [
     path('addPatientDiease/', views.addPatientDiease, name='addPatientDiease'),
     path('deletelePatientDisease/', views.deletelePatientDisease, name='deletelePatientDisease'),
     path('updateDiseaseAndSeq/', views.updateDiseaseAndSeq, name='updateDiseaseAndSeq'),
+    path('updateEventNote/', views.updateEventNote, name='updateEventNote'),
     
 ]
