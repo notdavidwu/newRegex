@@ -163,8 +163,12 @@ def confirmpat2(request):
         MedType.append(con[i][3])
         eventID.append(con[i][7])
         eventChecked = con[i][8]
+        note = con[i][9]
         if eventChecked is None:
             eventChecked=True
+        if note is None:
+            note=''
+
         object = f'''<tr><td>'''
 
         object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
@@ -177,7 +181,7 @@ def confirmpat2(request):
         <div class="edate">{con[i][2]}</div>
         <div class="medType">{con[i][3]}</div>
         <div class="type2">{con[i][4].replace(' ','')}</div>
-        <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value={con[i][9]}></div>
+        <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value={note}></div>
         <div class="menu"></div>
         <p class="report2">{con[i][6]}</p>
         ''' 
