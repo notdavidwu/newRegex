@@ -10,6 +10,14 @@ from scipy.io import savemat
 import pandas as pd
 import math
 from tqdm import tqdm, trange
+
+def searchFilePath(chartNo,eventDate,studyID,seriesID):
+    cursor = connect.cursor(as_dict=True)
+    searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%(chartNo)s and [eventDate]=%(eventDate)s and [studyID]=%(studyID)s and [seriesID]=%(seriesID)s'''
+    cursor.execute(searchQuery,{'chartNo': chartNo,'eventDate':eventDate,'studyID':studyID,'seriesID':seriesID})
+    filePath = cursor.fetchall()
+    return filePath
+
 '''
 Connect mssql by using pymssql
 Cursor is a key element
@@ -44,7 +52,7 @@ for i in tqdm(range(len(PatientListID))):
     query = '''
     select distinct [PID],[SD],[x],[y],[z],[LabelGroup],[LabelName],[StudyID],[seriesID] 
 	from annotation where PID=%(var1)s and Disease=%(var3)s 
-     and CONVERT(date,[date]) >= %(var4)s　and　CONVERT(date,[date]) <= %(var5)s
+     and CONVERT(date,[date]) >= %(var4)s　and　CONVERT(date,[date]) <= %(var5)s and LabelGroup='Primary tumor'
     '''
     cursor.execute(query, {'var1': PatientListID[i],'var3':diseaseNo,'var4':date1,'var5':date2})
 
@@ -64,6 +72,7 @@ for i in tqdm(range(len(PatientListID))):
             and Disease=%(var3)s 
             and CONVERT(date,[date]) >= %(var4)s　
             and　CONVERT(date,[date]) <= %(var5)s 
+            and LabelGroup='Primary tumor'
             group by PID,SD,StudyID,seriesID
 
         ''' #取得影像位置資料
@@ -77,15 +86,14 @@ for i in tqdm(range(len(PatientListID))):
             MedExecTime = str(res[j]['SD'].replace('-',''))
             StudyID = str(res[j]['StudyID'])
             seriesID = str(res[j]['seriesID'])
-            fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image',PID,MedExecTime,StudyID,seriesID)
+            path = searchFilePath(PID,MedExecTime,StudyID,seriesID)
+            fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image_v2',path[0]['filePath'])
             fileDir = fileDir.replace('-','')
             fileDir = fileDir.replace(' ', '')
-
             saveFiledir = os.path.join(saveFilePath,'image',PID,MedExecTime,StudyID,seriesID)
             pathlib.Path(saveFiledir).mkdir(parents=True, exist_ok=True)
-
             tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
-
+            #print(tempPath)
             paths = sorted([os.path.join(filename) for filename in tempPath])[0]
             with h5py.File(paths, "r") as f:
                 a_group_key = list(f.keys())
@@ -165,16 +173,16 @@ for i in tqdm(range(len(PatientListID))):
             filename = str(PET_tag[0].PatientID)+'_'+str(PET_tag[0].ContentDate)+'_'+str(PET_tag[0].SeriesNumber)+'_SOPT_log.xml'
             trees.write(os.path.join(saveFiledir,filename))
 
-            # filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
-            #     PET_tag[0].SeriesNumber) + '_CT_Body.mat'
-            # newCT = CT_view.copy()
-            # newCT = newCT.transpose(1,2,0)
-            # CT_mat={'Data':np.float64(newCT)}
-            # savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
-            # filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
-            #     PET_tag[0].SeriesNumber) + '_PET_Body.mat'
-            # newPET=PET.copy()
-            # newPET = newPET.transpose(1,2,0)
-            # PET_mat={'Data':np.float64(newPET)}
-            # savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
+            filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
+                PET_tag[0].SeriesNumber) + '_CT_Body.mat'
+            newCT = CT_view.copy()
+            newCT = newCT.transpose(1,2,0)
+            CT_mat={'Data':np.float64(newCT)}
+            savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
+            filename = str(PET_tag[0].PatientID) + '_' + str(PET_tag[0].ContentDate) + '_' + str(
+                PET_tag[0].SeriesNumber) + '_PET_Body.mat'
+            newPET=PET.copy()
+            newPET = newPET.transpose(1,2,0)
+            PET_mat={'Data':np.float64(newPET)}
+            savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
 
