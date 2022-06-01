@@ -294,10 +294,18 @@ def updatePhase(request):
     eventID = request.POST.get('eventID')
     procedureID = request.POST.get('procedureID')
     originSeqNo = request.POST.get('originSeqNo')
+    chartNo = request.POST.get('chartNo')
     cursor = connections['practiceDB'].cursor()
+    if PDID == 'Infinity':
+        query = 'select PD from PatientDisease where chartNo = %s and caSeqNo = %s'
+        cursor.execute(query,[chartNo,originSeqNo])
+        PDID = cursor.fetchall()[0][0]
     if procedureID=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
+        EDID = -1
+        PDID = -1
+        originSeqNo = 0
     else:
         if EDID == 'NULL': #insert
             query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
@@ -311,16 +319,21 @@ def updatePhase(request):
 def updateInterval(request):
     EDID = 'NULL' if request.POST.get('EDID')=='-1' else request.POST.get('EDID')
     PDID = request.POST.get('PDID')
-    
+    chartNo = request.POST.get('chartNo')
     eventID = request.POST.get('eventID')
     procedureID = request.POST.get('procedureID')
     seqNo = request.POST.get('seqNo')
     cursor = connections['practiceDB'].cursor()
-    print('EDID:',EDID,' seqNo:',seqNo)
+    if PDID == 'Infinity':
+        query = 'select PD from PatientDisease where chartNo = %s and caSeqNo = %s'
+        cursor.execute(query,[chartNo,seqNo])
+        PDID = cursor.fetchall()[0][0]
     if seqNo=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
         cursor.execute(query,[EDID])
-        EDID=-1
+        EDID = -1
+        PDID = -1
+        procedureID = 0
     else:
         if EDID == 'NULL': #insert
             query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
@@ -329,7 +342,7 @@ def updateInterval(request):
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
             cursor.execute(query,[procedureID,EDID])
-    return JsonResponse({'sno':[EDID],'seqNo':[seqNo],'PDID':PDID})
+    return JsonResponse({'sno':[EDID],'seqNo':[seqNo],'PDID':PDID,'procedureID':procedureID})
 
 @csrf_exempt
 def searchNote(request):

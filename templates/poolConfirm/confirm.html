@@ -315,8 +315,9 @@
 
     function addMenu(){
         let id = $(event.target).parents('label').prevAll('input').attr('id')
+        let medType = $(event.target).parents('.menu').prevAll('.medType').html()
         let IND = id.split('timePID')[1]
-        addPhaseAndSeq(id,selection,seqNoOption,'prepend')
+        addPhaseAndSeq(id,medType,seqNoOption,'prepend')
         setdisplay(IND)
     }
 
@@ -464,12 +465,11 @@
                                     $('#time').append(response.objectArray[i])
                                     $('#timePID'+i).parents('td').css('background-color', '#33333a')
                                     $('#timePID'+i).next('label').css('color', 'red')
-                                    searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
                                     setdisplay(i)
                                 }else{
                                     $('#time').append(response.objectArray[i])
-                                    searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
                                 }
+                                searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
                             }
                             total_num = response.objectArray.length
                             for(let i=0;i<response.eventID_F.length;i++){
@@ -580,7 +580,6 @@
             success:function (response){
                 target.prevAll('.IntervalNo').val(response.originSeqNo)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.originSeqNo}`)
-                //searchNote(IND,eventID)
             }
         })
     }
@@ -617,8 +616,8 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
+                target.next('.phase').val(response.procedureID)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.seqNo}`)
-                //searchNote(IND,eventID)
             }
         })
     }
