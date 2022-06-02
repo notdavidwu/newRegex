@@ -906,7 +906,6 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             async:true,
-            cache:true,
             success: function(response) {
                 $("#frame"+name.toString()).children("label").children('div').children('div').children('img').attr('src',response.dicom_url);
                 //$("#frame"+name.toString()).children('label').children('.slider').scrollTop(z*$("#frame"+name.toString()).children('label').children('.slider').height())

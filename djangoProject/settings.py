@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = FALSE
+DEBUG = TRUE
 
 ALLOWED_HOSTS = []
 
@@ -117,7 +117,7 @@ DATABASES = {
             'NAME': 'AICH',
             'USER': 'TEST',
             'PASSWORD': '81218',
-            'HOST': '172.31.6.157',
+            'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
@@ -154,7 +154,7 @@ DATABASES = {
             'NAME': 'MEWS',
             'USER': 'TEST',
             'PASSWORD': '81218',
-            'HOST': '172.31.6.157',
+            'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
@@ -166,7 +166,7 @@ DATABASES = {
             'NAME': 'HealthData',
             'USER': 'TEST',
             'PASSWORD': '81218',
-            'HOST': '172.31.6.157',
+            'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動

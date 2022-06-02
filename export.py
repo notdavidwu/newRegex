@@ -61,7 +61,7 @@ for i in tqdm(range(len(PatientListID))):
 
     for row in cursor:
         SD.append(row['StudyID'])
-
+    print(PatientListID[i],len(SD))
     if len(SD)!=0:#代表有標記資料
 
 
