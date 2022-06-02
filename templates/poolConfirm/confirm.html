@@ -286,7 +286,7 @@
     }
     function addPhaseAndSeq(pannel,medType,seqNoOption,appendOrPrepend){
         let selection = getClinicalProcedures(medType)
-        let addObject = '<div class=menublock id="sno_-1">'+
+        let addObject = '<div class=menublock id="sno_-1_0_-1_0">'+
             '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+seqNoOption+'</select>'+
             '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
             '</div>'
@@ -598,7 +598,6 @@
         let diseaseId = $('#ChangeDisease').val()
         target.css('border','none')
         if(pdID==-1){
-            pdID = Math.min(...PDIDGroup.filter(PDID => PDID > 0))
             target.next('.phase').children('option').eq(1).prop('selected',true)
             procedureID =  target.next('.phase').val()
         }
