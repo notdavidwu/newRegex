@@ -225,8 +225,10 @@ def load_DICOM(request):
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
     filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
-
-    dir= os.path.join('D:\\',filePath)
+    if platform.system()!='Windows':
+        dir = os.path.join('/home','user','netapp',filePath)
+    else:
+        dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
     fileDir = dir.replace('-', '')
     fileDir = fileDir.replace(' ', '')
