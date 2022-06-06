@@ -171,7 +171,7 @@ def confirmpat2(request):
         
         object = f'''<tr><td>'''
 
-        object += f'''<input type="radio" onclick="GetReport()" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
+        object += f'''<input type="radio" onclick="GetReport();extractedFactorOpen();" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
                     <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>

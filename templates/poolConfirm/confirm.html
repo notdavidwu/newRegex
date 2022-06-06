@@ -82,13 +82,29 @@
         .IntervalNo{float:left;margin: 0;top:0;width: 30%;padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
-        #text{font-size:12pt;outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 1200px - 150px);position: absolute;left:150px ;font-size: 12pt;padding:20px}/*Report 放的框框*/
+        #text{font-size:12pt;outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 50% - 75px);position: absolute;left:150px ;font-size: 12pt;padding:20px}/*Report 放的框框*/
         p{height: 100%;align-items: center;vertical-align: center}
         #Disease{position: absolute;top: 55px;height: 145px;;min-width:200px;width: 200px;background-color: #11171a}
         #Disease select{width:92%;height: 40px;margin: 5px;font-size: 11pt}
         #header_date{width:18%}
         #header_note{width:60%}
         #header_confirm{}
+        #extractedFactor{
+            background:url("{% static 'image/texture.png' %}");
+            position: absolute;
+            bottom:0px;
+            top:auto;
+            height: calc(50% - 104px);
+            width:calc( 50% - 75px);
+            margin-left: 0px;
+            left:calc(50% + 75px) ;
+            border-radius:0px;
+            font-size: 10pt;
+            border:1px solid #000;
+            display:inline;
+            overflow-x:hidden;
+        }
+
     }
     @media (min-width: 1200px) {
         body{overflow-x: hidden}
@@ -120,7 +136,7 @@
         .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(30%);padding-top: 0}
         .report2{display: none}
         .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
-        #text{background:url("{% static 'image/texture.png' %}");margin-top:55px;padding-left:5px;top:0%;height: 94.2%;width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 200px) ;font-size: 12pt}/*Report 放的框框*/
+        #text{background:url("{% static 'image/texture.png' %}");padding-left:5px;top:50%;height: calc(50%);width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 201px) ;font-size: 12pt}/*Report 放的框框*/
 
         p{height: 100%;align-items: center;vertical-align: center}
         #Disease{position: absolute;top: 55px;height: 145px;width: 200px;background-color: #11171a}
@@ -128,6 +144,20 @@
         #header_date{width:18%}
         #header_note{width:45%}
         #header_confirm{}
+        #extractedFactor{
+            background:url("{% static 'image/texture.png' %}");
+            top:55px;
+            height: calc(50% - 55px);
+            width: calc(45.5% - 200px);
+            position: absolute;
+            margin-left: 0px;
+            left:calc(54.5% + 200px) ;
+            border-radius:0px;
+            font-size: 10pt;
+            border:1px solid #000;
+            overflow-x:hidden;
+            display:inline;
+        }
     }
     .checkPannel{
         position:absolute;
@@ -219,9 +249,10 @@
     .customCol{margin:0px;padding:0px;height:50px}
     
     .medType{display:none}
-    #extractedFactor{display:none;width:800px}
+
+    #extractedFactor .ascriptionHeader{border-radius:0px;}
     #extractedFactor li{font-size:10pt}
-    #factorGroupArea{height:calc(100% - 80px);overflow-y:auto}
+    #factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
     .H_True{display:inline;margin-right:15px}
     #extractedFactor label{padding-left:5px}
     #extractedFactor ul{margin-left: 0; padding-left: 20px;}
@@ -940,7 +971,6 @@
 
     function extractedFactorClose(){
         $('#factorGroupArea').empty()
-        $("#extractedFactor").css('display', 'none');
     }
 
     function extractedFactorSubmit(){
@@ -1634,11 +1664,11 @@
         //右鍵選單
         menu('defaultMenuBlock1','statusMenu')
         menu('defaultMenuBlock2','menu')
-        menu('extractedFactor','extraFactorMenu',false)
+
         move('ascription')
         move('cancerRegistCheck')
         move('patientStatusCheck')
-        move('extractedFactor')
+
         move('formDesignPannel')
         
 
