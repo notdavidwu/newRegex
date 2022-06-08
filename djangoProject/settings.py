@@ -61,7 +61,8 @@ INSTALLED_APPS = [
     'channels',
     'channels_redis',
     'MEWS.apps.MEWSConfig',
-
+    'subjectPatientDecide.apps.subjectPatientDecideConfig',
+    
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'

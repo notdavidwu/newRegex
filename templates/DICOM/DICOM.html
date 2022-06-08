@@ -361,11 +361,11 @@
     #textarea{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
     img{-o-user-select:none; user-select:none;}
    
-    #textReport td{text-align: right;width: 100%}
-    .examItem{display: inline;color: #11171a;margin-left: 20px;width: 50px;word-break: break-all}
-    .examDate{display: inline;color: #11171a;margin-left: 40px;margin-right: 50px;width: 100px}
+    #textReport td{text-align: right;width: 100%;height:20px}
+    .examItem{display: table-cell;color: #11171a;left: 20px;width: 210px;word-break: break-all;float:left;padding:0px;margin:0px}
+    .examDate{display: table-cell;color: #11171a;right:0;margin-right: 50px;width: 100px;float:left;padding:0px;margin:0px}
     .examReport{display: none}
-    input[name='Report']{display: inline}
+    input[name='Report']{position:absolute;right:5px;margin-top:5px}
     textarea {resize: none; width: 100% ;height: 100%;padding:10px;padding-right:35px;text-justify:inter-ideograph;text-align: justify;line-height:20px; }
     #basic{width: 120px;background:#FFFFFF;padding:5px;border-radius:10px;height:100%}
     #factor{overflow-y:scroll;position:absolute;top:0;left:calc(120px + 5px);width: calc(100% - 135px);background:#FFFFFF;padding:5px;border-radius:10px;height:calc(100% - 10px);margin:5px}
@@ -2027,19 +2027,8 @@
                         for (var i = 0; i < response.examItem.length; i++) {
                             if(response.sn[i]==response.idx) {
                                 $('#T1').text(response.examDate[i]+'\n'+'\n'+response.examReport[i])
-        
-                                $('#textReport').append(
-                                    '<tr><td>' +
-                                    '<label for=r' + i + '>' +
-                                    '<p class="examItem">' + response.examItem[i] + '</p>' +
-                                    '<p class="examDate">' + response.examDate[i] + '</p>' +
-                                    '<p class="examReport">' + response.examReport[i] + '</p>' +
-                                    '</label>' +
-                                    '<input checked type="checkbox" onclick="showReport()" name="Report" id=r' + i + '>' +
-                                    '</td></tr>'
-                                )
-                            }else{
-                                $('#textReport').append(
+                            }
+                            $('#textReport').append(
                                     '<tr><td>' +
                                     '<label for=r' + i + '>' +
                                     '<p class="examItem">' + response.examItem[i] + '</p>' +
@@ -2048,8 +2037,7 @@
                                     '</label>' +
                                     '<input  type="checkbox" onclick="showReport()" name="Report" id=r' + i + '>' +
                                     '</td></tr>'
-                                )
-                            }
+                            )
                         }
                     },
                     complete:function (){

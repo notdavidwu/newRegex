@@ -833,6 +833,7 @@ def insertExtractedFactors(request):
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,seq,root,Recorded in zip(insertIDArray,insertValArray,insertSeqArray,insertRootArray,insertRecordedArray):
+        print(f'eventID={eventID} factorID={factorID} seq={seq}')
         cursor.execute(query,[eventID,factorID,seq])
         if len(cursor.fetchall())==0: # =0, insert this data
             queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq,rootID) VALUES(%s,%s,%s,%s,%s)'''

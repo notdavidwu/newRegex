@@ -1,0 +1,125 @@
+
+{% load static%}
+
+<!DOCTYPE html>
+<html lang="zh-Hant" >
+<head>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
+    <title>DICOM</title>
+    </head>
+
+<style>
+        /* width */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    body{background:url("{% static 'image/texture.png' %}");-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow: hidden}
+    #filter{padding:10px;position:absolute;width:calc(33% - 20px);top:70px;height:calc(100% - 80px);left:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
+    #patient{position:absolute;width:calc(33% - 20px);top:70px;height:calc(100% - 80px);left:calc(33% + 10px);box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
+    #setting{position:absolute;width:calc(34% - 20px);top:70px;height:calc(100% - 80px);right:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
+    #submit{position:absolute;bottom:10px}
+</style>
+
+
+<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+<script>
+    function excludeCheck(pannel){
+        let targetClass=$(event.target).attr('class').split(' ')[1]
+        let targetName=$(event.target).attr('name')
+        if(targetClass=='pdConfirmed'){
+            $(`#${pannel} input[name="${targetName}"][class="form-check-input diagChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class="form-check-input treatChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class="form-check-input ambiguousChecked"]`).prop('checked',false)
+            $(`#${pannel} input[name="${targetName}"][class="form-check-input fuChecked"]`).prop('checked',false)
+           
+        }else{
+            $(`#${pannel} input[name="${targetName}"][class="form-check-input pdConfirmed"]`).prop('checked',false)
+        }
+    }
+</script>
+<body >
+{{ user.username|json_script:"user_username" }}
+{{ user.last_name|json_script:"hospital" }}
+{% include 'navBar.html' %}
+
+
+</body>
+    <div id="filter">
+        <form class="row g-3">
+            <div class="col-md-12">
+              <label for="disease" class="form-label">癌症</label>
+              <select class="form-control" id="disease"></select>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check statusFilter">
+                    <input type="checkbox" id="statusFilter1" onclick="excludeCheck('filter');" class="form-check-input diagChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter1">Diag</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check statusFilter">
+                    <input type="checkbox" id="statusFilter2" onclick="excludeCheck('filter');" class="form-check-input treatChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter2">Treat</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check statusFilter">
+                    <input type="checkbox" id="statusFilter5" onclick="excludeCheck('filter');" class="form-check-input fuChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter5">F/U</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-check statusFilter">
+                    <input type="checkbox" id="statusFilter4" onclick="excludeCheck('filter');" class="form-check-input ambiguousChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter4">Ambiguous</label>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-check statusFilter">
+                    <input type="checkbox" id="statusFilter6" onclick="excludeCheck('filter');" class="form-check-input pdConfirmed" name="disappear"><label class="form-check-label statusFilter" for="statusFilter6">Exclude</label>
+                </div>
+            </div>
+            <div id="submit" class="col-12">
+              <button type="submit" class="form-control btn btn-primary" onclick="getPatient()">Submit</button>
+            </div>
+          </form>
+    </div>
+    <div id="patient">
+
+    </div>
+    <div id="setting">
+
+    </div>
+</body>
+</html>
+
+
+

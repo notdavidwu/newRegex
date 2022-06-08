@@ -34,5 +34,7 @@ urlpatterns = [
     path('warehousing/', include('warehousing.urls', namespace='warehousing')),
     path('', views.index, name="base"),
     path('django_plotly_dash/', include('django_plotly_dash.urls')),
-    path('MEWS/', include('MEWS.urls', namespace='MEWS')),
+    #path('MEWS/', include('MEWS.urls', namespace='MEWS')),
+    path('subjectPatientDecide/', include('subjectPatientDecide.urls', namespace='subjectPatientDecide')),
+    
 ]
