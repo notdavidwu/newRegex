@@ -708,7 +708,6 @@ def formGenerator(request):
                 if type=='text':
                     formObject += f'''
                     <li>
-                        <input type=radio name="formStructure_[1]_[{ind1}][{structure[6]}]"  data-usage="text" id="item_{num}">
                         <label for="item_{num}">{structure[3]}：
                         <input type={type} name="formStructure_[1]_[{ind1}][{structure[6]}]" data-recorded=0 data-eventFactorID={structure[0]} id="item_{num}"></label>
                     </li>
@@ -855,6 +854,7 @@ def searchExtractedFactorsRecord(request):
     classRecorded = []
 
     for factorId,seq,className in zip(idArray,seqArray,classArray):
+        print(f'eventID={eventID} factorID={factorId} seq={seq}')
         cursor.execute(query,[eventID,factorId,seq])
         result = cursor.fetchall()
         if len(result)!=0:
