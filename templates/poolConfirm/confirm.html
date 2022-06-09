@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
     <!-- JS, Popper.js, and jQuery -->
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
@@ -1067,7 +1068,7 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(){
-                
+                swal("", "儲存成功", "success",{buttons: false,timer: 1000,});
             }
         })
     
