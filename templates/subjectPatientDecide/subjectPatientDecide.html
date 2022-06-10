@@ -46,10 +46,14 @@
       background: #555;
     }
     body{background:url("{% static 'image/texture.png' %}");-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow: hidden}
-    #filter{padding:10px;position:absolute;width:calc(33% - 20px);top:70px;height:calc(100% - 80px);left:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
+    #filter{overflow-y:auto;padding:10px;position:absolute;width:calc(33% - 20px);top:70px;height:calc(100% - 80px);left:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
     #patient{position:absolute;width:calc(33% - 20px);top:70px;height:calc(100% - 80px);left:calc(33% + 10px);box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
-    #setting{position:absolute;width:calc(34% - 20px);top:70px;height:calc(100% - 80px);right:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
+    #setting{position:absolute;padding:10px;width:calc(34% - 20px);top:70px;height:calc(100% - 80px);right:10px;box-shadow: rgba(0, 0, 0, 0.35) 0px 1px 10px;border-radius:10px}
     #submit{position:absolute;bottom:10px}
+    .groupLabel{margin-bottom:0}
+    #patient table{text-align:center}
+    #tbody{height:calc(100% - 43px);overflow-y:auto}
+    #header{margin:0px}
 </style>
 
 
@@ -68,6 +72,91 @@
             $(`#${pannel} input[name="${targetName}"][class="form-check-input pdConfirmed"]`).prop('checked',false)
         }
     }
+    
+    function getImageClinicalProcedures(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:getImageClinicalProcedures" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(let i=0;i<response.procedureID.length;i++){
+                    $('#imageClinicalProcedures').append(`<div class="form-check"><input type="checkbox" id="${response.procedureID[i]}" class="form-check-input" data-procedureID=${response.procedureID[i]}><label class="form-check-label" for="${response.procedureID[i]}">${response.procedureName[i]}</label></div>`)
+                }
+            }
+        })
+    }
+
+    function getDisease(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:getDisease" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(let i=0;i<response.diseaseID.length;i++){
+                    $('#disease').append(`<option value=${response.diseaseID[i]}>${response.disease[i]}</option>`)
+                }
+            }
+        })
+    }
+    function getCaSeq(){
+        for(let i=1;i<=10;i++){$('#caSeqNo').append(`<option value=${i}>${i}</option>`)}
+    }
+    function getRegistTopicList(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:getRegistTopicList" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(let i=0;i<response.topicName.length;i++){
+                    $('#registTopicList').append(`<option value="${response.topicName[i]}">`)
+                }
+            }
+        })
+    }
+    function getPatient(){
+        let diseaseID = $('#disease').val()
+        let caSeqNo = $('#caSeqNo').val()
+        let diagChecked = Number($('#filter .diagChecked').prop('checked'))
+        let treatChecked = Number($('#filter .treatChecked').prop('checked'))
+        let fuChecked = Number($('#filter .fuChecked').prop('checked'))
+        let ambiguousChecked = Number($('#filter .ambiguousChecked').prop('checked'))
+        let pdConfirmed = Number($('#filter .pdConfirmed').prop('checked'))
+
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:getPatient" %}', // this is the mapping between the url and view
+            data:{
+                'diseaseID':diseaseID,
+                'caSeqNo':caSeqNo,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#patient tbody').empty()
+                $('#n_chartNo').html(`${response.chartNo.length}人`)
+                for(let i=0;i<response.chartNo.length;i++){
+                    $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
+                }
+            }
+        })
+    }
+
+    $(document).ready(function () {
+        getDisease()
+        getImageClinicalProcedures()
+        getCaSeq()
+        getRegistTopicList()
+    })
 </script>
 <body >
 {{ user.username|json_script:"user_username" }}
@@ -77,46 +166,73 @@
 
 </body>
     <div id="filter">
-        <form class="row g-3">
+        <div class="row g-3">
             <div class="col-md-12">
               <label for="disease" class="form-label">癌症</label>
               <select class="form-control" id="disease"></select>
             </div>
-            <div class="col-md-2">
-                <div class="form-check statusFilter">
-                    <input type="checkbox" id="statusFilter1" onclick="excludeCheck('filter');" class="form-check-input diagChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter1">Diag</label>
+            <div class="col-md-12">
+                <label for="caSeqNo" class="form-label">序列</label>
+                <select class="form-control" id="caSeqNo"></select>
+              </div>
+            <label class="form-label groupLabel">Status</label>
+            <div class="col-md-2 statusFilter">
+                <div class="form-check">
+                    <input type="checkbox" id="statusFilter1" onclick="excludeCheck('filter');" class="form-check-input diagChecked" name="disappear"><label class="form-check-label" for="statusFilter1">Diag</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-check statusFilter">
-                    <input type="checkbox" id="statusFilter2" onclick="excludeCheck('filter');" class="form-check-input treatChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter2">Treat</label>
+            <div class="col-md-2 statusFilter">
+                <div class="form-check">
+                    <input type="checkbox" id="statusFilter2" onclick="excludeCheck('filter');" class="form-check-input treatChecked" name="disappear"><label class="form-check-label" for="statusFilter2">Treat</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-check statusFilter">
-                    <input type="checkbox" id="statusFilter5" onclick="excludeCheck('filter');" class="form-check-input fuChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter5">F/U</label>
+            <div class="col-md-2 statusFilter">
+                <div class="form-check">
+                    <input type="checkbox" id="statusFilter5" onclick="excludeCheck('filter');" class="form-check-input fuChecked" name="disappear"><label class="form-check-label" for="statusFilter5">F/U</label>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-check statusFilter">
-                    <input type="checkbox" id="statusFilter4" onclick="excludeCheck('filter');" class="form-check-input ambiguousChecked" name="disappear"><label class="form-check-label statusFilter" for="statusFilter4">Ambiguous</label>
+            <div class="col-md-3 statusFilter">
+                <div class="form-check">
+                    <input type="checkbox" id="statusFilter4" onclick="excludeCheck('filter');" class="form-check-input ambiguousChecked" name="disappear"><label class="form-check-label" for="statusFilter4">Ambiguous</label>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="form-check statusFilter">
-                    <input type="checkbox" id="statusFilter6" onclick="excludeCheck('filter');" class="form-check-input pdConfirmed" name="disappear"><label class="form-check-label statusFilter" for="statusFilter6">Exclude</label>
+            <div class="col-md-3 statusFilter">
+                <div class="form-check">
+                    <input type="checkbox" id="statusFilter6" onclick="excludeCheck('filter');" class="form-check-input pdConfirmed" name="disappear"><label class="form-check-label" for="statusFilter6">Exclude</label>
                 </div>
             </div>
-            <div id="submit" class="col-12">
-              <button type="submit" class="form-control btn btn-primary" onclick="getPatient()">Submit</button>
+            <div class="col-md-12" id="imageClinicalProcedures"></div>
+            <div class="col-md-12" >
+                <button class="form-control btn btn-primary" onclick="getPatient()">Submit</button>
             </div>
-          </form>
+            
+          </div>
+          
     </div>
     <div id="patient">
-
+        <table class="table table-hover" id='header'>
+            <thead><th>ChartNo</th><th id="n_chartNo">???人</th></thead>
+        </table>
+        <div id="tbody">
+            <table class="table table-hover table-striped">
+                <tbody ></tbody>
+            </table>
+        </div>
     </div>
     <div id="setting">
-
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label for="registTopic" class="form-label">主題</label>
+                <input type="text" class="form-control" id="registTopic" list="registTopicList">
+                <datalist id="registTopicList" ></datalist>
+            </div>
+            <div class="col-md-6">
+                <button class="form-control btn btn-danger btn-sm" onclick="deleteCorrelationPatientListAndAnnotation()">Delete</button>
+            </div>
+            <div class="col-md-6">
+                <button class="form-control btn btn-primary btn-sm" onclick="addCorrelationPatientListAndAnnotation()">Submit</button>
+            </div>
+        </div>
     </div>
 </body>
 </html>

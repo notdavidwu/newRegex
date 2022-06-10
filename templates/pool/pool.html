@@ -239,6 +239,84 @@
             }
         })
     }
+    function filterChange(){
+        $('#SubjectPatient').children('table').children('tr').remove()
+        $('.loader').css('display','inline')
+        $.ajax({
+            type: 'post',
+            url: '{% url "pool:SubjectPatientList" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN,
+                'Disease':$('#Disease').val(),
+                'filter':$('#filter').val(),
+                'username':JSON.parse(document.getElementById('user_username').textContent),
+                'hospital':JSON.parse(document.getElementById('hospital').textContent)
+            },
+            success:function (response){
+                $('.loader').css('display','none')
+                $('#SubjectPatient').children('table').children('tr').remove()
+                $('#PatientList').children('table').children('tbody').remove()
+                
+                $('#SubjectPatient').children('table').append(response.object)
+                
+                if("{{de_identification}}"=='False'){
+                    $('.ID').css('display','none')
+                    $('.PatientListID').css('display','inline')
+                }else{
+                    $('.ID').css('display','inline')
+                    $('.PatientListID').css('display','none')
+                }
+            }
+        })
+    }
+
+    function topicChange(){
+        $('.loader').css('display','inline')
+        $('#SubjectPatient').children('table').children('tr').remove()
+        $.ajax({
+            type: 'post',
+            url: '{% url "pool:SubjectPatientList" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN,
+                'Disease':$('#Disease').val(),
+                'filter':$('#filter').val(),
+                'username':JSON.parse(document.getElementById('user_username').textContent),
+                'hospital':JSON.parse(document.getElementById('hospital').textContent)
+            },
+            success:function (response){
+                PatientListID = response.PatientListID
+                object=response.object
+            },complete:function(){
+                $.ajax({
+                    type: 'post',
+                    url: '{% url "pool:Patient_num" %}', // this is the mapping between the url and view
+                    data:{
+                        'csrfmiddlewaretoken': window.CSRF_TOKEN,
+                        'Disease':$('#Disease').val(),
+                        'username':JSON.parse(document.getElementById('user_username').textContent),
+                        'hospital':JSON.parse(document.getElementById('hospital').textContent)
+                    },
+                    success:function (response){
+                        
+                        $('#filter option[value="0"]').text('全部'+'('+response.all+')')
+                        $('#filter option[value="1"]').text('尚未標註'+'('+response.unlabeled+')')
+                        $('#filter option[value="2"]').text('已標註'+'('+response.labeled+')')
+                        $('#PatientList').children('table').children('tbody').remove()
+                        $('#SubjectPatient').children('table').append(object)
+                
+                        if("{{de_identification}}"=='False'){
+                            $('.ID').css('display','none')
+                            $('.PatientListID').css('display','inline')
+                        }else{
+                            $('.ID').css('display','inline')
+                            $('.PatientListID').css('display','none')
+                        }
+                        $('.loader').css('display','none')
+                    }
+                }) 
+            }
+        })
+    }
 
     $(document).ready(function (e) {
         $(document).get(0).oncontextmenu = function() {
@@ -294,9 +372,9 @@
             },
             success:function (response){
                 $('#Disease').empty()
-                for(var i=0;i<response.DiseaseNo.length;i++){
+                for(var i=0;i<response.topicNo.length;i++){
                     $('#Disease').append('' +
-                        '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
+                        '<option value="'+response.topicNo[i]+'">'+response.topicName[i]+'</option>'+
                         '')
                 }
                 $.ajax({
@@ -364,84 +442,8 @@
             }
         })
         
-        $('#Disease').on('change',function (){
-            $('.loader').css('display','inline')
-            $('#SubjectPatient').children('table').children('tr').remove()
-            $.ajax({
-                type: 'post',
-                url: '{% url "pool:SubjectPatientList" %}', // this is the mapping between the url and view
-                data:{
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN,
-                    'Disease':$('#Disease').val(),
-                    'filter':$('#filter').val(),
-                    'username':JSON.parse(document.getElementById('user_username').textContent),
-                    'hospital':JSON.parse(document.getElementById('hospital').textContent)
-                },
-                success:function (response){
-                    PatientListID = response.PatientListID
-                    object=response.object
-                },complete:function(){
-                    $.ajax({
-                        type: 'post',
-                        url: '{% url "pool:Patient_num" %}', // this is the mapping between the url and view
-                        data:{
-                            'csrfmiddlewaretoken': window.CSRF_TOKEN,
-                            'Disease':$('#Disease').val(),
-                            'username':JSON.parse(document.getElementById('user_username').textContent),
-                            'hospital':JSON.parse(document.getElementById('hospital').textContent)
-                        },
-                        success:function (response){
-                            
-                            $('#filter option[value="0"]').text('全部'+'('+response.all+')')
-                            $('#filter option[value="1"]').text('尚未標註'+'('+response.unlabeled+')')
-                            $('#filter option[value="2"]').text('已標註'+'('+response.labeled+')')
-                            $('#PatientList').children('table').children('tbody').remove()
-                            $('#SubjectPatient').children('table').append(object)
-                    
-                            if("{{de_identification}}"=='False'){
-                                $('.ID').css('display','none')
-                                $('.PatientListID').css('display','inline')
-                            }else{
-                                $('.ID').css('display','inline')
-                                $('.PatientListID').css('display','none')
-                            }
-                            $('.loader').css('display','none')
-                        }
-                    }) 
-                }
-            })
-        })
-        
-        $('#filter').on('change',function (){
-            $('#SubjectPatient').children('table').children('tr').remove()
-            $('.loader').css('display','inline')
-            $.ajax({
-                type: 'post',
-                url: '{% url "pool:SubjectPatientList" %}', // this is the mapping between the url and view
-                data:{
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN,
-                    'Disease':$('#Disease').val(),
-                    'filter':$('#filter').val(),
-                    'username':JSON.parse(document.getElementById('user_username').textContent),
-                    'hospital':JSON.parse(document.getElementById('hospital').textContent)
-                },
-                success:function (response){
-                    $('.loader').css('display','none')
-                    $('#SubjectPatient').children('table').children('tr').remove()
-                    $('#PatientList').children('table').children('tbody').remove()
-                    
-                    $('#SubjectPatient').children('table').append(response.object)
-                    
-                    if("{{de_identification}}"=='False'){
-                        $('.ID').css('display','none')
-                        $('.PatientListID').css('display','inline')
-                    }else{
-                        $('.ID').css('display','inline')
-                        $('.PatientListID').css('display','none')
-                    }
-                }
-            })
-        })
+        $('#Disease').on('change',topicChange)
+        $('#filter').on('change',filterChange)
     })
 </script>
 
@@ -457,13 +459,7 @@
             <option value='2'>已標註</option>
         </select>
     </div>
-    <div id="imageFilter">
-        <select class="form-select" aria-label="Default select example" id='filter'>
-            <option value='0'>全部</option>
-            <option value='1'>尚未標註</option>
-            <option value='2'>已標註</option>
-        </select>
-    </div>
+
     <div id="SubjectPatient">
         <table>
             <div class="loader">

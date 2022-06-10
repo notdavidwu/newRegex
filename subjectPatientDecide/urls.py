@@ -19,6 +19,9 @@ from subjectPatientDecide import views
 app_name='subjectPatientDecide'
 urlpatterns = [
     path('', views.subjectPatientDecide,name='subjectPatientDecide'),
-    
+    path('getDisease/', views.getDisease,name='getDisease'),
+    path('getImageClinicalProcedures/', views.getImageClinicalProcedures,name='getImageClinicalProcedures'),
+    path('getPatient/', views.getPatient,name='getPatient'),
+    path('getRegistTopicList/', views.getRegistTopicList,name='getRegistTopicList'),
     
 ]

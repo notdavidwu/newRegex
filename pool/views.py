@@ -12,10 +12,7 @@ def pool(request):
     au = request.session.get('au',0)
     if au == 0 : 
         return redirect('/')
-
-    
     de_identification = request.session.get('de_identification')
-    print(de_identification)
     diseaseCode = request.session.get('diseaseCode',0)
     ScrollTop = request.session.get('scrollTop',0)
     Filter = request.session.get('filter',0)
@@ -26,24 +23,22 @@ def Disease(request):
     cursor = connections['AIC'].cursor()
     au = '%' if (str(request.POST.get('username')) == 'AIC') else  request.POST.get('username')+'%'
     if str(request.POST.get('username')) == 'AIC':
-        query = '''
-        SELECT DiseaseNo,Disease FROM [AIC].[dbo].[diseaseGroup]
-        '''
+        query = '''SELECT topicNo,topicName FROM [researchTopic]'''
         cursor.execute(query,[])
     else:
         query = '''select distinct b.* from auth_disease as a
-                inner join diseaseGroup as b on a.disease=b.DiseaseNo
+                inner join researchTopic as b on a.disease=b.topicNo
                 where username like %s 
                 '''
         cursor.execute(query,[au])
     
-    DiseaseNo = []
-    Disease = []
+    topicNo = []
+    topicName = []
     res = cursor.fetchall()
     for i in range(len(res)):
-        DiseaseNo.append(res[i][0])
-        Disease.append(res[i][1])
-    return JsonResponse({'DiseaseNo': DiseaseNo,'Disease': Disease})
+        topicNo.append(res[i][0])
+        topicName.append(res[i][1])
+    return JsonResponse({'topicNo': topicNo,'topicName': topicName})
 
 
 @csrf_exempt
@@ -65,7 +60,6 @@ def SQL(cursor,filter,hospital,Disease,username):
             query += f"""and b.hospital = {hospital}　"""
         
         query += f"""order by a.chartNo"""
-        print(query)
         cursor.execute(query)
     elif filter=='1':
         query = f"""
@@ -84,7 +78,6 @@ def SQL(cursor,filter,hospital,Disease,username):
             ) as b on a.chartNo=b.PID
         ) as c where checked=0 order by chartNo
         """
-        print(query)
         cursor.execute(query)
     elif filter=='2':
         query = '''
@@ -93,7 +86,6 @@ def SQL(cursor,filter,hospital,Disease,username):
         where a.Disease=%s and a.username=%s and b.diseaseNo=%s
         order by b.sno
         '''
-        print(query)
         cursor.execute(query,[Disease,username,Disease])
     return cursor
 @csrf_exempt
@@ -156,7 +148,6 @@ def Patient_num(request):
         select count(distinct PID) ,'3' AS seq from annotation where Disease={Disease} and username='{username}'
         ORDER BY seq ASC
     """
-    print(query)
     cursor.execute(query)
     res = cursor.fetchall()
     all = res[0][0]
@@ -165,7 +156,6 @@ def Patient_num(request):
     return JsonResponse({'all': all,'unlabeled':unlabeled,'labeled':labeled})
 
 def searchFilePath(chartNo,eventDate,studyID,seriesID):
-    print(chartNo,eventDate,studyID,seriesID)
     cursor = connections['AIC'].cursor()
     searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%s and [eventDate]=%s and [studyID]=%s and [seriesID]=%s'''
     cursor.execute(searchQuery,[chartNo,eventDate,studyID,seriesID])
@@ -272,5 +262,4 @@ def Session(request):
     request.session['SeriesDes'] = SeriesDes
     request.session['Disease'] = Disease
     return JsonResponse({})
-    #print(PID)
     #return render(request, 'DICOM/DICOM.html', {'PID':PID,'MedExecTime':MedExecTime,'Item':Item})
