@@ -1,6 +1,6 @@
 
 from cv2 import resize
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render,HttpResponse,redirect
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -10,6 +10,8 @@ import numpy as np
 def confirm(request):
     au = request.session.get('au')
     de_identification = request.session.get('de_identification')
+    if not request.user.is_authenticated : 
+        return redirect('/')
     return render(request, 'poolConfirm/confirm.html',{'au':au,'de_identification':de_identification})
 
 def replaceCapitalAndLowCase(statusfilter):
@@ -193,8 +195,7 @@ def confirmpat2(request):
 	select distinct eventID_F
 	from allEvents as a
 	inner join medTypeSet as b on a.medType=b.medType
-	inner join eventDetails as c on a.eventID=c.eventID
-	where a.chartNo=%s and c.descriptionType=3 and eventID_F is not null
+	where a.chartNo=%s  and eventID_F is not null
     '''
     cursor.execute(query,[PID])
     eventID_F=[]
@@ -232,11 +233,11 @@ def addInducedEvent(request):
     eventID=request.POST.get('eventID')
     cursor = connections['practiceDB'].cursor()
     query= '''
-	select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID
+	select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.note
 	from allEvents as a
 	inner join medTypeSet as b on a.medType=b.medType
-	inner join eventDetails as c on a.eventID=c.eventID
-	where a.eventID_F=%s and c.descriptionType=3 
+	left join eventDetails as c on a.eventID=c.eventID
+	where a.eventID_F=%s and (c.descriptionType=3 or c.descriptionType is null) 
     '''
     cursor.execute(query,[eventID])
     result = cursor.fetchall()
@@ -259,7 +260,7 @@ def addInducedEvent(request):
             object += f'''<p class="report2">{row[5]}</p>'''
         else:
             object += f'''
-                <div class="note"></div>
+                <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value="{row[8]}"></div>
                 <div class="menu"></div>
                 <p class="report2">{row[6]}</p>'''
         object += f'''

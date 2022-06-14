@@ -1,4 +1,4 @@
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import render,HttpResponse,redirect
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -7,6 +7,8 @@ import pathlib
 @csrf_exempt
 def Search(request):
     au = request.session.get('au')
+    if not request.user.is_authenticated : 
+        return redirect('/')
     return render(request, 'Search/Search.html',{'au':au})
 
 @csrf_exempt

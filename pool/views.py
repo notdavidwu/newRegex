@@ -10,7 +10,7 @@ import time
 from collections import OrderedDict
 def pool(request):
     au = request.session.get('au',0)
-    if au == 0 : 
+    if not request.user.is_authenticated : 
         return redirect('/')
     de_identification = request.session.get('de_identification')
     diseaseCode = request.session.get('diseaseCode',0)

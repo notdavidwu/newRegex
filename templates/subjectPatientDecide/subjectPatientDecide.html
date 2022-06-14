@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
     <!-- JS, Popper.js, and jQuery -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
     <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
@@ -147,13 +148,105 @@
                 for(let i=0;i<response.chartNo.length;i++){
                     $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
                 }
+                $('#setting').attr('data-diseaseID',diseaseID)
+                $('#setting').attr('data-caSeqNo',caSeqNo)
+                $('#setting').attr('data-diagChecked',diagChecked)
+                $('#setting').attr('data-treatChecked',treatChecked)
+                $('#setting').attr('data-fuChecked',fuChecked)
+                $('#setting').attr('data-ambiguousChecked',ambiguousChecked)
+                $('#setting').attr('data-pdConfirmed',pdConfirmed)
             }
         })
     }
-
+    function addCorrelationPatientListAndAnnotation(){
+        let diseaseID = $('#setting').attr('data-diseaseID')
+        let caSeqNo = $('#setting').attr('data-caSeqNo')
+        let diagChecked = $('#setting').attr('data-diagChecked')
+        let treatChecked = $('#setting').attr('data-treatChecked')
+        let fuChecked = $('#setting').attr('data-fuChecked')
+        let ambiguousChecked = $('#setting').attr('data-ambiguousChecked')
+        let pdConfirmed = $('#setting').attr('data-pdConfirmed')
+        let topicName = $('#setting #registTopic').val()
+        if(topicName!=''){
+            $.ajax({
+                type: 'post',
+                url: '{% url "subjectPatientDecide:addCorrelationPatientListAndAnnotation" %}', // this is the mapping between the url and view
+                data:{
+                    'diseaseID':diseaseID,
+                    'caSeqNo':caSeqNo,
+                    'diagChecked':diagChecked,
+                    'treatChecked':treatChecked,
+                    'fuChecked':fuChecked,
+                    'ambiguousChecked':ambiguousChecked,
+                    'pdConfirmed':pdConfirmed,
+                    'topicName':topicName,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    Swal.fire({
+                        title: '',
+                        html: '新增成功',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                    })
+                    getRegistTopicList()
+                },
+                error:function(){
+                    Swal.fire({
+                        title: '',
+                        html: '新增失敗',
+                        icon: 'error',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                    })
+                }
+            })
+        }
+    }
+    function deleteCorrelationPatientListAndAnnotation(){
+        let diseaseID = $('#setting').attr('data-diseaseID')
+        let caSeqNo = $('#setting').attr('data-caSeqNo')
+        let diagChecked = $('#setting').attr('data-diagChecked')
+        let treatChecked = $('#setting').attr('data-treatChecked')
+        let fuChecked = $('#setting').attr('data-fuChecked')
+        let ambiguousChecked = $('#setting').attr('data-ambiguousChecked')
+        let pdConfirmed = $('#setting').attr('data-pdConfirmed')
+        let topicName = $('#setting #registTopic').val()
+        if(topicName!=''){
+            $.ajax({
+                type: 'post',
+                url: '{% url "subjectPatientDecide:deleteCorrelationPatientListAndAnnotation" %}', // this is the mapping between the url and view
+                data:{
+                    'diseaseID':diseaseID,
+                    'caSeqNo':caSeqNo,
+                    'diagChecked':diagChecked,
+                    'treatChecked':treatChecked,
+                    'fuChecked':fuChecked,
+                    'ambiguousChecked':ambiguousChecked,
+                    'pdConfirmed':pdConfirmed,
+                    'topicName':topicName,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    Swal.fire({
+                        title: '',
+                        html: '刪除成功',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                    })
+                    getRegistTopicList()
+                }
+            })
+        }
+    }
     $(document).ready(function () {
         getDisease()
-        getImageClinicalProcedures()
+        //getImageClinicalProcedures()
         getCaSeq()
         getRegistTopicList()
     })
@@ -219,7 +312,7 @@
             </table>
         </div>
     </div>
-    <div id="setting">
+    <div id="setting" >
         <div class="row g-3">
             <div class="col-md-12">
                 <label for="registTopic" class="form-label">主題</label>

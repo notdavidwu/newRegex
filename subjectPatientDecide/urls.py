@@ -23,5 +23,7 @@ urlpatterns = [
     path('getImageClinicalProcedures/', views.getImageClinicalProcedures,name='getImageClinicalProcedures'),
     path('getPatient/', views.getPatient,name='getPatient'),
     path('getRegistTopicList/', views.getRegistTopicList,name='getRegistTopicList'),
+    path('addCorrelationPatientListAndAnnotation/', views.addCorrelationPatientListAndAnnotation,name='addCorrelationPatientListAndAnnotation'),
+    path('deleteCorrelationPatientListAndAnnotation/', views.deleteCorrelationPatientListAndAnnotation,name='deleteCorrelationPatientListAndAnnotation'),
     
 ]

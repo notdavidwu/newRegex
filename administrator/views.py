@@ -12,6 +12,10 @@ from django.http import JsonResponse
 
 def auth_control(request):
     au = request.session.get('au')
+    if not request.user.is_authenticated : 
+        return redirect('/')
+    elif not request.user.is_superuser:
+        return redirect('/')
     return render(request, 'administrator/auth_control.html',{'au':au})
 
 @csrf_exempt
