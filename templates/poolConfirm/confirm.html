@@ -498,9 +498,13 @@
                                     $('#timePID'+i).parents('td').css('background-color', '#33333a')
                                     $('#timePID'+i).next('label').css('color', 'red')
                                     setdisplay(i)
+                                }else if(response.MedType[i]==1218401){
+                                    $('#time').append(response.objectArray[i])
+                                    $('#timePID'+i).parents('td').css('background-color', '#aef2f1')
                                 }else{
                                     $('#time').append(response.objectArray[i])
                                 }
+                                
                                 searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
                             }
                             total_num = response.objectArray.length
@@ -1289,19 +1293,21 @@
 
     function getNum(){
         let disease = $('#ChangeDisease').val()
-        let statusfilterNames = $(`input[name="disappear"]`).map(function(){
-            return $(this).attr('class').split(' ')[0]
-        }).get()
-        let statusfilterValue = $(`input[name="disappear"]`).map(function(){
-            return Number($(this).prop('checked'))
-        }).get()
+        let diagChecked=Number($('#statusFilterPannel .diagChecked').prop('checked'))
+        let treatChecked=Number($('#statusFilterPannel .treatChecked').prop('checked'))
+        let fuChecked=Number($('#statusFilterPannel .fuChecked').prop('checked'))
+        let ambiguousChecked=Number($('#statusFilterPannel .ambiguousChecked').prop('checked'))
+        let pdConfirmed=Number($('#statusFilterPannel .pdConfirmed').prop('checked'))
         $.ajax({
             type: 'post',
             url: '{% url "poolConfirm:getNum" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
-                'statusfilterNames':statusfilterNames,
-                'statusfilterValue':statusfilterValue,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
@@ -1428,13 +1434,11 @@
     function statusFilter(){
         $('#Report').empty()
         //let name = $(event.target).attr('name')
-        let statusfilterNames = $(`input[name="disappear"]`).map(function(){
-            return $(this).attr('class').split(' ')[0]
-        }).get()
-        let statusfilterValue = $(`input[name="disappear"]`).map(function(){
-            return Number($(this).prop('checked'))
-        }).get()
-
+        let diagChecked=Number($('#statusFilterPannel .diagChecked').prop('checked'))
+        let treatChecked=Number($('#statusFilterPannel .treatChecked').prop('checked'))
+        let fuChecked=Number($('#statusFilterPannel .fuChecked').prop('checked'))
+        let ambiguousChecked=Number($('#statusFilterPannel .ambiguousChecked').prop('checked'))
+        let pdConfirmed=Number($('#statusFilterPannel .pdConfirmed').prop('checked'))
         var disease = $('#ChangeDisease').val()
         let filter = $('#filter').val()
         $.ajax({
@@ -1443,8 +1447,11 @@
             data:{
                 'filter':filter,
                 'Disease':disease,
-                'statusfilterNames':statusfilterNames,
-                'statusfilterValue':statusfilterValue,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -1755,8 +1762,6 @@
         <select class="form-select" aria-label="Default select example" id="ChangeDisease"></select>
         <select class="form-select" aria-label="Default select example" id="filter">
             <option value=0>全部</option>
-            <option value=1>尚未確認</option>
-            <option value=2>已確認</option>
         </select>
         <div id="statusFilterPannel">
             <input type="checkbox" id="statusFilter1" onclick="statusFilter();excludeCheck('statusFilterPannel');" class="diagChecked btn-check" name="disappear"><label class="btn btn-outline-warning statusFilter" for="statusFilter1">Diag</label>

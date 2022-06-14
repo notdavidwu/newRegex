@@ -39,75 +39,18 @@ def confirmpat(request):
     scrollTop = request.session.get('poolConfirm_scrollTop')
     filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
-    statusfilterNames = request.POST.getlist('statusfilterNames[]')
-    statusfilterValue = request.POST.getlist('statusfilterValue[]')
-    statusfilterValueSum = np.sum(np.array(statusfilterValue).astype(int))
+
+    diagChecked = request.POST.get('diagChecked')
+    treatChecked = request.POST.get('treatChecked')
+    fuChecked = request.POST.get('fuChecked')
+    ambiguousChecked = request.POST.get('ambiguousChecked')
+    pdConfirmed = request.POST.get('pdConfirmed')
+    statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
 
     cursor = connections['practiceDB'].cursor()
-    if filter=='0':
-        query = '''
-        select [PD],[chartNo],[pdConfirmed],
-        IIF( 
-            cast([diagChecked] as int)+
-            cast([treatChecked] as int)+
-            cast([fuChecked] as int)+
-            cast([ambiguousChecked] as int)
-        >0, 1, 0 ) as 'check'
-        from(
-            SELECT *
-            ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-            FROM [PatientDisease] where [diseaseID]=%s '''
-        if statusfilterValueSum !=0:
-            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-                filterName = replaceCapitalAndLowCase(filterName)
-                filterValue = replaceCapitalAndLowCase(filterValue)
-                query +=f' and {filterName}={filterValue} '
-        query += ') as a where  a.Sort=1 and a.chartNo>0'
-    
-    elif filter=='1':
-        query = '''
-        select a.PD,a.chartNo from(
-            select [PD],[chartNo] 
-            from(
-                SELECT *
-                ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s '''
-        if statusfilterValueSum !=0:
-            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-                filterName = replaceCapitalAndLowCase(filterName)
-                filterValue = replaceCapitalAndLowCase(filterValue)
-                query +=f' and {filterName}={filterValue} '
+    query = 'EXEC getPoolConfirmPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
 
-        query +='''    ) as a where a.Sort=1 and a.chartNo>0
-        ) as a
-        left outer join allEvents as b on a.chartNo=b.chartNo
-        where b.eventChecked is null
-        group by a.PD,a.chartNo,b.eventChecked
-        order by a.chartNo,b.eventChecked ASC
-        '''
-    elif filter=='2':
-        query = '''
-        select a.PD,a.chartNo from(
-            select [PD],[chartNo] 
-            from(
-                SELECT *
-                ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s '''
-        if statusfilterValueSum !=0:
-            for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-                filterName = replaceCapitalAndLowCase(filterName)
-                filterValue = replaceCapitalAndLowCase(filterValue)
-                query +=f' and {filterName}={filterValue} '
-        query +='''
-            ) as a where a.Sort=1 and a.chartNo>0
-        ) as a
-        left outer join allEvents as b on a.chartNo=b.chartNo
-        where b.eventChecked is not null
-        group by a.PD,a.chartNo,b.eventChecked
-        order by a.chartNo,b.eventChecked ASC
-        '''
-    cursor.execute(query,[Disease])
-    
 
     examID=''
     #examID = list(cursor.fetchall())
@@ -301,7 +244,6 @@ def updatePhase(request):
     originSeqNo = request.POST.get('originSeqNo')
     chartNo = request.POST.get('chartNo')
     cursor = connections['practiceDB'].cursor()
-    print(chartNo,' ',originSeqNo)
     if PDID == 'Infinity':
         query = 'select PD from PatientDisease where chartNo = %s and caSeqNo = %s'
         cursor.execute(query,[chartNo,originSeqNo])
@@ -497,67 +439,15 @@ def getClinicalProcedures(request):
 def getNum(request):
     cursor = connections['practiceDB'].cursor()
     disease = request.POST.get('disease')
-    statusfilterNames = request.POST.getlist('statusfilterNames[]')
-    statusfilterValue = request.POST.getlist('statusfilterValue[]')
-    statusfilterValueSum = np.sum(np.array(statusfilterValue).astype(int))
-    query = '''
-    select COUNT(chartNo) as NUM 
-    from(
-        SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
-        ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-        FROM [PatientDisease] where [diseaseID]=%s'''
-    if statusfilterValueSum != 0:
-        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-            filterName = replaceCapitalAndLowCase(filterName)
-            filterValue = replaceCapitalAndLowCase(filterValue)
-            query +=f' and {filterName}={filterValue} '
-    query += '''    
-    ) as a where  a.Sort=1 and a.chartNo>0
-    UNION ALL
-
-    select COUNT(chartNo) as NUM  from (
-        select a.PD,a.chartNo from(
-            select [PD],[chartNo] 
-            from(
-                SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
-                ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-                FROM [PatientDisease] where [diseaseID]=%s'''
-    if statusfilterValueSum != 0:
-        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-            filterName = replaceCapitalAndLowCase(filterName)
-            filterValue = replaceCapitalAndLowCase(filterValue)
-            query +=f' and {filterName}={filterValue} '         
-    query +='''
-            ) as a where a.Sort=1 and a.chartNo>0
-        ) as a
-        left outer join allEvents as b on a.chartNo=b.chartNo
-        where b.eventChecked is null
-        group by a.PD,a.chartNo,b.eventChecked
-    ) as result1
-    UNION ALL
-
-    select COUNT(chartNo) as NUM  from (
-    select a.PD,a.chartNo from(
-        select [PD],[chartNo] 
-        from(
-            SELECT [PD],[chartNo],[diseaseID],[caSeqNo],[diagStatus],[treatStatus]
-            ,ROW_NUMBER() Over (Partition By [chartNo] Order By [caSeqNo] Desc) As Sort
-            FROM [PatientDisease] where [diseaseID]=%s'''
-    if statusfilterValueSum != 0:
-        for filterName,filterValue in zip(statusfilterNames,statusfilterValue):
-            filterName = replaceCapitalAndLowCase(filterName)
-            filterValue = replaceCapitalAndLowCase(filterValue)
-            query +=f' and {filterName}={filterValue} '
-    query +='''
-        ) as a where a.Sort=1 and a.chartNo>0
-    ) as a
-    left outer join allEvents as b on a.chartNo=b.chartNo
-    where b.eventChecked is not null
-    group by a.PD,a.chartNo,b.eventChecked
-    ) as result2
-
-    '''
-    cursor.execute(query,[disease,disease,disease])
+    diagChecked = request.POST.get('diagChecked')
+    treatChecked = request.POST.get('treatChecked')
+    fuChecked = request.POST.get('fuChecked')
+    ambiguousChecked = request.POST.get('ambiguousChecked')
+    pdConfirmed = request.POST.get('pdConfirmed')
+    statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
+    cursor = connections['practiceDB'].cursor()
+    query = 'EXEC getPoolConfirmPatientNum @diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    cursor.execute(query,[disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
     num=[]
     res = cursor.fetchall()
     for row in res:
@@ -833,7 +723,6 @@ def insertExtractedFactors(request):
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,seq,root,Recorded in zip(insertIDArray,insertValArray,insertSeqArray,insertRootArray,insertRecordedArray):
-        print(f'eventID={eventID} factorID={factorID} seq={seq}')
         cursor.execute(query,[eventID,factorID,seq])
         if len(cursor.fetchall())==0: # =0, insert this data
             queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq,rootID) VALUES(%s,%s,%s,%s,%s)'''
@@ -855,7 +744,6 @@ def searchExtractedFactorsRecord(request):
     classRecorded = []
 
     for factorId,seq,className in zip(idArray,seqArray,classArray):
-        print(f'eventID={eventID} factorID={factorId} seq={seq}')
         cursor.execute(query,[eventID,factorId,seq])
         result = cursor.fetchall()
         if len(result)!=0:
