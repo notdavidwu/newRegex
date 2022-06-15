@@ -72,8 +72,8 @@ def upadte_auth_app(request):
 
 @csrf_exempt
 def get_disease(request):
-    query = '''select DiseaseNo,Disease from diseaseGroup'''
-    cursor = connections['default'].cursor()
+    query = '''select * from researchTopic'''
+    cursor = connections['practiceDB'].cursor()
     cursor.execute(query)
     res = cursor.fetchall()
     disease = []
@@ -87,11 +87,11 @@ def get_disease(request):
 @csrf_exempt
 def get_auth_disease(request):
     username=request.POST.get('username')
-    query = '''select a.disease,b.Disease from auth_disease as a
-                    inner join diseaseGroup as b on a.disease=b.DiseaseNo
+    query = '''select a.disease,b.topicName from auth_disease as a
+                    inner join [practiceDB].[dbo].[researchTopic] as b on a.disease=b.topicNo
                     where username=%s order by a.disease
             '''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['default'].cursor()
     cursor.execute(query,[username])
     res = cursor.fetchall()
     auth_disease = []
@@ -107,16 +107,16 @@ def upadte_auth_disease(request):
     username=request.POST.get('username')
     authdisease = request.POST.get('authdisease')
     query = '''select disease from auth_disease where username=%s and disease=%s'''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['default'].cursor()
     cursor.execute(query,[username,authdisease])
     res = cursor.fetchall()
     if(len(res)==1):#刪除資料
         query = '''delete from auth_disease where username=%s and disease=%s'''
-        cursor = connections['AIC'].cursor()
+        cursor = connections['default'].cursor()
         cursor.execute(query, [username, authdisease])
     else:
         query = '''insert into auth_disease (username,disease) values (%s,%s)'''
-        cursor = connections['AIC'].cursor()
+        cursor = connections['default'].cursor()
         cursor.execute(query, [username, authdisease])
     return JsonResponse({})
 

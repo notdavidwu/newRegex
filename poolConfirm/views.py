@@ -106,9 +106,9 @@ def confirmpat2(request):
     con = cursor.fetchall()
     for i in range(len(con)):
         MedType.append(con[i][3])
-        eventID.append(con[i][7])
-        eventChecked = con[i][8]
-        note = con[i][9]
+        eventID.append(con[i][6])
+        eventChecked = con[i][7]
+        note = con[i][8]
         if eventChecked is None:
             eventChecked=True
         if note is None:
@@ -120,7 +120,7 @@ def confirmpat2(request):
                     <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>
-        <div class="eventID">{con[i][7]}</div>
+        <div class="eventID">{con[i][6]}</div>
         <div class="ChartNo">{con[i][0]}</div>
         <div class="OrderNo">{con[i][1]}</div>
         <div class="edate">{con[i][2]}</div>
@@ -128,7 +128,7 @@ def confirmpat2(request):
         <div class="type2">{con[i][4].replace(' ','')}</div>
         <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value="{note}"></div>
         <div class="menu"></div>
-        <p class="report2">{con[i][6]}</p>
+        <p class="report2">{con[i][5]}</p>
         ''' 
 
         object += f'''</label></tr></td>'''

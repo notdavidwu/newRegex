@@ -116,7 +116,7 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 DATABASES = {
         'default': {
             'ENGINE': 'mssql',
-            'NAME': 'AICH',
+            'NAME': 'Django',
             'USER': 'TEST',
             'PASSWORD': '81218',
             'HOST': '172.31.6.22',
