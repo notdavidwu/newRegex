@@ -53,5 +53,5 @@ urlpatterns = [
     path('getAnnotationFactorDetail/', views.getAnnotationFactorDetail, name='getAnnotationFactorDetail'),
     path('getAnnotationFactor/', views.getAnnotationFactor, name='getAnnotationFactor'),
     path('updateDrConfirm/', views.updateDrConfirm, name='updateDrConfirm'),
-    
+    path('researchTopic/', views.researchTopic, name='researchTopic'),
 ]

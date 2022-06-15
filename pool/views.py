@@ -20,13 +20,14 @@ def pool(request):
 
 @csrf_exempt
 def Disease(request):
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     au = '%' if (str(request.POST.get('username')) == 'AIC') else  request.POST.get('username')+'%'
-    if str(request.POST.get('username')) == 'AIC':
+    print(request.user.is_superuser)
+    if request.user.is_superuser:
         query = '''SELECT topicNo,topicName FROM [researchTopic]'''
         cursor.execute(query,[])
     else:
-        query = '''select distinct b.* from auth_disease as a
+        query = '''select distinct b.* from Django.dbo.auth_disease as a
                 inner join researchTopic as b on a.disease=b.topicNo
                 where username like %s 
                 '''
@@ -38,6 +39,7 @@ def Disease(request):
     for i in range(len(res)):
         topicNo.append(res[i][0])
         topicName.append(res[i][1])
+    print(topicName)
     return JsonResponse({'topicNo': topicNo,'topicName': topicName})
 
 

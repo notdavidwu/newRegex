@@ -107,6 +107,19 @@ def to_image(numpy_img):
     return img
 
 @csrf_exempt
+def researchTopic(request):
+    query = '''select * from researchTopic'''
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query)
+    topicNo = []
+    topicName = []
+    res = cursor.fetchall()
+    for row in res:
+        topicNo.append(row[0])
+        topicName.append(row[1])
+    return JsonResponse({'topicNo': topicNo,'topicName': topicName})
+
+@csrf_exempt
 def DICOM(request):
     SeriesIdIndex = {'1': 0, '2': 0, '3': 0, '4': 0}
     
@@ -998,6 +1011,7 @@ def insertAnnotationFactor(request):
 
 @csrf_exempt
 def insertLocation(request):
+    ''''''
     Click_X = request.session.get('Click_X')
     Click_Y = request.session.get('Click_X')
     Click_Z = request.session.get('Click_X')
@@ -1007,9 +1021,6 @@ def insertLocation(request):
     StudyID = str(request.POST.get('StudyID'))
     SeriesID = request.POST.get('SeriesID')
     WindowNo = str(request.POST.get('WindowNo'))
-    
-
-   
     PID = 'null' if (str(request.POST.get('PID')) == '') else  request.POST.get('PID')
     SD = '' if (str(request.POST.get('SD')) == '') else str(request.POST.get('SD'))
     Item = '' if (str(request.POST.get('Item')) == '') else str(request.POST.get('Item'))
@@ -1017,6 +1028,15 @@ def insertLocation(request):
     username = 'null' if (str(request.POST.get('username')) == '') else str(request.POST.get('username'))
     SUV = '0' if (str(request.POST.get('SUV')) == '') else request.POST.get('SUV')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
+    LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
+    LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
+    LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
+    string = request.POST.getlist('str[]')
+    Study_Date = request.POST.getlist('Study_Date[]')
+    SeriesIdIndex = request.session.get('SeriesIdIndex')
+
+    all_annotations = request.session.get('all_annotations')
+    
     Type = Item.replace(' ', '')
     now = datetime.now()
     current_time = str(now.strftime("%Y-%m-%d %H:%M:%S"))
@@ -1051,28 +1071,20 @@ def insertLocation(request):
 
     
     
-    LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
-    LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
-    LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
+    
     
     query = '''
     insert into　annotation (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,seriesID) 
     output Inserted.id 
     values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     '''
-    print(PID,' ',SD,' ',Item,' ',current_time,' ',username,' ',SUV,' ',x,' ',y,' ',z,' ',LabelGroup,' ',LabelName,' ',LabelRecord,' ',Click_X,' ',Click_Y,' ',Click_Z,' ',Disease,' ',StudyID,' ',SeriesID)
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[PID,SD,Item,current_time,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,SeriesID])
     inserted_id = cursor.fetchone()[0]
 
-    string = request.POST.getlist('str[]')
-    Study_Date = request.POST.getlist('Study_Date[]')
-    SeriesIdIndex = request.session.get('SeriesIdIndex')
-    Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-    #PID = 'null' if (str(request.POST.get('PID')) == '') else fernet.decrypt(request.POST.get('PID').encode()).decode()
-    PID = 'null' if (str(request.POST.get('PID')) == '') else  request.POST.get('PID')
+
     
-    all_annotations = request.session.get('all_annotations')
+    
     cursor = connections['AIC'].cursor()
     if all_annotations==True:
         query = '''

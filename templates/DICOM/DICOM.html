@@ -1895,14 +1895,14 @@
         $('[data-toggle="popover"]').popover();
         $.ajax({
             type: 'post',
-            url: '{% url "confirm:Disease" %}', // this is the mapping between the url and view
+            url: '{% url "DICOM:researchTopic" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                for(var i=0;i<response.DiseaseNo.length;i++){
+                for(var i=0;i<response.topicNo.length;i++){
                     $('#Disease').append('' +
-                        '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
+                        '<option value="'+response.topicNo[i]+'">'+response.topicName[i]+'</option>'+
                         '')
                 }
             },
