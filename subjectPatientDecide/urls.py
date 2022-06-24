@@ -25,5 +25,11 @@ urlpatterns = [
     path('getRegistTopicList/', views.getRegistTopicList,name='getRegistTopicList'),
     path('addCorrelationPatientListAndAnnotation/', views.addCorrelationPatientListAndAnnotation,name='addCorrelationPatientListAndAnnotation'),
     path('deleteCorrelationPatientListAndAnnotation/', views.deleteCorrelationPatientListAndAnnotation,name='deleteCorrelationPatientListAndAnnotation'),
+    path('getMedType/', views.getMedType,name='getMedType'),
+    path('getPatientWithMedType/', views.getPatientWithMedType,name='getPatientWithMedType'),
+    path('downloadCSV/', views.downloadCSV,name='downloadCSV'),
+    path('uploadCandicate/', views.uploadCandicate,name='uploadCandicate'),
+    path('getPatientWithProcedure/', views.getPatientWithProcedure,name='getPatientWithProcedure'),
+    path('getPatientWithMedTypeAndProcedure/', views.getPatientWithMedTypeAndProcedure,name='getPatientWithMedTypeAndProcedure'),
     
 ]

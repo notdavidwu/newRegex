@@ -1009,12 +1009,54 @@ def insertAnnotationFactor(request):
         cursor.execute(insert_query,[a_id,perFactor,perDetail])
     return JsonResponse({})
 
+
+def process_annotation_coordinate(request,multiplyOrDivide,Type,WindowNo,x,y,z):
+    if multiplyOrDivide=='multiply':
+        if Type == 'PET':
+            PET_H = request.session.get('PET_H_' + WindowNo)
+            PET_W = request.session.get('PET_W_' + WindowNo)
+            PET_D = request.session.get('PET_D_' + WindowNo)
+            CT_H = request.session.get('view_H_' + WindowNo)
+            CT_W = request.session.get('view_W_' + WindowNo)
+            CT_D = request.session.get('view_D_' + WindowNo)
+            x = (x * (PET_W / CT_W))
+            y = (y * (PET_H / CT_H))
+            z = (z * (PET_D / CT_D))
+        elif Type == 'RTPLAN':
+            x = math.floor(x)
+            y = math.floor(y)
+            z = math.floor(z)
+        elif Type == 'LDCT':
+            x = math.floor(x)
+            y = math.floor(y)
+            z = math.floor(z)
+    elif multiplyOrDivide=='divide':
+        if Type == 'PET':
+            PET_H = request.session.get('PET_H_' + WindowNo)
+            PET_W = request.session.get('PET_W_' + WindowNo)
+            PET_D = request.session.get('PET_D_' + WindowNo)
+            CT_H = request.session.get('view_H_' + WindowNo)
+            CT_W = request.session.get('view_W_' + WindowNo)
+            CT_D = request.session.get('view_D_' + WindowNo)
+            x = math.ceil((float(x) / (PET_W / CT_W)))
+            y = math.ceil((float(y) / (PET_H / CT_H)))
+            z = math.ceil((float(z) / (PET_D / CT_D)))
+        elif Type == 'RTPLAN':
+            x = math.ceil(float(x))
+            y = math.ceil(float(y))
+            z = math.ceil(float(z))
+        elif Type == 'LDCT':
+            x = math.ceil(float(x))
+            y = math.ceil(float(y))
+            z = math.ceil(float(z))
+        elif Type == 'MRI':
+            x = math.ceil(float(x))
+            y = math.ceil(float(y))
+            z = math.ceil(float(z))    
+    return x,y,z
 @csrf_exempt
 def insertLocation(request):
-    ''''''
-    Click_X = request.session.get('Click_X')
-    Click_Y = request.session.get('Click_X')
-    Click_Z = request.session.get('Click_X')
+    '''-----------------POST.get------------------'''
     x = float(request.POST.get('x'))
     y = float(request.POST.get('y'))
     z = float(request.POST.get('z'))
@@ -1031,152 +1073,33 @@ def insertLocation(request):
     LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
     LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
     LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
-    string = request.POST.getlist('str[]')
-    Study_Date = request.POST.getlist('Study_Date[]')
-    SeriesIdIndex = request.session.get('SeriesIdIndex')
 
-    all_annotations = request.session.get('all_annotations')
-    
+    '''-----------------------------------'''
+
     Type = Item.replace(' ', '')
     now = datetime.now()
     current_time = str(now.strftime("%Y-%m-%d %H:%M:%S"))
-    if Type == 'PET':
-        PET_H = request.session.get('PET_H_' + WindowNo)
-        PET_W = request.session.get('PET_W_' + WindowNo)
-        PET_D = request.session.get('PET_D_' + WindowNo)
-        CT_H = request.session.get('view_H_' + WindowNo)
-        CT_W = request.session.get('view_W_' + WindowNo)
-        CT_D = request.session.get('view_D_' + WindowNo)
-        x = (x * (PET_W / CT_W))
-        y = (y * (PET_H / CT_H))
-        z = (z * (PET_D / CT_D))
-        Click_X = (Click_X * (PET_W / CT_W))
-        Click_Y = (Click_Y * (PET_H / CT_H))
-        Click_Z = (Click_Z * (PET_D / CT_D))
 
-    elif Type == 'RTPLAN':
-        x = math.floor(x)
-        y = math.floor(y)
-        z = math.floor(z)
-        Click_X = math.floor(Click_X)
-        Click_Y = math.floor(Click_Y)
-        Click_Z = math.floor(Click_Z)
-    elif Type == 'LDCT':
-        x = math.floor(x)
-        y = math.floor(y)
-        z = math.floor(z)
-        Click_X = math.floor(Click_X)
-        Click_Y = math.floor(Click_Y)
-        Click_Z = math.floor(Click_Z)
 
-    
-    
-    
-    
-    query = '''
-    insert into　annotation (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,seriesID) 
+    '''-----------Processing annotation coordinate------------'''
+    x,y,z = process_annotation_coordinate(request,'multiply',Type,WindowNo,x,y,z)
+    '''------------------------------------------------------'''
+    cursor = connections['AIC'].cursor()
+    query_insertAnnotation = '''
+    insert into　annotation_new (chartNo,imageType,studyID,seriesID,studyDate,username,topicNo,updateTime,SUV,x,y,z,labelGroup,labelName,labelRecord) 
     output Inserted.id 
-    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     '''
-    cursor = connections['AIC'].cursor()
-    cursor.execute(query,[PID,SD,Item,current_time,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,SeriesID])
+    cursor.execute(query_insertAnnotation,[PID,Item,StudyID,SeriesID,SD,username,Disease,current_time,SUV,x,y,z,LabelGroup,LabelName,LabelRecord])
     inserted_id = cursor.fetchone()[0]
-
-
-    
-    
-    cursor = connections['AIC'].cursor()
-    if all_annotations==True:
-        query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
-        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
-        '''
-        cursor.execute(query,
-                   [PID, Disease, string[0], string[1],
-                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
-    else:
-        query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s and (username=%s or username='') and Disease=%s 
-        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
-        order by studySeries,date,LabelName ASC
-        '''
-        cursor.execute(query,
-                   [PID, username, Disease, string[0], string[1],
-                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
-
-    response = cursor.fetchall()
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID ,StudyID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-    for info in response:
-        Type = str(info[3]).replace(' ', '')
-
-        StudySeries = str(info[17])+'_'+str(info[19])
-        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
-        if Type == 'PET':
-            PET_H = request.session.get('PET_H_' + ind)
-            PET_W = request.session.get('PET_W_' + ind)
-            PET_D = request.session.get('PET_D_' + ind)
-            CT_H = request.session.get('view_H_' + ind)
-            CT_W = request.session.get('view_W_' + ind)
-            CT_D = request.session.get('view_D_' + ind)
-            rx = math.ceil((float(info[7]) / (PET_W / CT_W)))
-            ry = math.ceil((float(info[8]) / (PET_H / CT_H)))
-            rz = math.ceil((float(info[9]) / (PET_D / CT_D)))
-        elif Type == 'RTPLAN':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'LDCT':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'MRI':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        id.append(info[0])
-        PID.append(info[1])
-        SD.append(info[2])
-        Item.append(info[3])
-        date.append(info[4])
-        username.append(info[5])
-        if float(info[6]) == 0:
-            SUV.append('')
-        else:
-            SUV.append(round(float(info[6]), 3))
-        x.append(rx)
-        y.append(ry)
-        z.append(rz)
-        LabelGroup.append(info[10])
-        LabelName.append(info[11])
-        LabelRecord.append(info[12])
-        StudyID.append(info[17])
-        SeriesID.append(info[19])
-        Dr_confirm.append(info[20])
-    _, indices = np.unique(SeriesID, return_inverse=True)
-    indices = list(indices.astype('float'))
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
     return JsonResponse(
         {'inserted_id':inserted_id,'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
          'indices': indices},
         status=200)
 
-
-@csrf_exempt
-def deleteLocation(request):
-    all_annotations = request.session.get('all_annotations')
-    id=str(request.POST.get('id'))
-    querySearch='''SELECT PID,SD,StudyID,seriesID FROM annotation WHERE id=%s'''
-    cursor = connections['AIC'].cursor()
-    cursor.execute(querySearch,[id])
-    info = cursor.fetchall()
-    PID=str(info[0][0])
-    studyDate=str(info[0][1]).replace('-','')
-    studyID=str(info[0][2])
-    seriesID=str(info[0][3])
+def removeContourFile(request,PID,studyDate,studyID,seriesID,id):
     if platform.system()!='Windows':
         dir = os.path.join('/home','user','netapp','image',PID,studyDate,studyID,seriesID,'segmentation',id)
     else:
@@ -1195,7 +1118,24 @@ def deleteLocation(request):
             except:
                 pass
         shutil.rmtree(dir)
-    query = '''delete from annotation where id=%s'''
+
+@csrf_exempt
+def deleteLocation(request):
+    '''---------------------Get POST and SESSION--------------------'''
+    PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
+    '''-------------------------------------------------------------'''
+    all_annotations = request.session.get('all_annotations')
+    id=str(request.POST.get('id'))
+    querySearch='''SELECT chartNo,studyDate,studyID,seriesID FROM annotation_new WHERE id=%s'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(querySearch,[id])
+    info = cursor.fetchall()
+    PID=str(info[0][0])
+    studyDate=str(info[0][1]).replace('-','')
+    studyID=str(info[0][2])
+    seriesID=str(info[0][3])
+    removeContourFile(request,PID,studyDate,studyID,seriesID,id)
+    query = '''delete from annotation_new where id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
     query = '''delete from measureTumor where EventID=%s'''
@@ -1204,94 +1144,7 @@ def deleteLocation(request):
     query = '''delete from annotationFactor where a_id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
-
-    SeriesIdIndex = request.session.get('SeriesIdIndex')
-    Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-    string = request.POST.getlist('str[]')
-    Study_Date = request.POST.getlist('Study_Date[]')
-    username = request.POST.get('username')
-    cursor = connections['AIC'].cursor()
-
-    PID = 'null' if (str(request.POST.get('PID')) == '') else request.POST.get('PID')
-
-
-    if all_annotations==True:
-        query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
-        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
-        '''
-        cursor.execute(query,
-                   [PID, Disease, string[0], string[1],
-                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
-    else:
-        query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s and (username=%s or username='') and Disease=%s 
-        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
-        order by studySeries,date,LabelName ASC
-        '''
-        cursor.execute(query,
-                   [PID, username, Disease, string[0], string[1],
-                    string[2], string[3],Study_Date[0],Study_Date[1],Study_Date[2],Study_Date[3]])
-
-
-    response = cursor.fetchall()
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, SeriesID,StudyID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
-
-    for info in response:
-        Type = str(info[3]).replace(' ', '')
-
-        StudySeries = str(info[17])+'_'+str(info[19])
-        ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
-
-        if Type == 'PET':
-            PET_H = request.session.get('PET_H_' + ind)
-            PET_W = request.session.get('PET_W_' + ind)
-            PET_D = request.session.get('PET_D_' + ind)
-            CT_H = request.session.get('view_H_' + ind)
-            CT_W = request.session.get('view_W_' + ind)
-            CT_D = request.session.get('view_D_' + ind)
-            rx = math.ceil((float(info[7]) / (PET_W / CT_W)))
-            ry = math.ceil((float(info[8]) / (PET_H / CT_H)))
-            rz = math.ceil((float(info[9]) / (PET_D / CT_D)))
-
-        elif Type == 'RTPLAN':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'LDCT':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'MRI':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        id.append(info[0])
-        PID.append(info[1])
-        SD.append(info[2])
-        Item.append(info[3])
-        date.append(info[4])
-        username.append(info[5])
-        if float(info[6]) == 0:
-            SUV.append('')
-        else:
-            SUV.append(round(float(info[6]), 3))
-        x.append(rx)
-        y.append(ry)
-        z.append(rz)
-        LabelGroup.append(info[10])
-        LabelName.append(info[11])
-        LabelRecord.append(info[12])
-        StudyID.append(info[17])
-        SeriesID.append(info[19])
-        Dr_confirm.append(info[20])
-    _, indices = np.unique(SeriesID, return_inverse=True)
-    indices = list(indices.astype('float'))
-    
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
@@ -1299,98 +1152,67 @@ def deleteLocation(request):
         status=200)
 
 
-@csrf_exempt
-def selectLocation(request):
+def selectAnnotation(request):
     is_superuser = request.session.get('is_superuser')
     all_annotations = request.session.get('all_annotations')
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
-    # response = annotation.objects.filter(pid=request.POST.get('PID'), username=request.POST.get('username'))
-
     PID = request.POST.get('PID')
     string = request.POST.getlist('str[]')
-    studyDate = request.POST.getlist('date[]')
+    studyDate = request.POST.getlist('Study_Date[]')
     username = str(request.POST.get('username'))
     cursor = connections['AIC'].cursor()
     
     if all_annotations==True:
         query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s  and Disease=%s and studySeries in (%s,%s,%s,%s) 
-        and SD in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,date,LabelName ASC
+        select * from (select　*,(CAST(studyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation_new) as a 
+        where  chartNo=%s  and topicNo=%s and studySeries in (%s,%s,%s,%s) 
+        and studyDate in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,updateTime,labelName ASC
         '''
-        cursor.execute(query,
-                   [PID, Disease, string[0], string[1],
-                    string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
+        cursor.execute(query,[PID, Disease, string[0], string[1], string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
     else:
         query = '''
-        select * from (select　*,(CAST(StudyID as VARCHAR(50)) + '_' + 
-        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation) as a 
-        where  PID=%s and (username=%s or username='') and Disease=%s 
-        and studySeries in (%s,%s,%s,%s) and SD in (%s,%s,%s,%s) 
-        order by studySeries,date,LabelName ASC
+        select * from (select　*,(CAST(studyID as VARCHAR(50)) + '_' + 
+        CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation_new) as a 
+        where  chartNo=%s and (username=%s or username='') and topicNo=%s 
+        and studySeries in (%s,%s,%s,%s) and studyDate in (%s,%s,%s,%s) 
+        order by studySeries,updateTime,labelName ASC
         '''
-        cursor.execute(query,
-                   [PID, username, Disease, string[0], string[1],
-                    string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
-    
-
-    
+        cursor.execute(query,[PID, username, Disease, string[0], string[1], string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
     response = cursor.fetchall()
-
     id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
-
     for info in response:
-        Type = str(info[3]).replace(' ', '')
-        StudySeries = str(info[17])+'_'+str(info[19])
+        Type = str(info[2]).replace(' ', '')
+        StudySeries = str(info[3])+'_'+str(info[4])
         ind = str(list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(StudySeries)])
-
-        if Type == 'PET':
-            PET_H = request.session.get('PET_H_' + ind)
-            PET_W = request.session.get('PET_W_' + ind)
-            PET_D = request.session.get('PET_D_' + ind)
-            CT_H = request.session.get('view_H_' + ind)
-            CT_W = request.session.get('view_W_' + ind)
-            CT_D = request.session.get('view_D_' + ind)
-            rx = math.ceil((float(info[7]) / (PET_W / CT_W)))
-            ry = math.ceil((float(info[8]) / (PET_H / CT_H)))
-            rz = math.ceil((float(info[9]) / (PET_D / CT_D)))
-
-        elif Type == 'RTPLAN':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'LDCT':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))
-        elif Type == 'MRI':
-            rx = math.ceil(float(info[7]))
-            ry = math.ceil(float(info[8]))
-            rz = math.ceil(float(info[9]))        
+        
+        rx,ry,rz = process_annotation_coordinate(request,'divide',Type,ind,info[10],info[11],info[12])
         id.append(info[0])
         PID.append(info[1])
-        SD.append(info[2])
-        Item.append(info[3])
-        date.append(info[4])
-        username.append(info[5])
-        if float(info[6]) == 0:
+        SD.append(info[5])
+        Item.append(info[2])
+        date.append(info[8])
+        username.append(info[6])
+        if float(info[9]) == 0:
             SUV.append('')
         else:
-            SUV.append(round(float(info[6]), 3))
+            SUV.append(round(float(info[9]), 3))
         x.append(rx)
         y.append(ry)
         z.append(rz)
-        LabelGroup.append(info[10])
-        LabelName.append(info[11])
-        LabelRecord.append(info[12])
-        StudyID.append(info[17])
-        SeriesID.append(info[19])
-        Dr_confirm.append(info[20])
+        LabelGroup.append(info[13])
+        LabelName.append(info[14])
+        LabelRecord.append(info[15])
+        StudyID.append(info[3])
+        SeriesID.append(info[4])
+        Dr_confirm.append(info[17])
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
-    
+    return id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices
+@csrf_exempt
+def selectLocation(request):
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
@@ -1535,6 +1357,7 @@ def TextReport(request):
     #         left join medTypeSet as c on a.medType=c.medType
     #         where (b.descriptionType>2 or b.descriptionType is null)and a.chartNo=%s
     #         ) as a where a.eventDate<=%s"""
+    print(pid,MedExecTime)
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]
     return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
@@ -1884,15 +1707,12 @@ def SaveCoordinate(request):
         view =  '(C)'
     elif str(SeriesID)[0]=='3':
         view =  '(S)'
-    query = ''' 
-        INSERT INTO 
-            annotation 
-            (PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
-            VALUES 
-            (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    query = '''          
+        INSERT INTO annotation_new (chartNo,imageType,studyID,seriesID,studyDate,username,topicNo,updateTime,SUV,x,y,z,labelGroup,labelName,labelRecord) 
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         '''
     cursor = connections['AIC'].cursor()
-    cursor.execute(query, [PID,date,'MRI',str(current_time),username,'0','0','0',variable,'MRI','slice coordinate','note: '+LabelRecord,'0','0',variable,Disease,StudyID,'',SeriesID])
+    cursor.execute(query, [PID,'MRI',StudyID,SeriesID,date,username,Disease,str(current_time),'0','0','0',variable,'MRI','slice coordinate',f'note: {LabelRecord}'])
     return JsonResponse({}, status=200)   
 
 @csrf_exempt
@@ -1900,7 +1720,7 @@ def getusers(request):
     username = str(request.POST.get('username'))
     '''get all users'''
     query = '''select username from auth_user order by is_superuser　DESC'''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['default'].cursor()
     cursor.execute(query)
     users = []
     res = cursor.fetchall()

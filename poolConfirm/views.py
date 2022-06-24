@@ -125,7 +125,7 @@ def confirmpat2(request):
         <div class="OrderNo">{con[i][1]}</div>
         <div class="edate">{con[i][2]}</div>
         <div class="medType">{con[i][3]}</div>
-        <div class="type2">{con[i][4].replace(' ','')}</div>
+        <div class="type2">{con[i][4]}</div>
         <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value="{note}"></div>
         <div class="menu"></div>
         <p class="report2">{con[i][5]}</p>

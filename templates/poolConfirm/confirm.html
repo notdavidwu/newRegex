@@ -1670,6 +1670,13 @@
         })
     }
 
+    function emptyAll(){
+        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="checkbox"]').prop('checked',false)
+        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="radio"]').prop('checked',false)
+        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="text"]').val('')
+        $('#extractFactorMenu').css('display','none')
+    }
+
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -1682,7 +1689,8 @@
         //右鍵選單
         menu('defaultMenuBlock1','statusMenu')
         menu('defaultMenuBlock2','menu')
-
+        menu('extractedFactor','extractFactorMenu',false)
+        
         move('ascription')
         move('cancerRegistCheck')
         move('patientStatusCheck')
@@ -1900,9 +1908,10 @@
             <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="formDesign()">表單設計</p>
         </div>
 
-        <div id="extraFactorMenu" class="customMenu">
-            <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="addMainBlock()">新增</p>
+        <div id="extractFactorMenu" class="customMenu">
+            <p class="btn btn-secondary resetbtn" id="emptyAll" role="button" onclick="emptyAll()">全部清空</p>
         </div>
+
 
         <div class="checkPannel" id="extractedFactor">
             <div class="ascriptionHeader">

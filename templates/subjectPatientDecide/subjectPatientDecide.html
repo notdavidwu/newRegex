@@ -22,7 +22,9 @@
     <script src="{% static 'css_js/key_forbidden.js' %}"></script>
     <script src="{% static 'css_js/popper.min.js' %}"></script>
     <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
-    <title>DICOM</title>
+    <script src="{% static 'css_js/jquery.tableToExcel.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <title>CSMU_AIC</title>
     </head>
 
 <style>
@@ -55,10 +57,13 @@
     #patient table{text-align:center}
     #tbody{height:calc(100% - 43px);overflow-y:auto}
     #header{margin:0px}
+    .condition{border-bottom:2px solid #AAA;padding-bottom:10px;margin-bottom:10px}
+    .block{border-bottom:2px solid #AAA;padding-bottom:10px;margin-bottom:10px}
+    #candicateDownload{position:absolute;z-index:2;right:5px;top:6px;height:30px;line-height:15px}
 </style>
 
 
-<script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+
 <script>
     function excludeCheck(pannel){
         let targetClass=$(event.target).attr('class').split(' ')[1]
@@ -74,17 +79,39 @@
         }
     }
     
-    function getImageClinicalProcedures(){
+    function getImageClinicalProcedures(diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed){
         $.ajax({
             type: 'post',
             url: '{% url "subjectPatientDecide:getImageClinicalProcedures" %}', // this is the mapping between the url and view
             data:{
+                'diseaseID':diseaseID,
+                'caSeqNo':caSeqNo,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                for(let i=0;i<response.procedureID.length;i++){
-                    $('#imageClinicalProcedures').append(`<div class="form-check"><input type="checkbox" id="${response.procedureID[i]}" class="form-check-input" data-procedureID=${response.procedureID[i]}><label class="form-check-label" for="${response.procedureID[i]}">${response.procedureName[i]}</label></div>`)
-                }
+                $('#clinicalPannel .col-md-12').empty()
+                let clinicalObject = '<div class="accordion accordion-flush" id="accordionFlushExample">'
+                    clinicalObject +=`
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="flush-heading-clinicalProcedures">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-clinicalProcedures" aria-expanded="false" aria-controls="flush-collapse-clinicalProcedures">
+                            Clinical Procedures
+                        </button>
+                    </h2>
+                    <div id="flush-collapse-clinicalProcedures" class="accordion-collapse collapse" aria-labelledby="flush-heading-clinicalProcedures" data-bs-parent="#accordionFlushExample">`
+                for(let j=0;j<response.procedureID.length;j++){
+                    clinicalObject +=`<div class="accordion-body"><label for="procedureID_${response.procedureID[j]}">${response.procedureName[j]} : <code>${response.n_chartNo[j]}</code>人 </label><input type="checkbox" name="procedure" data-procedure="${response.procedureID[j]}" id="procedureID_${response.procedureID[j]}" onclick="getPatient('getPatientWithProcedure')"></div>`
+                }        
+                clinicalObject +=`</div></div>`
+                
+                clinicalObject +=`</div>`
+                $('#clinicalPannel .col-md-12').html(clinicalObject)
+                $('#clinicalPannel').attr('class','row g-3 block')
             }
         })
     }
@@ -98,7 +125,7 @@
             },
             success:function (response){
                 for(let i=0;i<response.diseaseID.length;i++){
-                    $('#disease').append(`<option value=${response.diseaseID[i]}>${response.disease[i]}</option>`)
+                    $('.disease').append(`<option value=${response.diseaseID[i]}>${response.disease[i]}</option>`)
                 }
             }
         })
@@ -120,18 +147,39 @@
             }
         })
     }
-    function getPatient(){
-        let diseaseID = $('#disease').val()
-        let caSeqNo = $('#caSeqNo').val()
-        let diagChecked = Number($('#filter .diagChecked').prop('checked'))
-        let treatChecked = Number($('#filter .treatChecked').prop('checked'))
-        let fuChecked = Number($('#filter .fuChecked').prop('checked'))
-        let ambiguousChecked = Number($('#filter .ambiguousChecked').prop('checked'))
-        let pdConfirmed = Number($('#filter .pdConfirmed').prop('checked'))
+    function getPatient(getPatientMethod){
+        let diseaseID = $('.disease').map(function(){return $(this).val()}).get()
+        let caSeqNo = $('.caSeqNo').map(function(){return $(this).val()}).get()
+        let diagChecked = $('#filter .diagChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let treatChecked = $('#filter .treatChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let fuChecked = $('#filter .fuChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let ambiguousChecked = $('#filter .ambiguousChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let pdConfirmed = $('#filter .pdConfirmed').map(function(){return Number($(this).prop('checked'))}).get()
+        let medType = $('input[name="medType"]:checked').map(function(){return parseInt($(this).attr('data-medType'))}).get()
+        let procedure = $('input[name="procedure"]:checked').map(function(){return parseInt($(this).attr('data-procedure'))}).get()
+        let url = ''
+        if(getPatientMethod=='getPatient'){
+            url = '{% url "subjectPatientDecide:getPatient" %}'
+        }else if(getPatientMethod=='getPatientWithProcedure'){
+            if(procedure.length==0){
+                url = '{% url "subjectPatientDecide:getPatient" %}'
+            }else{
+                url = '{% url "subjectPatientDecide:getPatientWithProcedure" %}'
+            }
+        }else if(getPatientMethod=='getPatientWithMedType'){
+            if(medType.length==0 ){
+                url = '{% url "subjectPatientDecide:getPatient" %}'
+            }else{
+                url = '{% url "subjectPatientDecide:getPatientWithMedType" %}'
+            }
+        }
+        if(procedure.length>0 & medType.length>0){
+            url = '{% url "subjectPatientDecide:getPatientWithMedTypeAndProcedure" %}'
+        }
 
         $.ajax({
             type: 'post',
-            url: '{% url "subjectPatientDecide:getPatient" %}', // this is the mapping between the url and view
+            url: url, // this is the mapping between the url and view
             data:{
                 'diseaseID':diseaseID,
                 'caSeqNo':caSeqNo,
@@ -140,6 +188,8 @@
                 'fuChecked':fuChecked,
                 'ambiguousChecked':ambiguousChecked,
                 'pdConfirmed':pdConfirmed,
+                'medType':medType,
+                'procedure':procedure,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -148,13 +198,11 @@
                 for(let i=0;i<response.chartNo.length;i++){
                     $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
                 }
-                $('#setting').attr('data-diseaseID',diseaseID)
-                $('#setting').attr('data-caSeqNo',caSeqNo)
-                $('#setting').attr('data-diagChecked',diagChecked)
-                $('#setting').attr('data-treatChecked',treatChecked)
-                $('#setting').attr('data-fuChecked',fuChecked)
-                $('#setting').attr('data-ambiguousChecked',ambiguousChecked)
-                $('#setting').attr('data-pdConfirmed',pdConfirmed)
+            },complete:function(){
+                if(getPatientMethod=='getPatient'){
+                    getMedType(diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed)
+                    getImageClinicalProcedures(diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed)
+                }
             }
         })
     }
@@ -244,11 +292,82 @@
             })
         }
     }
+    function addMenu(){
+        let num = $('.condition').length-1
+        let cloneObject = $('.condition').eq(num).clone()
+        $('.condition').eq(num).after(cloneObject)
+        let new_num = $('.condition').length-1
+        $('.condition').eq(new_num).children('.statusFilter').map(function(){
+            let id = $(this).children('div').children('input').attr('id').split('_')[0]
+            $(this).children('div').children('input').attr('id',`${id}_${new_num+1}`)
+            $(this).children('div').children('label').attr('for',`${id}_${new_num+1}`)
+        })
+    }
+    function getMedType(diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed){
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:getMedType" %}', // this is the mapping between the url and view
+            data:{
+                'diseaseID':diseaseID,
+                'caSeqNo':caSeqNo,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#medTypePannel .col-md-12').empty()
+                let medTypeObject = '<div class="accordion accordion-flush" id="accordionFlushExample">'
+                for(let i=0;i<response.groupNo.length;i++){
+                    var indices = [];
+                    var idx = response.medTypeGroupNo.indexOf(response.groupNo[i]);
+                    while (idx != -1) {
+                        indices.push(idx);
+                        idx = response.medTypeGroupNo.indexOf(response.groupNo[i], idx + 1);
+                    }
+                    medTypeObject +=`
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="flush-heading${response.groupNo[i]}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse${response.groupNo[i]}" aria-expanded="false" aria-controls="flush-collapse${response.groupNo[i]}">
+                                ${response.groupName[i]}
+                            </button>
+                        </h2>
+                        <div id="flush-collapse${response.groupNo[i]}" class="accordion-collapse collapse" aria-labelledby="flush-heading${response.groupNo[i]}" data-bs-parent="#accordionFlushExample">`
+                    for(let j=0;j<indices.length;j++){
+                        medTypeObject +=`<div class="accordion-body"><label for="medType_${response.medType[indices[j]]}">${response.typeName[indices[j]]} : <code>${response.n_chartNo[indices[j]]}</code>人 </label><input type="checkbox" name="medType" data-medType="${response.medType[indices[j]]}" id="medType_${response.medType[indices[j]]}" onclick="getPatient('getPatientWithMedType')"></div>`
+                    }        
+                    medTypeObject +=`</div></div>`
+                }
+                medTypeObject +=`</div>`
+                $('#medTypePannel .col-md-12').html(medTypeObject)
+                $('#medTypePannel').attr('class','row g-3 block')
+            }
+        })
+    }
+
+    function candicateDownload(){
+        let candicate = $('#tbody table tbody tr').map(function(){return $(this).children('td').html()}).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:uploadCandicate" %}', // this is the mapping between the url and view
+            data:{
+                'candicate':candicate,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                window.location.href="{% url 'subjectPatientDecide:downloadCSV' %}"
+            }
+        })
+    }
+
     $(document).ready(function () {
         getDisease()
-        //getImageClinicalProcedures()
+        
         getCaSeq()
         getRegistTopicList()
+        
     })
 </script>
 <body >
@@ -260,49 +379,87 @@
 </body>
     <div id="filter">
         <div class="row g-3">
-            <div class="col-md-12">
-              <label for="disease" class="form-label">癌症</label>
-              <select class="form-control" id="disease"></select>
-            </div>
-            <div class="col-md-12">
-                <label for="caSeqNo" class="form-label">序列</label>
-                <select class="form-control" id="caSeqNo"></select>
+            <div class="col-md-6">
+                <label for="disease" class="form-label">癌症</label>
               </div>
-            <label class="form-label groupLabel">Status</label>
+              <div class="col-md-6">
+                  <label for="caSeqNo" class="form-label">序列</label>
+              </div>
+        </div>
+        <div class="row g-3 condition">
+            <div class="col-md-6">
+              <select class="form-control disease" id="disease"></select>
+            </div>
+            <div class="col-md-6">
+                <select class="form-control caSeqNo" id="caSeqNo"></select>
+            </div>
             <div class="col-md-2 statusFilter">
                 <div class="form-check">
-                    <input type="checkbox" id="statusFilter1" onclick="excludeCheck('filter');" class="form-check-input diagChecked" name="disappear"><label class="form-check-label" for="statusFilter1">Diag</label>
+                    <input type="checkbox" id="statusFilter1_1" onclick="excludeCheck('filter');" class="form-check-input diagChecked" name="disappear"><label class="form-check-label" for="statusFilter1_1">Diag</label>
                 </div>
             </div>
             <div class="col-md-2 statusFilter">
                 <div class="form-check">
-                    <input type="checkbox" id="statusFilter2" onclick="excludeCheck('filter');" class="form-check-input treatChecked" name="disappear"><label class="form-check-label" for="statusFilter2">Treat</label>
+                    <input type="checkbox" id="statusFilter2_1" onclick="excludeCheck('filter');" class="form-check-input treatChecked" name="disappear"><label class="form-check-label" for="statusFilter2_1">Treat</label>
                 </div>
             </div>
             <div class="col-md-2 statusFilter">
                 <div class="form-check">
-                    <input type="checkbox" id="statusFilter5" onclick="excludeCheck('filter');" class="form-check-input fuChecked" name="disappear"><label class="form-check-label" for="statusFilter5">F/U</label>
+                    <input type="checkbox" id="statusFilter5_1" onclick="excludeCheck('filter');" class="form-check-input fuChecked" name="disappear"><label class="form-check-label" for="statusFilter5_1">F/U</label>
                 </div>
             </div>
             <div class="col-md-3 statusFilter">
                 <div class="form-check">
-                    <input type="checkbox" id="statusFilter4" onclick="excludeCheck('filter');" class="form-check-input ambiguousChecked" name="disappear"><label class="form-check-label" for="statusFilter4">Ambiguous</label>
+                    <input type="checkbox" id="statusFilter4_1" onclick="excludeCheck('filter');" class="form-check-input ambiguousChecked" name="disappear"><label class="form-check-label" for="statusFilter4_1">Ambiguous</label>
                 </div>
             </div>
             <div class="col-md-3 statusFilter">
                 <div class="form-check">
-                    <input type="checkbox" id="statusFilter6" onclick="excludeCheck('filter');" class="form-check-input pdConfirmed" name="disappear"><label class="form-check-label" for="statusFilter6">Exclude</label>
+                    <input type="checkbox" id="statusFilter6_1" onclick="excludeCheck('filter');" class="form-check-input pdConfirmed" name="disappear"><label class="form-check-label" for="statusFilter6_1">Exclude</label>
                 </div>
             </div>
-            <div class="col-md-12" id="imageClinicalProcedures"></div>
-            <div class="col-md-12" >
-                <button class="form-control btn btn-primary" onclick="getPatient()">Submit</button>
+        </div>
+        <div class="row g-3 block">
+            <div class="col-md-6">
+                <button type="button" onclick="addMenu()" class="form-control btn btn-outline-primary">+</button> 
             </div>
-            
-          </div>
-          
+            <div class="col-md-6">
+                <button class="form-control btn btn-primary" onclick="getPatient('getPatient')">Submit</button>
+            </div>
+        </div>
+        <div class="row g-3" id='medTypePannel'>
+            <div class="col-md-12">
+                
+            </div>
+        </div>
+        <div class="row g-3" id='clinicalPannel'>
+            <div class="col-md-12">
+                
+            </div>
+        </div>
+        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+        Button with data-bs-target
+        </button>
+        
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">進階搜尋</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label">影像+事件</label>
+                </div>
+            </div>
+        </div>
+        </div>
+
+
+
     </div>
     <div id="patient">
+        <button type="button" class="btn btn-primary" id="candicateDownload" onclick="candicateDownload()">下載</button>
         <table class="table table-hover" id='header'>
             <thead><th>ChartNo</th><th id="n_chartNo">???人</th></thead>
         </table>

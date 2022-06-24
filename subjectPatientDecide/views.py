@@ -5,32 +5,21 @@ from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import numpy as np
+import csv,codecs
 
 @csrf_exempt
 def subjectPatientDecide(request):
     au = request.session.get('au')
     de_identification = request.session.get('de_identification')
-    if not request.user.is_authenticated or not request.user.is_superuser:
-        return redirect('/')
+    # if not request.user.is_authenticated or not request.user.is_superuser:
+    #     return redirect('/')
     return render(request, 'subjectPatientDecide/subjectPatientDecide.html',{'au':au,'de_identification':de_identification})
 
 @csrf_exempt
 def getPatient(request):
-    diseaseID = request.POST.get('diseaseID')
-    caSeqNo = request.POST.get('caSeqNo')
-    diagChecked = request.POST.get('diagChecked')
-    treatChecked = request.POST.get('treatChecked')
-    fuChecked = request.POST.get('fuChecked')
-    ambiguousChecked = request.POST.get('ambiguousChecked')
-    pdConfirmed = request.POST.get('pdConfirmed')
-    query = '''
-    SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
-    where [diseaseID]=%s and [caSeqNo]=%s and [diagChecked]=%s 
-    and [treatChecked]=%s and [fuChecked]=%s and [ambiguousChecked]=%s 
-    and [pdConfirmed]=%s
-    '''
+    query,parameter = patientSQL(request)
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed])
+    cursor.execute(query,parameter)
     result = cursor.fetchall()
     chartNo = []
     for row in result:
@@ -50,20 +39,259 @@ def getDisease(request):
         disease.append(row[1])
     return JsonResponse({'diseaseID':diseaseID,'disease':disease})
 
+def patientSQL(request):
+    diseaseID = request.POST.getlist('diseaseID[]')
+    caSeqNo = request.POST.getlist('caSeqNo[]')
+    diagChecked = request.POST.getlist('diagChecked[]')
+    treatChecked = request.POST.getlist('treatChecked[]')
+    fuChecked = request.POST.getlist('fuChecked[]')
+    ambiguousChecked = request.POST.getlist('ambiguousChecked[]')
+    pdConfirmed = request.POST.getlist('pdConfirmed[]')
+    n_loop = len(diseaseID)
+    parameter = []
+    sum_filter = []
+    query = ''
+    for i in range(n_loop):
+        total_filter = int(diagChecked[i])+int(treatChecked[i])+int(fuChecked[i])+int(ambiguousChecked[i])+int(pdConfirmed[i])
+        sum_filter.append(total_filter)
+        if total_filter!=0:
+            parameter += list(np.array([diseaseID[i],caSeqNo[i],diagChecked[i],treatChecked[i],fuChecked[i],ambiguousChecked[i],pdConfirmed[i]]))
+        else:
+            parameter += list(np.array([diseaseID[i],caSeqNo[i]]))
+    if sum_filter[0]!=0:
+        query += '''
+        SELECT DISTINCT A0.* FROM(
+            SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
+            where [diseaseID]=%s and [caSeqNo]=%s and [diagChecked]=%s 
+            and [treatChecked]=%s and [fuChecked]=%s and [ambiguousChecked]=%s 
+            and [pdConfirmed]=%s
+        ) AS A0
+        '''
+    else:
+        query += '''
+        SELECT DISTINCT A0.* FROM(
+            SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
+            where [diseaseID]=%s and [caSeqNo]=%s 
+        ) AS A0
+        '''
+    for i in range(1,n_loop):
+        if sum_filter[i]!=0:
+            query += f'''
+                INNER JOIN(
+                    SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
+                    where [diseaseID]=%s and [caSeqNo]=%s and [diagChecked]=%s 
+                    and [treatChecked]=%s and [fuChecked]=%s and [ambiguousChecked]=%s 
+                    and [pdConfirmed]=%s
+                ) AS A{i} ON A0.chartNo=A{i}.chartNo
+            '''
+        else:
+            query += f'''
+                INNER JOIN(
+                    SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
+                    where [diseaseID]=%s and [caSeqNo]=%s 
+                ) AS A{i} ON A0.chartNo=A{i}.chartNo
+            '''
+    return query,parameter
+
+@csrf_exempt
+def getMedType(request):
+    cursor = connections['practiceDB'].cursor()
+    query_getEventGroup = 'SELECT * FROM eventGroup ORDER BY groupNo'
+    cursor.execute(query_getEventGroup,[])
+    groupNo = []
+    groupName = []
+    for row in cursor.fetchall():
+        groupNo.append(row[0])
+        groupName.append(row[1])
+    query = '''
+        SELECT EG.groupNo,RES.medType,MTS.typeName,COUNT(RES.medType) AS '人' FROM(
+        SELECT B.medType,B.chartNo FROM(
+    '''
+    SQL,parameter = patientSQL(request)
+    query += SQL
+
+    query +='''
+    ) AS A0
+        INNER JOIN allEvents AS B ON A0.chartNo=B.chartNo
+        GROUP BY B.medType,B.chartNo
+    ) AS RES 
+    INNER JOIN medTypeSet AS MTS ON RES.medType=MTS.medType
+    INNER JOIN eventGroup AS EG ON MTS.groupNo=EG.groupNo
+    GROUP BY RES.medType,MTS.typeName,EG.groupNo
+    ORDER BY EG.groupNo,RES.medType
+    '''
+    print(query)
+    cursor.execute(query,parameter)
+    result = cursor.fetchall()
+    medTypeGroupNo = []
+    medType = []
+    typeName = []
+    n_chartNo = []
+    for row in result:
+        medTypeGroupNo.append(row[0])
+        medType.append(row[1])
+        typeName.append(row[2])
+        n_chartNo.append(row[3])
+    return JsonResponse({'groupNo':groupNo,'groupName':groupName,'medTypeGroupNo':medTypeGroupNo,'medType':medType,'typeName':typeName,'n_chartNo':n_chartNo})
+
+@csrf_exempt
+def getPatientWithMedType(request):
+    cursor = connections['practiceDB'].cursor()
+    medType = request.POST.getlist('medType[]')
+    query = '''
+    SELECT chartNo FROM (
+        SELECT chartNo,COUNT(medType) AS 'total' FROM(
+            SELECT B.chartNo ,B.medType FROM(
+    '''
+    SQL,parameter = patientSQL(request)
+    query += SQL
+    query +=') AS A '
+    query +='INNER JOIN allEvents AS B ON A.chartNo=B.chartNo WHERE B.medType in ('
+    for ind in range(len(medType)):
+        if ind == 0:
+            query += '%s'
+        else:
+            query += ',%s'
+    query +=')'
+    query +=''' 
+            GROUP BY B.chartNo ,B.medType
+        ) AS Aggr
+        GROUP BY chartNo
+    ) AS Result
+    WHERE total = %s
+    ORDER BY chartNo
+    '''
+    print(query)
+    parameter += medType
+    parameter += [len(medType)]
+    cursor.execute(query,parameter)
+    result = cursor.fetchall()
+    chartNo = []
+    for row in result:
+        chartNo.append(row[0])
+    return JsonResponse({'chartNo':chartNo})
+
+@csrf_exempt
+def getPatientWithProcedure(request):
+    cursor = connections['practiceDB'].cursor()
+    procedure = request.POST.getlist('procedure[]')
+    query = '''
+    SELECT chartNo FROM (
+    SELECT chartNo,COUNT(procedureID) AS 'total' FROM(
+    SELECT B.chartNo ,C.procedureID FROM(
+    '''
+    SQL,parameter = patientSQL(request)
+    query += SQL
+    query +=') AS A '
+    query +='''
+    INNER JOIN allEvents AS B ON A.chartNo=B.chartNo
+    INNER JOIN eventDefinitions AS C ON B.eventID=C.eventID
+    WHERE C.procedureID in ('''
+    for ind in range(len(procedure)):
+        if ind == 0:
+            query += '%s'
+        else:
+            query += ',%s'
+    query +=')'
+    query +=''' 
+            GROUP BY B.chartNo ,C.procedureID
+        ) AS Aggr
+        GROUP BY chartNo
+    ) AS Result
+    WHERE total = %s
+    ORDER BY chartNo
+    '''
+    print(query)
+    parameter += procedure
+    parameter += [len(procedure)]
+    cursor.execute(query,parameter)
+    result = cursor.fetchall()
+    chartNo = []
+    for row in result:
+        chartNo.append(row[0])
+    return JsonResponse({'chartNo':chartNo})
+
+@csrf_exempt
+def getPatientWithMedTypeAndProcedure(request):
+    cursor = connections['practiceDB'].cursor()
+    procedure = request.POST.getlist('procedure[]')
+    medType = request.POST.getlist('medType[]')
+    query = '''
+    SELECT chartNo FROM (
+    SELECT chartNo,COUNT(medType) AS 'total_medType',COUNT(procedureID) AS 'total_procedureID' FROM(
+    SELECT distinct B.chartNo,medType,procedureID FROM(
+    '''
+    SQL,parameter = patientSQL(request)
+    query += SQL
+    query +=') AS A '
+    query +='''
+    INNER JOIN allEvents AS B ON A.chartNo=B.chartNo
+    INNER JOIN eventDefinitions AS C ON B.eventID=C.eventID
+    WHERE medType in ('''
+    for ind in range(len(medType)):
+        if ind == 0:
+            query += '%s'
+        else:
+            query += ',%s'
+    query +=') and procedureID in ('
+    for ind in range(len(procedure)):
+        if ind == 0:
+            query += '%s'
+        else:
+            query += ',%s'
+    query +=')'
+    query +=''' 
+    ) AS Aggr
+    GROUP BY chartNo
+    ) AS Result
+    WHERE total_medType=%s and total_procedureID=%s
+    '''
+    
+    
+    parameter += medType
+    parameter += procedure
+    parameter += [len(medType)]
+    parameter += [len(procedure)]
+    parameter = list(map(int, parameter))
+    print(parameter)
+    print(query)
+    cursor.execute(query,parameter)
+    result = cursor.fetchall()
+    chartNo = []
+    for row in result:
+        chartNo.append(row[0])
+    return JsonResponse({'chartNo':chartNo})
+
 @csrf_exempt
 def getImageClinicalProcedures(request):
-    query='''SELECT distinct c.* FROM [practiceDB].[dbo].[eventGroup] as a 
-            inner join ProcedureEvent as b on a.groupNo=b.groupNo
-            inner join clinicalProcedures as c on b.procedureID=c.procedureID'''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[])
+    query='''
+    SELECT RES.procedureID,CP.procedureName,COUNT(RES.chartNo) AS '人' 
+    FROM(
+        SELECT C.procedureID,B.chartNo FROM(
+    '''
+    SQL,parameter = patientSQL(request)
+    query += SQL
+
+    query +='''
+        ) AS A0
+        INNER JOIN allEvents AS B ON A0.chartNo=B.chartNo
+        INNER JOIN eventDefinitions AS C ON B.eventID=C.eventID
+        GROUP BY C.procedureID,B.chartNo
+    ) AS RES
+    INNER JOIN clinicalProcedures AS CP ON RES.procedureID = CP.procedureID 
+    GROUP BY RES.procedureID,CP.procedureName
+    ORDER BY RES.procedureID'''
+    cursor.execute(query,parameter)
     result = cursor.fetchall()
     procedureID=[]
     procedureName=[]
+    n_chartNo = []
     for row in result:
         procedureID.append(row[0])
         procedureName.append(row[1])
-    return JsonResponse({'procedureID':procedureID,'procedureName':procedureName})
+        n_chartNo.append(row[2])
+    return JsonResponse({'procedureID':procedureID,'procedureName':procedureName,'n_chartNo':n_chartNo})
 
 @csrf_exempt
 def getRegistTopicList(request):
@@ -168,3 +396,23 @@ def deleteAnnotation(cursor,topicNo):
 def deleteCorrelationPatientDisease(cursor,topicNo):
     query = 'delete from correlationPatientDisease where diseaseNo = %s'
     cursor.execute(query,[topicNo])
+
+@csrf_exempt
+def downloadCSV(request):
+    candicate = request.session.get('candicate')
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(content_type = 'text/csv')
+    response.charset = 'utf-8-sig'
+    response['Content-Disposition'] = 'attachment; filename=output.csv'
+    # Create the CSV writer using the HttpResponse as the "file"
+    writer = csv.writer(response)
+    writer.writerow(['chartNo'])
+    for chartNo in candicate:
+        writer.writerow([chartNo])
+    return response
+
+@csrf_exempt
+def uploadCandicate(request):
+    candicate = request.POST.getlist('candicate[]')
+    request.session['candicate'] = candicate
+    return JsonResponse({})

@@ -129,7 +129,7 @@ for i in tqdm(range(len(PatientListID))):
             ,[seriesID] 
             from annotation 
             where PID=%(var1)s 
-            and Disease=%(var3)s and StudyID=%(var4)s and seriesID=%(var5)s
+            and Disease=%(var3)s and StudyID=%(var4)s and seriesID=%(var5)s and LabelGroup='Primary tumor'
             '''
             cursor.execute(query, {'var1': PID,'var3':diseaseNo,'var4':StudyID,'var5':seriesID})
             data = cursor.fetchall()

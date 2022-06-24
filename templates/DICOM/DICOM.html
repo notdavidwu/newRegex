@@ -964,6 +964,7 @@
         return {'x':frame1_x,'y':frame1_y,'z':frame1_z}
     }
     function draw(){
+        
         $("[name='location']:checked").next('label').css('background-color','#e78632')
         
         var indices=$("[name='location']").not(':checked')
@@ -1005,6 +1006,7 @@
         }
 
         for(var i =0;i<4;i++) {
+            
             if(Con[i]==Date+StudyID+SD){
                 var ind=i+1
                
@@ -1436,7 +1438,7 @@
                 'PID': PID,
                 'Disease':$('#Disease').val(),
                 'username':$('#users option:selected').text(),
-                'date':Study_Date,
+                'Study_Date':Study_Date,
                 'str':str,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
