@@ -202,7 +202,8 @@
     .ascriptionContentHeader{
         width:100%;
         text-align:center;
-        border-bottom:1px solid #AAAAAA
+        border-bottom:1px solid #AAAAAA;
+        z-index:500;
     }
     .ascriptionHeader{
         border-radius:10px 10px 0px 0px;
@@ -214,6 +215,7 @@
         line-height:30px;
         font-weight:900;
         color:#FFFFFF;
+        z-index:500;
     }
     .close{position:absolute;right:5px;margin-top:3px;filter: invert(1)}
     .item{margin:2px;width:calc(100% - 4px);border:1px solid #AAAAAA;border-radius:5px;}
@@ -1332,10 +1334,10 @@
                     var x=e.pageX-_x;
                     var y=e.pageY-_y;  
                     $(`#${id}`).css({"top":y,"left":x}); 
-                    $(`#${id}`).css({"z-index":20});
+                    $(`#${id}`).css({"z-index":2000});
                 }  
             }).mouseup(function(){  
-                $(`#${id}`).css({"z-index":10});
+                $(`#${id}`).css({"z-index":1030});
                 move=false;
         });
     }

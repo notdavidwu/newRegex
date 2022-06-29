@@ -147,6 +147,44 @@
             }
         })
     }
+    function getPatientWithAdvanceCondition(){
+        let diseaseID = $('.disease').map(function(){return $(this).val()}).get()
+        let caSeqNo = $('.caSeqNo').map(function(){return $(this).val()}).get()
+        let diagChecked = $('#filter .diagChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let treatChecked = $('#filter .treatChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let fuChecked = $('#filter .fuChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let ambiguousChecked = $('#filter .ambiguousChecked').map(function(){return Number($(this).prop('checked'))}).get()
+        let pdConfirmed = $('#filter .pdConfirmed').map(function(){return Number($(this).prop('checked'))}).get()
+        let medType1 = $('.medType1').map(function(){return $(this).val()}).get()
+        let medType2 = $('.medType2').map(function(){return $(this).val()}).get()
+        let diffDay = $('.diffDate').map(function(){return $(this).val()}).get()
+        let url = '{% url "subjectPatientDecide:getPatientWithAdvanceCondition" %}'
+        $.ajax({
+            type: 'post',
+            url: url, // this is the mapping between the url and view
+            data:{
+                'diseaseID':diseaseID,
+                'caSeqNo':caSeqNo,
+                'diagChecked':diagChecked,
+                'treatChecked':treatChecked,
+                'fuChecked':fuChecked,
+                'ambiguousChecked':ambiguousChecked,
+                'pdConfirmed':pdConfirmed,
+                'medType1':medType1,
+                'medType2':medType2,
+                'diffDay':diffDay,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#patient tbody').empty()
+                $('#n_chartNo').html(`${response.chartNo.length}人`)
+                for(let i=0;i<response.chartNo.length;i++){
+                    $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
+                }
+            }
+        })
+    }
+
     function getPatient(getPatientMethod){
         let diseaseID = $('.disease').map(function(){return $(this).val()}).get()
         let caSeqNo = $('.caSeqNo').map(function(){return $(this).val()}).get()
@@ -205,6 +243,8 @@
                 }
             }
         })
+        
+
     }
     function addCorrelationPatientListAndAnnotation(){
         let diseaseID = $('#setting').attr('data-diseaseID')
@@ -303,6 +343,17 @@
             $(this).children('div').children('label').attr('for',`${id}_${new_num+1}`)
         })
     }
+    function addAdvanceMenu(){
+        let num = $('.condition').length-1
+        let cloneObject = $('.condition').eq(num).clone()
+        $('.condition').eq(num).after(cloneObject)
+        let new_num = $('.condition').length-1
+        $('.condition').eq(new_num).children('.statusFilter').map(function(){
+            let id = $(this).children('div').children('input').attr('id').split('_')[0]
+            $(this).children('div').children('input').attr('id',`${id}_${new_num+1}`)
+            $(this).children('div').children('label').attr('for',`${id}_${new_num+1}`)
+        })
+    }
     function getMedType(diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed){
         $.ajax({
             type: 'post',
@@ -343,6 +394,13 @@
                 medTypeObject +=`</div>`
                 $('#medTypePannel .col-md-12').html(medTypeObject)
                 $('#medTypePannel').attr('class','row g-3 block')
+
+                $('#imageEventDate .medType1').empty()
+                $('#imageEventDate .medType2').empty()
+                for(i=0;i<response.medType.length;i++){
+                    $('#imageEventDate .medType1').eq(0).append(`<option value=${response.medType[i]}>${response.typeName[i]}</option>`)
+                    $('#imageEventDate .medType2').eq(0).append(`<option value=${response.medType[i]}>${response.typeName[i]}</option>`)
+                }
             }
         })
     }
@@ -362,9 +420,16 @@
         })
     }
 
+    function imageEventDate(){
+        for(let i =1;i<=180;i++){
+            $('#imageEventDate .diffDate').eq(0).append(`<option value=${i}>${i}天</option>`)
+        }
+
+    }
+
     $(document).ready(function () {
         getDisease()
-        
+        imageEventDate()
         getCaSeq()
         getRegistTopicList()
         
@@ -437,8 +502,8 @@
                 
             </div>
         </div>
-        <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
-        Button with data-bs-target
+        <button class="btn btn-primary form-control" id="advanceSearch" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample" aria-controls="offcanvasExample">
+            進階搜尋
         </button>
         
         <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
@@ -446,10 +511,27 @@
             <h5 class="offcanvas-title" id="offcanvasExampleLabel">進階搜尋</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body">
-            <div class="row g-3">
+        <div class="offcanvas-body" id="imageEventDate">
+            <div class="row g-3 block">
                 <div class="col-md-12">
-                    <label class="form-label">影像+事件</label>
+                    <label class="form-label">影像+事件(?天)</label>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">前</label>
+                    <select class="form-control medType1" id="medType1"></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">後</label>
+                    <select class="form-control medType2" id="medType2"></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">相隔天數</label>
+                    <select class="form-control diffDate" id="diffDate"></select>
+                </div>
+            </div>
+            <div class="row g-3 block">
+                <div class="col-md-12">
+                    <button class="form-control btn btn-primary" data-bs-dismiss="offcanvas" onclick="getPatientWithAdvanceCondition()">查詢</button>
                 </div>
             </div>
         </div>

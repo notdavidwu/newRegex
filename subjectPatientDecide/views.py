@@ -91,6 +91,7 @@ def patientSQL(request):
                     where [diseaseID]=%s and [caSeqNo]=%s 
                 ) AS A{i} ON A0.chartNo=A{i}.chartNo
             '''
+
     return query,parameter
 
 @csrf_exempt
@@ -133,6 +134,45 @@ def getMedType(request):
         typeName.append(row[2])
         n_chartNo.append(row[3])
     return JsonResponse({'groupNo':groupNo,'groupName':groupName,'medTypeGroupNo':medTypeGroupNo,'medType':medType,'typeName':typeName,'n_chartNo':n_chartNo})
+@csrf_exempt
+def getPatientWithAdvanceCondition(request):
+    cursor = connections['practiceDB'].cursor()
+    medtype1 = request.POST.getlist('medType1[]')
+    medtype2 = request.POST.getlist('medType2[]')
+    diffDay = request.POST.getlist('diffDay[]')
+
+    SQL,parameter = patientSQL(request)
+    parameterOld=parameter.copy()
+    print(parameterOld)
+    query='''
+    SELECT distinct A.chartNo FROM(
+    SELECT * FROM allEvents WHERE chartNo in(
+    '''
+    query += SQL
+    query +='''
+        ) AND medType=%s) AS A 
+        INNER JOIN(
+        SELECT * FROM(
+        SELECT * FROM allEvents WHERE chartNo in(
+        '''
+    query += SQL
+    query +=') AND medType=%s) AS B ) AS B ON A.chartNo=B.chartNo and datediff(day, A.eventDate, B.eventDate) between 0 and %s'
+    
+    parameter += medtype1
+    print(parameter)
+    print(parameterOld)
+    parameterOld += medtype2
+    print(parameterOld)
+    parameterNew = parameter + parameterOld
+    parameterNew += diffDay
+    print(parameterNew)
+    cursor.execute(query,parameterNew)
+    result = cursor.fetchall()
+    chartNo = []
+    for row in result:
+        chartNo.append(row[0])
+    print(chartNo)
+    return JsonResponse({'chartNo':chartNo})
 
 @csrf_exempt
 def getPatientWithMedType(request):
@@ -161,7 +201,7 @@ def getPatientWithMedType(request):
     WHERE total = %s
     ORDER BY chartNo
     '''
-    print(query)
+
     parameter += medType
     parameter += [len(medType)]
     cursor.execute(query,parameter)
@@ -169,6 +209,7 @@ def getPatientWithMedType(request):
     chartNo = []
     for row in result:
         chartNo.append(row[0])
+
     return JsonResponse({'chartNo':chartNo})
 
 @csrf_exempt
@@ -201,7 +242,7 @@ def getPatientWithProcedure(request):
     WHERE total = %s
     ORDER BY chartNo
     '''
-    print(query)
+
     parameter += procedure
     parameter += [len(procedure)]
     cursor.execute(query,parameter)
@@ -253,8 +294,7 @@ def getPatientWithMedTypeAndProcedure(request):
     parameter += [len(medType)]
     parameter += [len(procedure)]
     parameter = list(map(int, parameter))
-    print(parameter)
-    print(query)
+
     cursor.execute(query,parameter)
     result = cursor.fetchall()
     chartNo = []
@@ -307,7 +347,7 @@ def getRegistTopicList(request):
     return JsonResponse({'topicName':topicName})
 
 def insertTopic(cursor,topicName,diseaseID):
-    print(topicName,diseaseID)
+
     query_searchTopicNo = "select topicNo from researchTopic where topicName=%s"
     cursor.execute(query_searchTopicNo,[topicName])
     result = cursor.fetchall()
@@ -319,44 +359,32 @@ def insertTopic(cursor,topicName,diseaseID):
         topicNo = result[0][0]
     return topicNo
 
-def insertAnnotation(cursor,topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed):
+def insertAnnotation(cursor,topicNo,diseaseID,chartNo):
     query_insertAnnotation='''
     insert into annotation(chartNo,studyDate,imageType,date,SUV,x,y,z,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
     select a.* from(
-        select distinct b.chartNo,b.studyDate,b.imageType,GETDATE() as 'date' ,b.SUV,b.x,b.y,b.z,b.labelGroup,labelName,'' as 'labelRecord',%s as 'topicNo', NULL as 'fromWhere' ,b.studyID,b.seriesID,NULL as 'doctor_confirm'
-        from(
-            SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
-            where [diseaseID]=%s and [caSeqNo]=%s and [diagChecked]=%s 
-            and [treatChecked]=%s and [fuChecked]=%s and [ambiguousChecked]=%s
-            and [pdConfirmed]=%s
-        ) as a
-        inner join(
-            select * from annotation where topicNo in (select topicNo from researchTopic where diseaseID=6)
-        ) as b on a.chartNo=b.chartNo
+    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,SUV,x,y,z,labelGroup,labelName,'' as 'labelRecord',%s as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
+    from annotation where topicNo in (select topicNo from researchTopic where diseaseID=%s ) and chartNo=%s
     ) as a
     left outer join(
-        select * from annotation where topicNo =%s
+            select * from annotation where topicNo =%s
     ) as b on a.chartNo=b.chartNo and a.studyDate=b.studyDate and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.studyID=b.studyID and a.seriesID=b.seriesID
     where b.chartNo is null
     '''
-    cursor.execute(query_insertAnnotation,[topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,topicNo])
+    for pid in chartNo:
+        cursor.execute(query_insertAnnotation,[topicNo,diseaseID,pid,topicNo])
 
-def insertCorrelationPatientDisease(cursor,topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed):
+def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     query_insertAnnotation='''
-    insert into correlationPatientDisease(chartNo,diseaseNo)
-    select a.chartNo,%s as diseaseNo
-    from(
-        SELECT [chartNo] FROM [practiceDB].[dbo].[PatientDisease] 
-        where [diseaseID]=%s and [caSeqNo]=%s and [diagChecked]=%s 
-        and [treatChecked]=%s and [fuChecked]=%s and [ambiguousChecked]=%s
-        and [pdConfirmed]=%s
-    ) as a 
-    left outer join(
+    select a.chartNo,%s as diseaseNo from (select %s as 'chartNo') as a
+    left outer join (
         select * from correlationPatientDisease where diseaseNo=%s
     ) as b on a.chartNo=b.chartNo
-    where b.sno is null
+    where b.chartNo is null
     '''
-    cursor.execute(query_insertAnnotation,[topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,topicNo])
+    for pid in chartNo:
+        cursor.execute(query_insertAnnotation,[topicNo,pid,topicNo])
+    
 
 @csrf_exempt
 def addCorrelationPatientListAndAnnotation(request):
@@ -370,8 +398,8 @@ def addCorrelationPatientListAndAnnotation(request):
     topicName = request.POST.get('topicName')
     cursor = connections['practiceDB'].cursor()
     topicNo = insertTopic(cursor,topicName,diseaseID)
-    insertCorrelationPatientDisease(cursor,topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed)
-    insertAnnotation(cursor,topicNo,diseaseID,caSeqNo,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed)
+    insertCorrelationPatientDisease(cursor,topicNo,chartNo)
+    insertAnnotation(cursor,topicNo,diseaseID,chartNo)
     return JsonResponse({})
 
 @csrf_exempt
@@ -415,4 +443,11 @@ def downloadCSV(request):
 def uploadCandicate(request):
     candicate = request.POST.getlist('candicate[]')
     request.session['candicate'] = candicate
+    return JsonResponse({})
+
+@csrf_exempt
+def medType(request):
+    query= "select topicNo from researchTopic where topicName=%s"
+    cursor.execute(query_searchTopicNo,[topicName])
+    result = cursor.fetchall()
     return JsonResponse({})
