@@ -273,7 +273,8 @@
     #statusFilterPannel{padding-left:5px}
     .exclude{color:red}
     #header_disabled{width:50px;font-size:10pt}
-    #formVersion{position:absolute;width:100px;top:2px;right:50px;height:26px}
+    #formVersion{position:absolute;width:80px;top:2px;right:35px;height:26px}
+    #procedureOfForm{position:absolute;width:100px;top:2px;right:130px;height:26px}
     #formDesignPannel{display:none;width:1400px;background:url("{% static 'image/texture.png' %}") #08192D;left:10%;}
     .formFilter{width:calc(20% - 3.2px);display:inline;border-radius:0}
     #designArea{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFFFFF;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden;border-right:1px solid}
@@ -924,12 +925,12 @@
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
         let diseaseId = $('#ChangeDisease').val()
+        let procedureID = $('#procedureOfForm').val()
         $('#factorGroupArea').empty()
         $("#extractedFactor").css('display', 'inline');
         $("#menu").css('display', 'none');
         $('#factorGroupArea .addButton').prevAll().remove()
         $('#factorGroupArea').attr('data-eventID',eventID)
-        
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
@@ -938,6 +939,7 @@
                 'eventID':eventID,
                 'medType':medType,
                 'diseaseId':diseaseId,
+                'procedureID':procedureID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -1725,6 +1727,21 @@
             }
         })
     }
+
+    function getCurrentEventProcedure(){
+        let optionName = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').html()}).get()
+        let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
+        $('#procedureOfForm').empty()
+        for(let i=0;i<optionName.length;i++){
+            $('#procedureOfForm').append(`<option value=${optionValue[i]}>${optionName[i]}</option>`)
+        }
+        extractedFactorOpen();
+    }   
+
+    function procedureOfForm(){
+        extractedFactorOpen();
+    }
+
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -1965,8 +1982,8 @@
         <div class="checkPannel" id="extractedFactor">
             <div class="ascriptionHeader">
                 報告萃取
-                <select class="form-select form-select-sm" onchange="changeForm()" id="formVersion">
-                </select>
+                <select class="form-select form-select-sm" onchange="procedureOfForm()" id="procedureOfForm"></select>
+                <select class="form-select form-select-sm" onchange="changeForm()" id="formVersion"></select>
                 <button type="button" class="btn-close close" aria-label="Close" onclick="extractedFactorClose()"></button>
             </div>
             <div id="factorGroupArea"  class="row">

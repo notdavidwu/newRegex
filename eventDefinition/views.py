@@ -117,7 +117,7 @@ def confirmpat2(request):
         
         object = f'''<tr><td>'''
 
-        object += f'''<input type="radio" onclick="GetReport();extractedFactorOpen();" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
+        object += f'''<input type="radio" onclick="GetReport();getCurrentEventProcedure();" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
                     <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>
@@ -507,16 +507,10 @@ def searchExtractedEventFactorCode(request):
     diseaseId = request.POST.get('diseaseId')
     eventID = request.POST.get('eventID')
     pd = request.POST.get('pd')
-
-    '''--------------取得procedureID------------'''
-    cursor = connections['practiceDB'].cursor()
-    getProcedureID='''select procedureID from eventDefinitions where eventID=%s and PDID=%s'''
-    cursor.execute(getProcedureID,[eventID,pd])
-    procedureID_result = cursor.fetchall()
+    procedureID = request.POST.get('procedureID')
     eventFactorCode=[]
     version=[]
-    if len(procedureID_result)!=0:
-        procedureID = procedureID_result[0][0]
+    if procedureID!=0:
         '''---------------取得與medtype相對應的form格式id--------------'''
         cursor = connections['practiceDB'].cursor()
         getEventFactorID='''
