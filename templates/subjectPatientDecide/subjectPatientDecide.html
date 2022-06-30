@@ -255,6 +255,7 @@
         let ambiguousChecked = $('#setting').attr('data-ambiguousChecked')
         let pdConfirmed = $('#setting').attr('data-pdConfirmed')
         let topicName = $('#setting #registTopic').val()
+        let chartNo = $('#tbody table tbody').map(function(){return $(this).children('td').html()})
         if(topicName!=''){
             $.ajax({
                 type: 'post',
@@ -268,6 +269,7 @@
                     'ambiguousChecked':ambiguousChecked,
                     'pdConfirmed':pdConfirmed,
                     'topicName':topicName,
+                    'chartNo':chartNo,
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
                 success:function (response){

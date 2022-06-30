@@ -514,20 +514,30 @@ def searchExtractedEventFactorCode(request):
         '''---------------取得與medtype相對應的form格式id--------------'''
         cursor = connections['practiceDB'].cursor()
         getEventFactorID='''
-        SELECT a.eventFactorCode,a.version
-        FROM [practiceDB].[dbo].[eventFactorCode] as a
-        inner join medTypeSet as b on a.groupNo=b.groupNo
-        where medType=%s and diseaseID=%s and procedureID=%s
+        select eventFactorCode,version,count(eventID) as 'isRecorded' from(
+            SELECT distinct a.eventFactorCode,a.version,d.eventID
+            FROM [practiceDB].[dbo].[eventFactorCode] as a
+            inner join medTypeSet as b on a.groupNo=b.groupNo
+            left outer join eventFactor as c on a.eventFactorCode=c.eventFactorCode
+            left outer join (
+            select * from extractedFactors where eventID=%s
+            ) as d on c.eventFactorID=d.factorID 
+            where medType=%s and diseaseID=%s and procedureID=%s 
+        ) as result
+        group by eventFactorCode,version
         '''
-        cursor.execute(getEventFactorID,[medType,diseaseId,procedureID])
+        cursor.execute(getEventFactorID,[eventID,medType,diseaseId,procedureID])
         eventFactorID_result = cursor.fetchall()
         eventFactorCode=[]
         version=[]
+        isRecorded = []
         for row in eventFactorID_result:
+            print(row)
             eventFactorCode.append(row[0])
             version.append(row[1])
-
-    return JsonResponse({'eventFactorCode':eventFactorCode,'version':version})
+            isRecorded.append(row[2])
+        print(isRecorded)
+    return JsonResponse({'eventFactorCode':eventFactorCode,'version':version,'isRecorded':isRecorded})
 
 @csrf_exempt
 def formGenerator(request):

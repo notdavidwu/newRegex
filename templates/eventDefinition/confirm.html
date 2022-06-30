@@ -947,6 +947,12 @@
                 for(let i=0;i<response.eventFactorCode.length;i++){
                     $('#formVersion').append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
+
+                for(let j=response.isRecorded.length-1;j>=0;j--){
+                    if(response.isRecorded[j]==1){
+                        $('#formVersion').children('option').eq(j).prop('selected',true)
+                    }
+                }
             },
             complete:function(){
                 let eventFactorCode = $('#formVersion').val()
