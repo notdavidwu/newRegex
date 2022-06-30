@@ -10,10 +10,10 @@ import csv,codecs
 @csrf_exempt
 def subjectPatientDecide(request):
     au = request.session.get('au')
-    de_identification = request.session.get('de_identification')
+    
     # if not request.user.is_authenticated or not request.user.is_superuser:
     #     return redirect('/')
-    return render(request, 'subjectPatientDecide/subjectPatientDecide.html',{'au':au,'de_identification':de_identification})
+    return render(request, 'subjectPatientDecide/subjectPatientDecide.html',{'au':au})
 
 @csrf_exempt
 def getPatient(request):

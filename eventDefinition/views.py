@@ -10,9 +10,10 @@ import numpy as np
 def confirm(request):
     au = request.session.get('au')
     de_identification = request.session.get('de_identification')
+    eventDefinition_edit = request.session.get('eventDefinition_edit')
     if not request.user.is_authenticated : 
         return redirect('/')
-    return render(request, 'poolConfirm/confirm.html',{'au':au,'de_identification':de_identification})
+    return render(request, 'eventDefinition/confirm.html',{'au':au,'de_identification':de_identification,'eventDefinition_edit':eventDefinition_edit})
 
 def replaceCapitalAndLowCase(statusfilter):
     statusfilter = re.compile("select", re.IGNORECASE).sub("", statusfilter)
@@ -36,7 +37,7 @@ def replaceCapitalAndLowCase(statusfilter):
 import re
 @csrf_exempt
 def confirmpat(request):
-    scrollTop = request.session.get('poolConfirm_scrollTop')
+    scrollTop = request.session.get('eventDefinition_scrollTop')
     filter = request.POST.get('filter')
     Disease = request.POST.get('Disease')
 
@@ -48,7 +49,7 @@ def confirmpat(request):
     statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
 
     cursor = connections['practiceDB'].cursor()
-    query = 'EXEC getPoolConfirmPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    query = 'EXEC getEventDefinitionPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
 
 
@@ -96,7 +97,7 @@ def confirmpat2(request):
     PID=request.POST.get('ID')
     excludeFilter = request.POST.get('excludeFilter')
     scrollTop = request.POST.get('scrollTop')
-    request.session['poolConfirm_scrollTop']=scrollTop
+    request.session['eventDefinition_scrollTop']=scrollTop
     query = '''EXEC getPatientEvent @chartNo = %s, @filter = %s'''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[PID,excludeFilter])
@@ -446,7 +447,7 @@ def getNum(request):
     pdConfirmed = request.POST.get('pdConfirmed')
     statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
     cursor = connections['practiceDB'].cursor()
-    query = 'EXEC getPoolConfirmPatientNum @diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    query = 'EXEC getEventDefinitionPatientNum @diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
     num=[]
     res = cursor.fetchall()
@@ -458,7 +459,7 @@ def getNum(request):
 @csrf_exempt
 def updatePatientStatus(request):
     scrollTop = request.POST.get('scrollTop')
-    request.session['poolConfirm_scrollTop']=scrollTop
+    request.session['eventDefinition_scrollTop']=scrollTop
 
     PDSet = request.POST.getlist('PD[]')
     diagCheckedSet = request.POST.getlist('diagChecked[]')
@@ -928,4 +929,14 @@ def updateEventNote(request):
     query = 'update allEvents set note=%s where eventID=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[note,eventID])
+    return JsonResponse({})
+
+
+@csrf_exempt
+def isDone(request):
+    chartNo = request.POST.get('chartNo')
+    isDone = request.POST.get('isDone')
+    query = 'update PatientDisease set isDone=%s where chartNo=%s'
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[isDone,chartNo])
     return JsonResponse({})

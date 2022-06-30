@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'Classify.apps.ClassifyConfig',
     'Search.apps.SearchConfig',
     'categorize.apps.categorizeConfig',
-    'poolConfirm.apps.poolConfirmConfig',
+    'eventDefinition.apps.eventDefinitionConfig',
     'warehousing.apps.warehousingConfig',
     'django_plotly_dash.apps.DjangoPlotlyDashConfig',
     'channels',

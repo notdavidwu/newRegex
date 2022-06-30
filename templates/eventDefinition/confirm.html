@@ -324,6 +324,12 @@
             '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+seqNoOption+'</select>'+
             '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
             '</div>'
+        if("{{eventDefinition_edit}}"=='False'){
+            addObject = '<div class=menublock id="sno_-1_0_-1_0">'+
+                '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example" disabled>'+seqNoOption+'</select>'+
+                '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example" disabled>'+selection+'</select>'+
+                '</div>'
+        }
         if(appendOrPrepend=='append'){
             $('#'+pannel).next('label').children('.menu').append(addObject)
         }else{
@@ -334,7 +340,7 @@
     function getClinicalProcedures(medType){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getClinicalProcedures" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getClinicalProcedures" %}', // this is the mapping between the url and view
             data:{
                 'medType':medType,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -359,7 +365,7 @@
         let chartNo= $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchNote" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchNote" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'IND':IND,
@@ -375,7 +381,7 @@
     function searchPhaseAndInterval(i,sno){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchPhaseAndInterval" %}', // this is the mapping between the url and view
             data:{
                 'sno':sno,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -387,7 +393,7 @@
                 if(eventNo!=0){
                     $.ajax({
                         type: 'post',
-                        url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+                        url: '{% url "eventDefinition:Phase" %}', // this is the mapping between the url and view
                         data:{
                             'eventNo':eventNo,
                             'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -417,7 +423,7 @@
         let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchRecord" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchRecord" %}', // this is the mapping between the url and view
             data:{
                 'IND':IND,
                 'chartNo':chartNo,
@@ -471,7 +477,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getSeqNoOption" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getSeqNoOption" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':text,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -482,7 +488,7 @@
             complete:function(){
                 $.ajax({
                     type: 'post',
-                    url: '{% url "poolConfirm:confirmpat2" %}', // this is the mapping between the url and view
+                    url: '{% url "eventDefinition:confirmpat2" %}', // this is the mapping between the url and view
                     data:{
                         'ID':text,
                         'scrollTop':scrollTop,
@@ -534,7 +540,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getCancerRegistData" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getCancerRegistData" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':text,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -552,7 +558,7 @@
     function addInducedEvent(i,eventID,index){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:addInducedEvent" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:addInducedEvent" %}', // this is the mapping between the url and view
             data:{
                 'ind':i,
                 'eventID':eventID,
@@ -604,7 +610,7 @@
         }
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updatePhase" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updatePhase" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'PDID':pdID,
@@ -641,7 +647,7 @@
         }
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateInterval" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateInterval" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'PDID':pdID,
@@ -705,7 +711,7 @@
         $("#statusMenu").css('display', 'none');
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getPatientStatus" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getPatientStatus" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'diseaseId':diseaseId,
@@ -752,7 +758,7 @@
         for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:addPatientDiease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:addPatientDiease" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -780,7 +786,7 @@
         let caSeqNo = $(event.target).parents('tr').children('td').eq(1).children('select').val()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateDiseaseAndSeq" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateDiseaseAndSeq" %}', // this is the mapping between the url and view
             data:{
                 'PDID':PDID,
                 'diseaseID':diseaseID,
@@ -833,7 +839,7 @@
         let PDID = $('input[name="deletePatientDisease"]:checked').parents('tr').attr('id')
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:deletelePatientDisease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:deletelePatientDisease" %}', // this is the mapping between the url and view
             data:{
                 'PDID':PDID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -881,7 +887,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updatePatientStatus" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updatePatientStatus" %}', // this is the mapping between the url and view
             data:{
                 'PD':PD,
                 'diagChecked':diagChecked,
@@ -926,7 +932,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
             data:{
                 'pd':pd,
                 'eventID':eventID,
@@ -957,7 +963,7 @@
     function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:formGenerator" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:formGenerator" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'eventFactorCode':eventFactorCode,
@@ -1062,7 +1068,7 @@
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:insertExtractedFactors" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:insertExtractedFactors" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'diseaseId':diseaseId,
@@ -1141,7 +1147,7 @@
         let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:searchExtractedFactorsRecord" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchExtractedFactorsRecord" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'diseaseId':diseaseId,
@@ -1199,7 +1205,7 @@
         let EDID = $('input[name="test"]:checked').attr('class').split('sno_')[1]
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateCancerRegist" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateCancerRegist" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'eventID':eventID,
@@ -1236,7 +1242,7 @@
         if(eventID_F!=''){ //沒歸屬偵測
             $.ajax({
                 type: 'post',
-                url: '{% url "poolConfirm:updateInducedEvent" %}', // this is the mapping between the url and view
+                url: '{% url "eventDefinition:updateInducedEvent" %}', // this is the mapping between the url and view
                 data:{
                     'eventID_F':eventID_F,
                     'eventID':eventID,
@@ -1282,7 +1288,7 @@
         let eventID = $(event.target).prevAll('.eventID').html()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:deleteEvent_F" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:deleteEvent_F" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1302,7 +1308,7 @@
         let pdConfirmed=Number($('#statusFilterPannel .pdConfirmed').prop('checked'))
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getNum" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getNum" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
                 'diagChecked':diagChecked,
@@ -1446,7 +1452,7 @@
         let filter = $('#filter').val()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:confirmpat" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:confirmpat" %}', // this is the mapping between the url and view
             data:{
                 'filter':filter,
                 'Disease':disease,
@@ -1485,7 +1491,7 @@
         let disable = $(event.target).attr('data-eventCheck')
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateEventConfirm" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateEventConfirm" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'disable':disable,
@@ -1510,7 +1516,7 @@
             $('#preview').empty()
             $.ajax({
                 type: 'post',
-                url: '{% url "poolConfirm:searchEventFactorCode" %}', // this is the mapping between the url and view
+                url: '{% url "eventDefinition:searchEventFactorCode" %}', // this is the mapping between the url and view
                 data:{
                     'groupNo':code[0],
                     'diseaseID':code[1],
@@ -1533,7 +1539,7 @@
     function getFromStructure(eventFactorCode){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getFromStructure" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getFromStructure" %}', // this is the mapping between the url and view
             data:{
                 'eventFactorCode':eventFactorCode,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1581,7 +1587,7 @@
         let isLeaf = $('#designArea .isLeaf').map(function(){return $(this).val()}).get()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateFromStructure" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateFromStructure" %}', // this is the mapping between the url and view
             data:{
                 'code':code,
                 'eventFactorID':eventFactorID,
@@ -1605,7 +1611,7 @@
         let target = $(event.target)
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getNewEventFactorID" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getNewEventFactorID" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1630,7 +1636,7 @@
     function formDesign(){
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:getEventFactorCode" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getEventFactorCode" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1664,7 +1670,7 @@
         let note = $(event.target).val()
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:updateEventNote" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateEventNote" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'note':note,
@@ -1680,6 +1686,17 @@
         $('#extractFactorMenu').css('display','none')
     }
 
+    function isDone(){
+        let chartNo = $(event.target).text()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:isDone" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            }
+        })
+    }
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -1705,7 +1722,7 @@
         $('.loader1').css('display','inline')
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:Disease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:Disease" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1725,7 +1742,7 @@
         selection ='<option value="0">請選擇階段</option>'
         $.ajax({
             type: 'post',
-            url: '{% url "poolConfirm:Phase" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:Phase" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1901,6 +1918,7 @@
         <div id="statusMenu" class="customMenu">
             <p class="btn btn-secondary resetbtn status" role="button" onclick="statusOpen()">病患資料確認</p>
             <p class="btn btn-secondary resetbtn" role="button"  onclick="formDesign()">表單設計</p>
+            <p class="btn btn-secondary resetbtn" role="button"  onclick="isDone()">已完成</p>
         </div>
 
         <div id="menu" class="customMenu">

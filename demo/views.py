@@ -65,9 +65,11 @@ def login(request):
             au = Auth(username)
             de_identification = de_identification_check(username)
             all_annotations = all_annotations_check(username)
+            eventDefinition_edit = eventDefinition_edit_check(username)
             request.session['au'] = au
             request.session['de_identification'] = de_identification
             request.session['all_annotations'] = all_annotations
+            request.session['eventDefinition_edit'] = eventDefinition_edit
             auth.login(request, re)
             return redirect('/', {'user': re})
             # return render(request, 'home.html', {'user': re})
@@ -109,3 +111,11 @@ def all_annotations_check(username):
     res = cursor.fetchall()
     all_annotations=res[0][0]
     return all_annotations
+
+def eventDefinition_edit_check(username):
+    query = '''select eventDefinition_edit from auth_user where username=%s'''
+    cursor = connections['default'].cursor()
+    cursor.execute(query, [username])
+    res = cursor.fetchall()
+    eventDefinition_edit=res[0][0]
+    return eventDefinition_edit

@@ -15,8 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from poolConfirm import views
-app_name='poolConfirm'
+from eventDefinition import views
+app_name='eventDefinition'
 urlpatterns = [
     path('', views.confirm,name='confirm'),
     path('confirmpat/', views.confirmpat,name='confirmpat'),
@@ -53,5 +53,5 @@ urlpatterns = [
     path('deletelePatientDisease/', views.deletelePatientDisease, name='deletelePatientDisease'),
     path('updateDiseaseAndSeq/', views.updateDiseaseAndSeq, name='updateDiseaseAndSeq'),
     path('updateEventNote/', views.updateEventNote, name='updateEventNote'),
-    
+    path('isDone/', views.isDone, name='isDone'),
 ]
