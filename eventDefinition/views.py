@@ -56,9 +56,10 @@ def confirmpat(request):
     examID=''
     #examID = list(cursor.fetchall())
     for row in cursor:
+
         examID += f'''
         <tr><td>
-        <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]}>
+        <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
         '''
         if filter=='0':
             if row[2] is True:
@@ -68,7 +69,6 @@ def confirmpat(request):
         else:    
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
-
     return JsonResponse({'examID': examID,'scrollTop':scrollTop})
 
 @csrf_exempt
@@ -936,6 +936,7 @@ def updateEventNote(request):
 def isDone(request):
     chartNo = request.POST.get('chartNo')
     isDone = request.POST.get('isDone')
+    print(chartNo,isDone)
     query = 'update PatientDisease set isDone=%s where chartNo=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[isDone,chartNo])

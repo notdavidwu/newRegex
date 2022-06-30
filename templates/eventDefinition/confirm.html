@@ -1422,6 +1422,13 @@
                         $(`#${menu}`).children('#disableEvent').html('undisabled')
                     }
                 }
+                if(menu=="statusMenu"){
+                    if($('input[name="confirmPID"]:checked').attr('data-isDone')=='1'){
+                        $(`#isDone`).html('標記未完成');
+                    }else{
+                        $(`#isDone`).html('標記已完成');
+                    }
+                }
             })
         }else{
             $(`#${pannel}`).on('mousedown',function(d){
@@ -1436,6 +1443,7 @@
                 }else if(d.which == 1){
                     $(".customMenu").css('display', 'none');
                 }
+
             })
         }
     }
@@ -1465,8 +1473,15 @@
             },
             success:function (response){
                 $('#Report').append(response.examID) 
-
                 $('#patient').scrollTop(parseInt(response.scrollTop)*1.8616427135304192)
+                
+                $('input[name="confirmPID"]').map(function(){
+                    if($(this).attr('data-isDone')=="1"){
+                        $(this).next('label').css('color','white')
+                    }else{
+                        $(this).next('label').css('color','red')
+                    }
+                })
             },
             complete:function(){
                 if("{{de_identification}}"=='False'){
@@ -1687,13 +1702,26 @@
     }
 
     function isDone(){
-        let chartNo = $(event.target).text()
+        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+        let isDone = $('input[name="confirmPID"]:checked').attr('data-isDone')
+        if(isDone=="1"){
+            $('input[name="confirmPID"]:checked').attr('data-isDone','0')
+            $('input[name="confirmPID"]:checked').next('label').css('color','red')
+        }else{
+            $('input[name="confirmPID"]:checked').attr('data-isDone','1')
+            $('input[name="confirmPID"]:checked').next('label').css('color','white')
+        }
+        isDone = $('input[name="confirmPID"]:checked').attr('data-isDone')
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:isDone" %}', // this is the mapping between the url and view
             data:{
+                'isDone':isDone,
                 'chartNo':chartNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('#statusMenu').css('display','none')
             }
         })
     }
@@ -1918,7 +1946,7 @@
         <div id="statusMenu" class="customMenu">
             <p class="btn btn-secondary resetbtn status" role="button" onclick="statusOpen()">病患資料確認</p>
             <p class="btn btn-secondary resetbtn" role="button"  onclick="formDesign()">表單設計</p>
-            <p class="btn btn-secondary resetbtn" role="button"  onclick="isDone()">已完成</p>
+            <p class="btn btn-secondary resetbtn" role="button" data-isDone="1" id="isDone"  onclick="isDone()">標記已完成</p>
         </div>
 
         <div id="menu" class="customMenu">
