@@ -702,6 +702,35 @@ def formGenerator(request):
                                             formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure5[3]}</label></li>'''
                                         else:
                                             formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure5[6]}] data-eventFactorID={structure5[0]} id="item_{num}"><label for="item_{num}">{structure5[3]}</label></li>'''
+                                        
+                                        factorID=structure5[0]
+                                        if stop != True:
+                                            step = 6
+                                            query =f'''
+                                            select a{step}.*
+                                            from eventFactor as a1 
+                                            left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
+                                            '''
+                                            for i in range(step-2,step+1):
+                                                query +=f'''
+                                                    left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
+                                                '''
+                                            query +=f'where a2.eventFactorID is not null and a{i-1}.'
+                                            query +='eventFactorID=%s'
+                                            cursor.execute(query,[factorID])
+                                            structureSet6 = cursor.fetchall()
+                                            formObject += '<ul>'
+                                            for structure6 in structureSet6:
+                                                stop = structure6[7]
+                                                num += 1
+                                                type = structure6[4].replace(' ','')
+                                                if type=='text':
+                                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure6[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure6[0]} name=formStructure_[1]_[{ind1}][{structure6[6]}] id="item_{num}"></li>'''
+                                                elif type=='NE':
+                                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure6[3]}</label></li>'''
+                                                else:
+                                                    formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure6[6]}] data-eventFactorID={structure6[0]} id="item_{num}"><label for="item_{num}">{structure6[3]}</label></li>'''
+
                                     formObject += '</ul>'
                             formObject += '</ul>'
                     
