@@ -717,6 +717,7 @@ def formGenerator(request):
                                                 '''
                                             query +=f'where a2.eventFactorID is not null and a{i-1}.'
                                             query +='eventFactorID=%s'
+                                            print(query)
                                             cursor.execute(query,[factorID])
                                             structureSet6 = cursor.fetchall()
                                             formObject += '<ul>'
@@ -730,7 +731,7 @@ def formGenerator(request):
                                                     formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure6[3]}</label></li>'''
                                                 else:
                                                     formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure6[6]}] data-eventFactorID={structure6[0]} id="item_{num}"><label for="item_{num}">{structure6[3]}</label></li>'''
-
+                                            formObject += '</ul>'
                                     formObject += '</ul>'
                             formObject += '</ul>'
                     
