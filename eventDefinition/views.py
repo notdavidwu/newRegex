@@ -564,11 +564,11 @@ def formGenerator(request):
             cursor.execute(mainSubjectQuery,[eventID,eventFactorID])
         else:
             mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY eventFactorID)-1 as dr
+            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
             from eventFactor as a
             left outer join [extractedFactors] as b on a.eventFactorID=b.rootID
             where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,b.seq
+            group by eventFactorID,factorName,itemType,labeled,b.seq,serialNo
             '''
             cursor.execute(mainSubjectQuery,[eventFactorID])
         step = 1
@@ -617,6 +617,7 @@ def formGenerator(request):
                     formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
 
                 factorID=structure[0]
+                print(ind1,mainSubject,stop)
                 if stop != True:
                     step = 3
                     formObject = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
@@ -629,7 +630,7 @@ def formGenerator(request):
     return JsonResponse({'formObject':formObject})
 
 def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
-    print(depth)
+    
     step = depth
     query =f'''
     select a{depth}.*
@@ -642,8 +643,11 @@ def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
         '''
     query +=f'where a2.eventFactorID is not null and a{i-1}.'
     query +='eventFactorID=%s'
+    print(query)
     cursor.execute(query,[factorID])
-    dictionary.update({f"structureSet{depth}":cursor.fetchall()})
+    result = cursor.fetchall()
+    dictionary.update({f"structureSet{depth}":result})
+    print(factorID,result)
     formObject += '<ul>'
     for structure in dictionary[f"structureSet{depth}"]:
         stop = structure[7]
