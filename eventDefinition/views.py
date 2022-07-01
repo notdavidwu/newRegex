@@ -545,6 +545,7 @@ def formGenerator(request):
     eventID = request.POST.get('eventID')
     eventFactorCode = request.POST.get('eventFactorCode')
     formObject=''
+    dictionary={}
     if len(eventFactorCode)!=0:
         eventFactorID=eventFactorCode
         '''---------------查詢有無紀錄--------------'''
@@ -554,11 +555,11 @@ def formGenerator(request):
         '''---------------取得大標題--------------'''
         if recordedOrNot !=0:
             mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY eventFactorID)-1 as dr
+            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
             from eventFactor as a
             left outer join  (select * from [extractedFactors] where eventID=%s) as b on a.eventFactorID=b.rootID
             where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,b.seq
+            group by eventFactorID,factorName,itemType,labeled,b.seq,serialNo
             '''
             cursor.execute(mainSubjectQuery,[eventID,eventFactorID])
         else:
@@ -616,131 +617,50 @@ def formGenerator(request):
                     formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
 
                 factorID=structure[0]
-
                 if stop != True:
                     step = 3
-                    query =f'''
-                    select a{step}.*
-                    from eventFactor as a1 
-                    left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
-                    '''
-                    for i in range(step,step+1):
-                        query +=f'''
-                            left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
-                        '''
-                    query +=f'where a2.eventFactorID is not null and a{i-1}.'
-                    query +='eventFactorID=%s'
-                    
-                    cursor.execute(query,[factorID])
-                    structureSet3 = cursor.fetchall()
-                    formObject += '<ul>'
-                    for structure3 in structureSet3:
-                        stop = structure3[7]
-                        num += 1
-                        type = structure3[4].replace(' ','')
-                        if type=='text':
-                            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure3[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure3[0]} name=formStructure_[1]_[{ind1}][{structure3[6]}] id="item_{num}"></li>'''
-                        elif type=='NE':
-                            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure3[3]}</label></li>'''
-                        elif type=='date':
-                            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}" value="{structure3[3]}"></li>'''
-                        else:
-                            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure3[6]}] data-eventFactorID={structure3[0]} id="item_{num}"><label for="item_{num}">{structure3[3]}</label></li>'''
-                        
-                        factorID=structure3[0]
-                        if stop != True:
-
-                            step = 4
-                            query =f'''
-                            select a{step}.*
-                            from eventFactor as a1 
-                            left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
-                            '''
-                            for i in range(step-1,step+1):
-                                query +=f'''
-                                    left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
-                                '''
-                            query +=f'where a2.eventFactorID is not null and a{i-1}.'
-                            query +='eventFactorID=%s'
-                            cursor.execute(query,[factorID])
-                            structureSet4 = cursor.fetchall()
-                            formObject += '<ul>'
-                            for structure4 in structureSet4:
-                                stop = structure4[7]
-                                num += 1
-                                type = structure4[4].replace(' ','')
-                                if type=='text':
-                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure4[3]}：</label><input onclick="myFunction()" data-recorded=0 data-eventFactorID={structure4[0]} data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure4[6]}] id="item_{num}"></li>'''
-                                elif type=='NE':
-                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure4[3]}</label></li>'''
-                                else:
-                                    formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure4[0]} name=formStructure_[1]_[{ind1}][{structure4[6]}] id="item_{num}"><label for="item_{num}">{structure4[3]}</label></li>'''
-                                factorID=structure4[0]
-                                if stop != True:
-                                    step = 5
-                                    query =f'''
-                                    select a{step}.*
-                                    from eventFactor as a1 
-                                    left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
-                                    '''
-                                    for i in range(step-2,step+1):
-                                        query +=f'''
-                                            left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
-                                        '''
-                                    query +=f'where a2.eventFactorID is not null and a{i-1}.'
-                                    query +='eventFactorID=%s'
-                                    cursor.execute(query,[factorID])
-                                    structureSet5 = cursor.fetchall()
-                                    formObject += '<ul>'
-                                    for structure5 in structureSet5:
-                                        stop = structure5[7]
-                                        num += 1
-                                        type = structure5[4].replace(' ','')
-                                        if type=='text':
-                                            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure5[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure5[0]} name=formStructure_[1]_[{ind1}][{structure5[6]}] id="item_{num}"></li>'''
-                                        elif type=='NE':
-                                            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure5[3]}</label></li>'''
-                                        else:
-                                            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure5[6]}] data-eventFactorID={structure5[0]} id="item_{num}"><label for="item_{num}">{structure5[3]}</label></li>'''
-                                        
-                                        factorID=structure5[0]
-                                        if stop != True:
-                                            step = 6
-                                            query =f'''
-                                            select a{step}.*
-                                            from eventFactor as a1 
-                                            left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
-                                            '''
-                                            for i in range(step-3,step+1):
-                                                query +=f'''
-                                                    left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
-                                                '''
-                                            query +=f'where a2.eventFactorID is not null and a{i-1}.'
-                                            query +='eventFactorID=%s'
-                                            print(query)
-                                            cursor.execute(query,[factorID])
-                                            structureSet6 = cursor.fetchall()
-                                            formObject += '<ul>'
-                                            for structure6 in structureSet6:
-                                                stop = structure6[7]
-                                                num += 1
-                                                type = structure6[4].replace(' ','')
-                                                if type=='text':
-                                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure6[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure6[0]} name=formStructure_[1]_[{ind1}][{structure6[6]}] id="item_{num}"></li>'''
-                                                elif type=='NE':
-                                                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure6[3]}</label></li>'''
-                                                else:
-                                                    formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure6[6]}] data-eventFactorID={structure6[0]} id="item_{num}"><label for="item_{num}">{structure6[3]}</label></li>'''
-                                            formObject += '</ul>'
-                                    formObject += '</ul>'
-                            formObject += '</ul>'
-                    
+                    formObject = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
                     formObject += '</ul>'
             formObject += '</ul>'
             formObject += '</div>'
 
         formObject += '</div>'
+        print(formObject)
     return JsonResponse({'formObject':formObject})
+
+def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
+    print(depth)
+    step = depth
+    query =f'''
+    select a{depth}.*
+    from eventFactor as a1 
+    left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
+    '''
+    for i in range(3,step+1):
+        query +=f'''
+            left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
+        '''
+    query +=f'where a2.eventFactorID is not null and a{i-1}.'
+    query +='eventFactorID=%s'
+    cursor.execute(query,[factorID])
+    dictionary.update({f"structureSet{depth}":cursor.fetchall()})
+    formObject += '<ul>'
+    for structure in dictionary[f"structureSet{depth}"]:
+        stop = structure[7]
+        num += 1
+        type = structure[4].replace(' ','')
+        if type=='text':
+            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name=formStructure_[1]_[{ind1}][{structure[6]}] id="item_{num}"></li>'''
+        elif type=='NE':
+            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
+        else:
+            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure[6]}] data-eventFactorID={structure[0]} id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
+        factorID=structure[0]
+        if stop != True:
+            formObject = subForm(dictionary,depth+1,ind1,num,factorID,formObject,cursor)
+    formObject += '</ul>'
+    
+    return formObject
 
 @csrf_exempt
 def insertExtractedFactors(request):
