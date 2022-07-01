@@ -711,7 +711,7 @@ def formGenerator(request):
                                             from eventFactor as a1 
                                             left outer join eventFactor as a2 on a1.F_eventFactorID=0 and a1.eventFactorID=a2.F_eventFactorID
                                             '''
-                                            for i in range(step-2,step+1):
+                                            for i in range(step-3,step+1):
                                                 query +=f'''
                                                     left outer join eventFactor as a{i} on a{i-1}.F_eventFactorID<>0 and a{i-1}.eventFactorID=a{i}.F_eventFactorID
                                                 '''
