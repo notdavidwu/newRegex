@@ -620,7 +620,7 @@ def formGenerator(request):
                 print(ind1,mainSubject,stop)
                 if stop != True:
                     step = 3
-                    formObject = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
+                    formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
                     formObject += '</ul>'
             formObject += '</ul>'
             formObject += '</div>'
@@ -661,10 +661,10 @@ def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
             formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure[6]}] data-eventFactorID={structure[0]} id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
         factorID=structure[0]
         if stop != True:
-            formObject = subForm(dictionary,depth+1,ind1,num,factorID,formObject,cursor)
+            formObject,num = subForm(dictionary,depth+1,ind1,num,factorID,formObject,cursor)
     formObject += '</ul>'
     
-    return formObject
+    return formObject,num
 
 @csrf_exempt
 def insertExtractedFactors(request):
