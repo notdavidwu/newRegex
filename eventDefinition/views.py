@@ -49,7 +49,7 @@ def confirmpat(request):
     statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
 
     cursor = connections['practiceDB'].cursor()
-    query = 'EXEC getEventDefinitionPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    query = 'EXEC EventDefinition_getPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
 
 
@@ -98,7 +98,7 @@ def confirmpat2(request):
     excludeFilter = request.POST.get('excludeFilter')
     scrollTop = request.POST.get('scrollTop')
     request.session['eventDefinition_scrollTop']=scrollTop
-    query = '''EXEC getPatientEvent @chartNo = %s, @filter = %s'''
+    query = '''EXEC EventDefinition_getPatientEvent @chartNo = %s, @filter = %s'''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[PID,excludeFilter])
     objectArray=[]
@@ -362,7 +362,7 @@ def searchRecord(request):
     eventID = request.POST.get('eventID')
 
     query = '''
-        EXEC searchRecord @chartNo = %s,@eventID=%s
+        EXEC EventDefinition_searchRecord @chartNo = %s,@eventID=%s
     '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo,eventID])
@@ -426,7 +426,7 @@ def deleteEvent_F(request):
 def getClinicalProcedures(request):
     medType = request.POST.get('medType')
     query = '''
-        EXEC getClinicalProcedures @medType = %s
+        EXEC EventDefinition_getClinicalProcedures @medType = %s
     '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[medType])
@@ -447,7 +447,7 @@ def getNum(request):
     pdConfirmed = request.POST.get('pdConfirmed')
     statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
     cursor = connections['practiceDB'].cursor()
-    query = 'EXEC getEventDefinitionPatientNum @diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    query = 'EXEC EventDefinition_getPatientNum @diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
     num=[]
     res = cursor.fetchall()
