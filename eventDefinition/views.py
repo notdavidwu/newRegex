@@ -244,6 +244,7 @@ def updatePhase(request):
     procedureID = request.POST.get('procedureID')
     originSeqNo = request.POST.get('originSeqNo')
     chartNo = request.POST.get('chartNo')
+    username = request.POST.get('username')
     cursor = connections['practiceDB'].cursor()
     if PDID == 'Infinity':
         query = 'select PD from PatientDisease where chartNo = %s and caSeqNo = %s'
@@ -257,8 +258,12 @@ def updatePhase(request):
         originSeqNo = 0
     else:
         if EDID == 'NULL': #insert
-            query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
-            cursor.execute(query,[eventID,PDID,procedureID])
+            if request.user.is_superuser:
+                query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
+                cursor.execute(query,[eventID,PDID,procedureID])
+            else:
+                query = 'INSERT eventDefinitions (eventID,PDID,procedureID,username) OUTPUT INSERTED .EDID VALUES (%s,%s,%s,%s)'
+                cursor.execute(query,[eventID,PDID,procedureID,username])
             EDID = cursor.fetchall()[0]
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
@@ -272,6 +277,7 @@ def updateInterval(request):
     eventID = request.POST.get('eventID')
     procedureID = request.POST.get('procedureID')
     seqNo = request.POST.get('seqNo')
+    username = request.POST.get('username')
     cursor = connections['practiceDB'].cursor()
     if seqNo=='0':
         query = 'DELETE FROM eventDefinitions WHERE EDID=%s'
@@ -284,8 +290,12 @@ def updateInterval(request):
         cursor.execute(query,[chartNo,seqNo])
         PDID = cursor.fetchall()[0][0]
         if EDID == 'NULL': #insert
-            query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
-            cursor.execute(query,[eventID,PDID,procedureID])
+            if request.user.is_superuser:
+                query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
+                cursor.execute(query,[eventID,PDID,procedureID])
+            else:
+                query = 'INSERT eventDefinitions (eventID,PDID,procedureID,username) OUTPUT INSERTED .EDID VALUES (%s,%s,%s,%s)'
+                cursor.execute(query,[eventID,PDID,procedureID,username])
             EDID = cursor.fetchall()[0]
         else: #update
             query = 'UPDATE eventDefinitions SET PDID=%s WHERE EDID=%s'
@@ -360,12 +370,12 @@ def searchRecord(request):
     IND = request.POST.get('IND')
     chartNo = request.POST.get('chartNo')
     eventID = request.POST.get('eventID')
-
+    username = request.POST.get('username')
     query = '''
-        EXEC EventDefinition_searchRecord @chartNo = %s,@eventID=%s
+        EXEC EventDefinition_searchRecord @chartNo = %s,@eventID=%s, @username = %s
     '''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[chartNo,eventID])
+    cursor.execute(query,[chartNo,eventID,username])
     res = cursor.fetchall()
 
     caSeqNo = []
@@ -374,7 +384,8 @@ def searchRecord(request):
     procedureID = []
     eventID = []
     eventID_F = []
-
+    editor = []
+    print(len(res))
     if len(res)!=0:
         Record = len(res)
         for row in res:
@@ -384,7 +395,7 @@ def searchRecord(request):
             procedureID.append(row[3])
             eventID_F.append(row[4])
             PDID.append(row[5])
-
+            editor.append(row[9])
     else:
         Record = 1
         EDID=[-1]
@@ -393,8 +404,9 @@ def searchRecord(request):
         procedureID=[0]
         eventID_F=[0]
         PDID = ['-1']
-
-    return JsonResponse({'IND':IND,'Record':Record,'caSeqNo':caSeqNo,'EDID':EDID,'eventID':eventID,'procedureID':procedureID,'eventID_F':eventID_F,'PDID':PDID})
+        editor = ['NoRecord']
+    print(editor)
+    return JsonResponse({'IND':IND,'Record':Record,'caSeqNo':caSeqNo,'EDID':EDID,'eventID':eventID,'procedureID':procedureID,'eventID_F':eventID_F,'PDID':PDID,'editor':editor})
 
 @csrf_exempt
 def updateCancerRegist(request):
@@ -532,11 +544,9 @@ def searchExtractedEventFactorCode(request):
         version=[]
         isRecorded = []
         for row in eventFactorID_result:
-            print(row)
             eventFactorCode.append(row[0])
             version.append(row[1])
             isRecorded.append(row[2])
-        print(isRecorded)
     return JsonResponse({'eventFactorCode':eventFactorCode,'version':version,'isRecorded':isRecorded})
 
 @csrf_exempt
@@ -617,7 +627,6 @@ def formGenerator(request):
                     formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
 
                 factorID=structure[0]
-                print(ind1,mainSubject,stop)
                 if stop != True:
                     step = 3
                     formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
@@ -626,7 +635,6 @@ def formGenerator(request):
             formObject += '</div>'
 
         formObject += '</div>'
-        print(formObject)
     return JsonResponse({'formObject':formObject})
 
 def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
@@ -643,11 +651,9 @@ def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
         '''
     query +=f'where a2.eventFactorID is not null and a{i-1}.'
     query +='eventFactorID=%s'
-    print(query)
     cursor.execute(query,[factorID])
     result = cursor.fetchall()
     dictionary.update({f"structureSet{depth}":result})
-    print(factorID,result)
     formObject += '<ul>'
     for structure in dictionary[f"structureSet{depth}"]:
         stop = structure[7]
@@ -894,7 +900,6 @@ def updateEventNote(request):
 def isDone(request):
     chartNo = request.POST.get('chartNo')
     isDone = request.POST.get('isDone')
-    print(chartNo,isDone)
     query = 'update PatientDisease set isDone=%s where chartNo=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[isDone,chartNo])
