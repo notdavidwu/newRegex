@@ -676,14 +676,14 @@ def insertExtractedFactors(request):
     insertValArray = request.POST.getlist('insertValArray[]')
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
 
-    queryDelete='''delete from extractedFactors where eventID=%s'''
-    cursor.execute(queryDelete,[eventID])
+    queryDelete='''delete from extractedFactors where eventID=%s and seq=%s'''
+    cursor.execute(queryDelete,[eventID,insertSeq])
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
         cursor.execute(query,[eventID,factorID,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
-            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s,%s)'''
+            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s)'''
             cursor.execute(queryInsert,[eventID,factorID,factorValue,insertSeq])
     return JsonResponse({})
 
