@@ -626,6 +626,7 @@
         let PDIDGroup = $('#accordionExample .menublock').map(function(){return parseInt($(this).attr('id').split('_')[3])}).get()
         let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
         let diseaseId = $('#ChangeDisease').val()
+        let username = '{{user.username}}'
         target.css('border','none')
         if(pdID==-1){
             pdID = Math.min(...PDIDGroup.filter(PDID => PDID > 0))
@@ -643,6 +644,7 @@
                 'chartNo':chartNo,
                 'diseaseId':diseaseId,
                 'originSeqNo':originSeqNo,
+                'username':username,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -680,6 +682,7 @@
                 'chartNo':chartNo,
                 'diseaseId':diseaseId,
                 'seqNo':seqNo,
+                'username':username,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -949,6 +952,7 @@
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
         let diseaseId = $('#ChangeDisease').val()
         let procedureID = $('#procedureOfForm').val()
+        
         $('#factorGroupArea').empty()
         $("#extractedFactor").css('display', 'inline');
         $("#menu").css('display', 'none');
@@ -1029,12 +1033,7 @@
         let checkboxValArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
             return $(this).prop('checked')
         }).get()
-        let checkboxSeqArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
-        let checkboxRootArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
-            return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')
-        }).get()
+
         let checkboxRecordedArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
             return $(this).attr('data-recorded')
         }).get()
@@ -1046,12 +1045,7 @@
         let radioValArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
             return $(this).prop('checked')
         }).get()
-        let radioSeqArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
-        let radioRootArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
-            return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')
-        }).get()
+
         let radioRecordedArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
             return $(this).attr('data-recorded')
         }).get()
@@ -1063,12 +1057,7 @@
         let textValArray = $('input[name^="formStructure"][type="text"]').map(function(){
             if($(this).val()!=''){return $(this).val()}
         }).get()
-        let textSeqArray = $('input[name^="formStructure"][type="text"]').map(function(){
-            if($(this).val()!=''){return $(this).parents('.mainBlock').attr('data-seq')}
-        }).get()
-        let textRootArray = $('input[name^="formStructure"][type="text"]').map(function(){
-            if($(this).val()!=''){return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')}
-        }).get()
+
         let textRecordedArray = $('input[name^="formStructure"][type="text"]').map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
@@ -1080,22 +1069,15 @@
         let dateValArray = $('input[name^="formStructure"][type="date"]').map(function(){
             if($(this).val()!=''){return $(this).val()}
         }).get()
-        let dateSeqArray = $('input[name^="formStructure"][type="date"]').map(function(){
-            if($(this).val()!=''){return $(this).parents('.mainBlock').attr('data-seq')}
-        }).get()
-        let dateRootArray = $('input[name^="formStructure"][type="date"]').map(function(){
-            if($(this).val()!=''){return $(this).parents('.mainBlock').children('b').attr('data-eventFactorID')}
-        }).get()
+
         let dateRecordedArray = $('input[name^="formStructure"][type="date"]').map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
 
 
-
-        let insertSeqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
+        let insertSeq = $('#procedureOfForm').children('option:selected').attr('data-seq')
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
-        let insertRootArray = checkboxRootArray.concat(radioRootArray,textRootArray,dateRootArray)
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
         $.ajax({
             type: 'post',
@@ -1103,10 +1085,10 @@
             data:{
                 'eventID':eventID,
                 'diseaseId':diseaseId,
-                'insertSeqArray':insertSeqArray,
+                'insertSeq':insertSeq,
                 'insertIDArray':insertIDArray,
                 'insertValArray':insertValArray,
-                'insertRootArray':insertRootArray,
+
                 'insertRecordedArray':insertRecordedArray,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1131,9 +1113,7 @@
         let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        let checkboxSeqArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
+
         let checkboxClassArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1142,9 +1122,7 @@
         let radioIDArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        let radioSeqArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
+
         let radioClassArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1153,9 +1131,7 @@
         let textIDArray = $('input[name^="formStructure"][type="text"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        let textSeqArray = $('input[name^="formStructure"][type="text"]').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
+
         let textClassArray = $('input[name^="formStructure"][type="text"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1163,17 +1139,14 @@
         let dateIDArray = $('input[name^="formStructure"][type="date"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        let dateSeqArray = $('input[name^="formStructure"][type="date"]').map(function(){
-            return $(this).parents('.mainBlock').attr('data-seq')
-        }).get()
+
         let dateClassArray = $('input[name^="formStructure"][type="date"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
 
-        
+        let seq = $('#procedureOfForm').children('option:selected').attr('data-seq')
         let eventID = $('#factorGroupArea').attr('data-eventID')
         let diseaseId = $('#ChangeDisease').val()
-        let seqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
         let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
         $.ajax({
@@ -1182,15 +1155,15 @@
             data:{
                 'eventID':eventID,
                 'diseaseId':diseaseId,
-                'seqArray':seqArray,
+                'seq':seq,
                 'idArray':idArray,
                 'classArray':classArray,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
-                
+
                 for(let i=0; i<response.seqRecorded.length; i++){
-                    let targetObject = $(`.${response.classRecorded[i]}[data-Seq=${response.seqRecorded[i]}] [data-eventFactorID=${response.factorIdRecorded[i]}]`)
+                    let targetObject = $(`.${response.classRecorded[i]} [data-eventFactorID=${response.factorIdRecorded[i]}]`)
                     let type = targetObject.attr('type')
                     if (type=='text'||type=='date'){
                         targetObject.val(response.factorValueRecorded[i])
@@ -1762,7 +1735,7 @@
         let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
         $('#procedureOfForm').empty()
         for(let i=0;i<optionName.length;i++){
-            $('#procedureOfForm').append(`<option value=${optionValue[i]}>${optionName[i]}</option>`)
+            $('#procedureOfForm').append(`<option data-seq=${i+1} value=${optionValue[i]}>${optionName[i]}</option>`)
         }
         extractedFactorOpen();
     }   

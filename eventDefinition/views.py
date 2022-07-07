@@ -258,6 +258,7 @@ def updatePhase(request):
         originSeqNo = 0
     else:
         if EDID == 'NULL': #insert
+            print(request.user.is_superuser)
             if request.user.is_superuser:
                 query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
                 cursor.execute(query,[eventID,PDID,procedureID])
@@ -565,20 +566,18 @@ def formGenerator(request):
         '''---------------取得大標題--------------'''
         if recordedOrNot !=0:
             mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
+            select eventFactorID,factorName,itemType,labeled,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
             from eventFactor as a
-            left outer join  (select * from [extractedFactors] where eventID=%s) as b on a.eventFactorID=b.rootID
             where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,b.seq,serialNo
+            group by eventFactorID,factorName,itemType,labeled,serialNo
             '''
-            cursor.execute(mainSubjectQuery,[eventID,eventFactorID])
+            cursor.execute(mainSubjectQuery,[eventFactorID])
         else:
             mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,b.seq,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
+            select eventFactorID,factorName,itemType,labeled,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
             from eventFactor as a
-            left outer join [extractedFactors] as b on a.eventFactorID=b.rootID
             where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,b.seq,serialNo
+            group by eventFactorID,factorName,itemType,labeled,serialNo
             '''
             cursor.execute(mainSubjectQuery,[eventFactorID])
         step = 1
@@ -587,13 +586,8 @@ def formGenerator(request):
         formObject = '<div class="formStructure">'
         num=0
         for ind1,mainSubject in enumerate(mainSubjectSet):
-            
             step = 2
-            if mainSubject[4] is None:
-                seq = 1
-            else:
-                seq = mainSubject[4]
-            formObject += f'<div data-prepareAdd=0 onmousedown="record()" class="mainBlock mainBlock{mainSubject[5]}" data-Seq={seq}>'
+            formObject += f'<div data-prepareAdd=0 onmousedown="record()" class="mainBlock mainBlock{mainSubject[4]}" >'
             formObject += f'<b data-eventFactorID={mainSubject[0]} data-itemType={mainSubject[2]} data-labeled={mainSubject[3]}>{mainSubject[1]}</b>'
             if mainSubject[2].replace(' ','')=='text':
                 formObject += f'<ul><li><input data-recorded=0 type={mainSubject[2]}></li></ul>'
@@ -677,21 +671,20 @@ def insertExtractedFactors(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
     diseaseId = request.POST.get('diseaseId')
-    insertSeqArray = request.POST.getlist('insertSeqArray[]')
+    insertSeq = request.POST.get('insertSeq')
     insertIDArray = request.POST.getlist('insertIDArray[]')
     insertValArray = request.POST.getlist('insertValArray[]')
-    insertRootArray = request.POST.getlist('insertRootArray[]')
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
 
     queryDelete='''delete from extractedFactors where eventID=%s'''
     cursor.execute(queryDelete,[eventID])
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
-    for factorID,factorValue,seq,root,Recorded in zip(insertIDArray,insertValArray,insertSeqArray,insertRootArray,insertRecordedArray):
-        cursor.execute(query,[eventID,factorID,seq])
+    for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
+        cursor.execute(query,[eventID,factorID,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
-            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq,rootID) VALUES(%s,%s,%s,%s,%s)'''
-            cursor.execute(queryInsert,[eventID,factorID,factorValue,seq,root])
+            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s,%s)'''
+            cursor.execute(queryInsert,[eventID,factorID,factorValue,insertSeq])
     return JsonResponse({})
 
 @csrf_exempt
@@ -699,7 +692,7 @@ def searchExtractedFactorsRecord(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
     diseaseId = request.POST.get('diseaseId')
-    seqArray = request.POST.getlist('seqArray[]')
+    seq = request.POST.get('seq')
     idArray = request.POST.getlist('idArray[]')
     classArray = request.POST.getlist('classArray[]')
     query='''select factorValue from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
@@ -707,10 +700,13 @@ def searchExtractedFactorsRecord(request):
     factorValueRecorded = []
     seqRecorded = []
     classRecorded = []
-
-    for factorId,seq,className in zip(idArray,seqArray,classArray):
+    print(eventID)
+    print(idArray)
+    print(seq)
+    for factorId,className in zip(idArray,classArray):
         cursor.execute(query,[eventID,factorId,seq])
         result = cursor.fetchall()
+        print(len(result))
         if len(result)!=0:
             seqRecorded.append(seq)
             classRecorded.append(className)
