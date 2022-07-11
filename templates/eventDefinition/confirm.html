@@ -274,6 +274,7 @@
     .exclude{color:red}
     #header_disabled{width:50px;font-size:10pt}
     #formVersion{position:absolute;width:80px;top:2px;right:35px;height:26px}
+    #formDisease{position:absolute;width:100px;top:2px;left:10px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
     #procedureOfForm{position:absolute;width:100px;top:2px;right:130px;height:26px}
     #formDesignPannel{display:none;width:1400px;background:url("{% static 'image/texture.png' %}") #08192D;left:10%;}
     .formFilter{width:calc(20% - 3.2px);display:inline;border-radius:0}
@@ -289,6 +290,11 @@
     input[name="deletePatientDisease"]{display:none}
     .deletePatientDisease{width:20px}
     .form-control{font-size:10pt}
+    #topicArea{padding:10px}
+    .hiddenRow {
+        padding: 0 !important;
+        padding-left:20px !important;
+    }
 </style>
 
 
@@ -546,7 +552,7 @@
                                 let target = $('#timetable .eventID').eq(index)
                                 let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
         
-                                target.parents('label').append(`<div class="btn btn-primary accordion" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
+                                target.parents('label').append(`<div class="btn btn-primary accordion accordion-toggle" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
                                 target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
                                 addInducedEvent(i,response.eventID_F[i],targetID)
                             }
@@ -666,6 +672,7 @@
         let PDIDGroup = $('#accordionExample .menublock').map(function(){return parseInt($(this).attr('id').split('_')[3])}).get()
         let chartNo = target.parents('.menu').prevAll('.ChartNo').html()
         let diseaseId = $('#ChangeDisease').val()
+        let username = '{{user.username}}'
         target.css('border','none')
         if(pdID==-1){
             target.next('.phase').children('option').eq(1).prop('selected',true)
@@ -950,7 +957,7 @@
         let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
-        let diseaseId = $('#ChangeDisease').val()
+        let diseaseId = $('#formDisease').val()
         let procedureID = $('#procedureOfForm').val()
         
         $('#factorGroupArea').empty()
@@ -988,6 +995,10 @@
         })
     }
     
+    function changeFormbyDisease(){
+        extractedFactorOpen()
+    }
+
     function changeForm(){
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let eventFactorCode = $('#formVersion').val()
@@ -1025,7 +1036,6 @@
 
     function extractedFactorSubmit(){
         let eventID = $('#factorGroupArea').attr('data-eventID')
-        let diseaseId = $('#ChangeDisease').val()
         //------------------------------------------------------------
         let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
             return $(this).attr('data-eventFactorID')
@@ -1074,7 +1084,8 @@
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
 
-
+        let version =  $('#formVersion').val()
+        let procedure =  $('#procedureOfForm').val()
         let insertSeq = $('#procedureOfForm').children('option:selected').attr('data-seq')
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
@@ -1084,7 +1095,8 @@
             url: '{% url "eventDefinition:insertExtractedFactors" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
-                'diseaseId':diseaseId,
+                'procedure':procedure,
+                'version':version,
                 'insertSeq':insertSeq,
                 'insertIDArray':insertIDArray,
                 'insertValArray':insertValArray,
@@ -1735,13 +1747,40 @@
         let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
         $('#procedureOfForm').empty()
         for(let i=0;i<optionName.length;i++){
-            $('#procedureOfForm').append(`<option data-seq=${i+1} value=${optionValue[i]}>${optionName[i]}</option>`)
+            $('#procedureOfForm').append(`<option data-seq=${i+1} value=${optionValue[i]}>${i+1}.${optionName[i]}</option>`)
         }
         extractedFactorOpen();
     }   
 
     function procedureOfForm(){
         extractedFactorOpen();
+    }
+
+    function addTopicFormOpen(){
+        $('#addTopicForm').css('display','inline')
+        $('#statusMenu').css('display','none')
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getTopic" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('#topicArea').empty()
+                for(let i=0;i<response.topic.length;i++){
+                    $('#topicArea').append(`
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="topic" data-topicNo="${response.topicNo[i]}" data-diseaseID="${response.diseaseID[i]}" id="topic_${response.topicNo[i]}">
+                        <label class="form-check-label" for="topic_${response.topicNo[i]}">${response.topic[i]}</label>
+                        </div>
+                        `)
+                }
+            }
+        })
+    }
+
+    function addTopicFormClose(){
+        $('#addTopicForm').css('display','none')
     }
 
     $(document).ready(function (e) {
@@ -1761,7 +1800,7 @@
         move('ascription')
         move('cancerRegistCheck')
         move('patientStatusCheck')
-
+        move('addTopicForm')
         move('formDesignPannel')
         
 
@@ -1775,9 +1814,8 @@
             },
             success:function (response){
                 for(var i=0;i<response.DiseaseNo.length;i++){
-                    $('#Disease').children('#ChangeDisease').append('' +
-                        '<option value="'+response.DiseaseNo[i]+'">'+response.Disease[i]+'</option>'+
-                        '')
+                    $('#Disease').children('#ChangeDisease').append(`<option value=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
+                    $('#formDisease').append(`<option value=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
                 }
             },
             complete:function (){
@@ -1806,6 +1844,7 @@
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
+            $('#formDisease').val(disease)
             $('#Report').empty()
             statusFilter()
         })
@@ -1959,13 +1998,23 @@
             <button type="submit" class="btn btn-primary submit"  onclick="cancerRegistSubmit()">Submit</button>
         </div>
 
-        
+        <div class="checkPannel" id="addTopicForm">
+            <div class="ascriptionHeader">
+                研究主題
+                <button type="button" class="btn-close close" aria-label="Close" onclick="addTopicFormClose()"></button>
+            </div>
+            <div id="topicArea"  class="row">
+                
+            </div>
+            <button type="submit" class="btn btn-primary submit"  onclick="addTopicFormSubmit()">Submit</button>
+        </div>       
 
 
         <div id="statusMenu" class="customMenu">
             <p class="btn btn-secondary resetbtn status" role="button" onclick="statusOpen()">病患資料確認</p>
             <p class="btn btn-secondary resetbtn" role="button"  onclick="formDesign()">表單設計</p>
             <p class="btn btn-secondary resetbtn" role="button" data-isDone="1" id="isDone"  onclick="isDone()">標記已完成</p>
+            <p class="btn btn-secondary resetbtn" role="button"  onclick="addTopicFormOpen()">加入研究主題</p>
         </div>
 
         <div id="menu" class="customMenu">
@@ -1984,6 +2033,7 @@
         <div class="checkPannel" id="extractedFactor">
             <div class="ascriptionHeader">
                 報告萃取
+                <select class="form-select" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease"></select>
                 <select class="form-select form-select-sm" onchange="procedureOfForm()" id="procedureOfForm"></select>
                 <select class="form-select form-select-sm" onchange="changeForm()" id="formVersion"></select>
                 <button type="button" class="btn-close close" aria-label="Close" onclick="extractedFactorClose()"></button>

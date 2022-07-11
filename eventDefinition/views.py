@@ -181,15 +181,15 @@ def addInducedEvent(request):
 	from allEvents as a
 	inner join medTypeSet as b on a.medType=b.medType
 	left join eventDetails as c on a.eventID=c.eventID
-	where a.eventID_F=%s and (c.descriptionType=3 or c.descriptionType is null) 
+	where a.eventID_F=%s and (c.descriptionType=3 or c.descriptionType is null) order by a.eventDate 
     '''
     cursor.execute(query,[eventID])
     result = cursor.fetchall()
     object=''
     for i,row in enumerate(result):
-        object += f'''<tr><td onclick="showReport()">'''
+        object += f'''<tr><td class="hiddenRow" onclick="showReport()">'''
         object += f'''
-        <div  class="accordion-collapse collapse sow collapseItem collapse{ind} " id="collapse{ind}" >'''
+        <div  class="accordian-body collapse collapse{ind} " id="collapse{ind}" >'''
 
         object += f'''
         <div class="pdID">?</div>
@@ -258,7 +258,7 @@ def updatePhase(request):
         originSeqNo = 0
     else:
         if EDID == 'NULL': #insert
-            print(request.user.is_superuser)
+
             if request.user.is_superuser:
                 query = 'INSERT eventDefinitions (eventID,PDID,procedureID) OUTPUT INSERTED .EDID VALUES (%s,%s,%s)'
                 cursor.execute(query,[eventID,PDID,procedureID])
@@ -386,7 +386,7 @@ def searchRecord(request):
     eventID = []
     eventID_F = []
     editor = []
-    print(len(res))
+
     if len(res)!=0:
         Record = len(res)
         for row in res:
@@ -406,7 +406,7 @@ def searchRecord(request):
         eventID_F=[0]
         PDID = ['-1']
         editor = ['NoRecord']
-    print(editor)
+
     return JsonResponse({'IND':IND,'Record':Record,'caSeqNo':caSeqNo,'EDID':EDID,'eventID':eventID,'procedureID':procedureID,'eventID_F':eventID_F,'PDID':PDID,'editor':editor})
 
 @csrf_exempt
@@ -670,14 +670,17 @@ def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
 def insertExtractedFactors(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
-    diseaseId = request.POST.get('diseaseId')
+    eventFactorCode = request.POST.get('version')
     insertSeq = request.POST.get('insertSeq')
     insertIDArray = request.POST.getlist('insertIDArray[]')
     insertValArray = request.POST.getlist('insertValArray[]')
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
 
-    queryDelete='''delete from extractedFactors where eventID=%s and seq=%s'''
-    cursor.execute(queryDelete,[eventID,insertSeq])
+    queryDelete='''DELETE 
+    FROM [practiceDB].[dbo].[extractedFactors] where factorID in 
+    (select eventFactorID from eventFactor where eventFactorCode=%s)
+    and eventID=%s'''
+    cursor.execute(queryDelete,[eventFactorCode,eventID])
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
@@ -700,13 +703,11 @@ def searchExtractedFactorsRecord(request):
     factorValueRecorded = []
     seqRecorded = []
     classRecorded = []
-    print(eventID)
-    print(idArray)
-    print(seq)
+
     for factorId,className in zip(idArray,classArray):
         cursor.execute(query,[eventID,factorId,seq])
         result = cursor.fetchall()
-        print(len(result))
+
         if len(result)!=0:
             seqRecorded.append(seq)
             classRecorded.append(className)
@@ -845,7 +846,7 @@ def getNewEventFactorID(request):
 def getSeqNoOption(request):
     chartNo=request.POST.get('chartNo')
     query = '''
-        select caSeqNo from PatientDisease where chartNo=%s 
+        select caSeqNo from PatientDisease where chartNo=%s order by caSeqNo
     '''
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo])
@@ -900,3 +901,19 @@ def isDone(request):
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[isDone,chartNo])
     return JsonResponse({})
+
+
+@csrf_exempt
+def getTopic(request):
+    cursor = connections['practiceDB'].cursor()
+    query = 'select * from researchTopic'
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    topic = []
+    topicNo = []
+    diseaseID = []
+    for row in result:
+        topicNo.append(row[0])
+        topic.append(row[1])
+        diseaseID.append(row[2])
+    return JsonResponse({'topic':topic,'topicNo':topicNo,'diseaseID':diseaseID})

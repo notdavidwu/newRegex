@@ -54,4 +54,5 @@ urlpatterns = [
     path('updateDiseaseAndSeq/', views.updateDiseaseAndSeq, name='updateDiseaseAndSeq'),
     path('updateEventNote/', views.updateEventNote, name='updateEventNote'),
     path('isDone/', views.isDone, name='isDone'),
+    path('getTopic/', views.getTopic, name='getTopic'),
 ]
