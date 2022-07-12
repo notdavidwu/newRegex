@@ -55,4 +55,8 @@ urlpatterns = [
     path('updateEventNote/', views.updateEventNote, name='updateEventNote'),
     path('isDone/', views.isDone, name='isDone'),
     path('getTopic/', views.getTopic, name='getTopic'),
+    path('getTopicPatientNum/', views.getTopicPatientNum, name='getTopicPatientNum'),
+    path('getTopicRecord/', views.getTopicRecord, name='getTopicRecord'),
+    path('processCorrelationPatientListAndAnnotation/', views.processCorrelationPatientListAndAnnotation, name='processCorrelationPatientListAndAnnotation'),
+
 ]

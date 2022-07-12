@@ -1335,10 +1335,8 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
-                let str=['全部','尚未確認','已確認']
-                for(let i=0;i<response.num.length;i++){
-                    $('#filter').children('option').eq(i).html(`${str[i]}(${response.num[i]})`)
-                }
+                let str=['全部']
+                $('#filter').children('option').eq(0).html(`${str[0]}(${response.num[0]})`)
             }
         })
     }
@@ -1770,17 +1768,96 @@
                 for(let i=0;i<response.topic.length;i++){
                     $('#topicArea').append(`
                         <div class="form-check">
-                        <input class="form-check-input" type="checkbox" name="topic" data-topicNo="${response.topicNo[i]}" data-diseaseID="${response.diseaseID[i]}" id="topic_${response.topicNo[i]}">
+                        <input class="form-check-input" type="checkbox" name="topic" data-Annotated=0 data-topicNo="${response.topicNo[i]}" data-diseaseID="${response.diseaseID[i]}" id="topic_${response.topicNo[i]}">
                         <label class="form-check-label" for="topic_${response.topicNo[i]}">${response.topic[i]}</label>
                         </div>
                         `)
+                }
+            },
+            complete:function(){
+                addTopicFormRecord()
+            }
+        })
+    }
+    function addTopicFormRecord(){
+        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getTopicRecord" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $('input[name="topic"]').prop('checked',false)
+                for(let i=0;i<response.topicNo.length;i++){
+                    $(`input[name="topic"][data-topicNo="${response.topicNo[i]}"]`).prop('checked',true)
+                    $(`input[name="topic"][data-topicNo="${response.topicNo[i]}"]`).attr('data-Annotated',1)
                 }
             }
         })
     }
 
+    
     function addTopicFormClose(){
         $('#addTopicForm').css('display','none')
+    }
+
+    function addTopicFormSubmit(){
+        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+
+        let topicNo = $(`input[name="topic"]`).map(function(){
+            return $(this).attr('data-topicNo')
+        }).get()
+        let diseaseID = $(`input[name="topic"]`).map(function(){
+            return $(this).attr('data-diseaseID')
+        }).get()
+        let annotated = $(`input[name="topic"]`).map(function(){
+            return $(this).attr('data-Annotated')
+        }).get()
+        let checked = $(`input[name="topic"]`).map(function(){
+            return Number($(this).is(':checked'))
+        }).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:processCorrelationPatientListAndAnnotation" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'topicNo':topicNo,
+                'diseaseID':diseaseID,
+                'annotated':annotated,
+                'checked':checked,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                addTopicFormClose()
+                Swal.fire({
+                    title: '',
+                    html: '儲存成功',
+                    icon: 'success',
+                    timer: 1000,
+                    showConfirmButton: false,
+                    timerProgressBar: true,
+                })
+            }
+        })
+    }
+
+    function getTopicPatientNum(){
+        let disease = $('#ChangeDisease').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getTopicPatientNum" %}', // this is the mapping between the url and view
+            data:{
+                'disease':disease,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(var i=0;i<response.topic.length;i++){
+                    $('#filter').append(`<option value=${response.topicNo[i]}>${response.topic[i]}(${response.num[i]})</option>`)
+                }
+            }
+        })
     }
 
     $(document).ready(function (e) {
@@ -1820,6 +1897,7 @@
             },
             complete:function (){
                 statusFilter()
+                getTopicPatientNum()
             }
         })
 
@@ -1847,6 +1925,7 @@
             $('#formDisease').val(disease)
             $('#Report').empty()
             statusFilter()
+            getTopicPatientNum()
         })
         $('#filter').on('change',function (){
             ascriptionClose(detect=true)
@@ -1858,6 +1937,11 @@
             let disease = $('#ChangeDisease').val()
             $('#Report').empty()
             statusFilter()
+            if(filter!=0){
+                $('#statusFilterPannel').css('display','none')
+            }else{
+                $('#statusFilterPannel').css('display','inline')
+            }
         })
         
     })

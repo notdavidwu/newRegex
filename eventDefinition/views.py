@@ -49,9 +49,10 @@ def confirmpat(request):
     statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
 
     cursor = connections['practiceDB'].cursor()
+
     query = 'EXEC EventDefinition_getPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
-
+ 
 
     examID=''
     #examID = list(cursor.fetchall())
@@ -59,14 +60,19 @@ def confirmpat(request):
 
         examID += f'''
         <tr><td>
-        <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
         '''
         if filter=='0':
+            examID += f'''
+                <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
+            '''
             if row[2] is True:
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
             else:
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         else:    
+            examID += f'''
+                <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone=1>
+            '''
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
     return JsonResponse({'examID': examID,'scrollTop':scrollTop})
@@ -679,8 +685,8 @@ def insertExtractedFactors(request):
     queryDelete='''DELETE 
     FROM [practiceDB].[dbo].[extractedFactors] where factorID in 
     (select eventFactorID from eventFactor where eventFactorCode=%s)
-    and eventID=%s'''
-    cursor.execute(queryDelete,[eventFactorCode,eventID])
+    and eventID=%s and seq=%s'''
+    cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq])
     
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
@@ -917,3 +923,94 @@ def getTopic(request):
         topic.append(row[1])
         diseaseID.append(row[2])
     return JsonResponse({'topic':topic,'topicNo':topicNo,'diseaseID':diseaseID})
+
+@csrf_exempt
+def getTopicRecord(request):
+    chartNo = request.POST.get('chartNo')
+    cursor = connections['practiceDB'].cursor()
+    query = '''select a.* FROM researchTopic as a 
+                inner join correlationPatientDisease as b on a.topicNo=b.diseaseNo
+                where b.chartNo=%s
+            '''
+    cursor.execute(query,[chartNo])
+    result = cursor.fetchall()
+    topicNo = []
+    for row in result:
+        topicNo.append(row[0])
+    return JsonResponse({'topicNo':topicNo})
+@csrf_exempt
+def getTopicPatientNum(request):
+    disease = request.POST.get('disease')
+    cursor = connections['practiceDB'].cursor()
+    query = '''
+        SELECT topicNo,topicName,COUNT(chartNo) FROM(
+        SELECT distinct topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
+        inner join correlationPatientDisease as b on a.topicNo=b.diseaseNo 
+        inner join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
+        where c.diseaseID=%s
+        ) as num
+        GROUP BY topicNo,topicName
+        order by topicNo
+            '''
+    cursor.execute(query,[disease])
+    result = cursor.fetchall()
+    topic = []
+    topicNo = []
+    num = []
+    for row in result:
+        topicNo.append(row[0])
+        topic.append(row[1])
+        num.append(row[2])
+    return JsonResponse({'topic':topic,'topicNo':topicNo,'num':num})
+
+def insertAnnotation(cursor,topicNo,diseaseID,chartNo):
+    query_insertAnnotation='''
+    insert into annotation(chartNo,studyDate,imageType,date,SUV,x,y,z,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
+    select a.* from(
+    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,SUV,x,y,z,labelGroup,labelName,'' as 'labelRecord',%s as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
+    from annotation where topicNo in (select topicNo from researchTopic where diseaseID=%s ) and chartNo=%s
+    ) as a
+    left outer join(
+            select * from annotation where topicNo =%s
+    ) as b on a.chartNo=b.chartNo and a.studyDate=b.studyDate and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.studyID=b.studyID and a.seriesID=b.seriesID
+    where b.chartNo is null
+    '''
+
+    cursor.execute(query_insertAnnotation,[topicNo,diseaseID,chartNo,topicNo])
+
+def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
+    query_insertAnnotation='''
+    insert into correlationPatientDisease(chartNo,diseaseNo)
+    select a.chartNo,%s as diseaseNo from (select %s as 'chartNo') as a
+    left outer join (
+        select * from correlationPatientDisease where diseaseNo=%s
+    ) as b on a.chartNo=b.chartNo
+    where b.chartNo is null
+    '''
+    cursor.execute(query_insertAnnotation,[topicNo,chartNo,topicNo])
+
+def deleteAnnotation(cursor,topicNo,chartNo):
+    query = 'delete from annotation where topicNo=%s and chartNo=%s'
+    cursor.execute(query,[topicNo,chartNo])
+
+def deleteCorrelationPatientDisease(cursor,topicNo,chartNo):
+    query = 'delete from correlationPatientDisease where diseaseNo = %s and chartNo=%s'
+    cursor.execute(query,[topicNo,chartNo])
+
+@csrf_exempt
+def processCorrelationPatientListAndAnnotation(request):
+    chartNo = request.POST.get('chartNo')
+    topicNo_set = request.POST.getlist('topicNo[]')
+    diseaseID_set = request.POST.getlist('diseaseID[]')
+    annotated_set = request.POST.getlist('annotated[]')
+    checked_set = request.POST.getlist('checked[]')
+    cursor = connections['practiceDB'].cursor()
+    
+    for topicNo,diseaseID,annotated,checked in zip(topicNo_set,diseaseID_set,annotated_set,checked_set):
+        if int(annotated)==1 and int(checked)==0:
+            deleteAnnotation(cursor,topicNo,chartNo)
+            deleteCorrelationPatientDisease(cursor,topicNo,chartNo)
+        elif int(annotated)==0 and int(checked)==1:
+            insertCorrelationPatientDisease(cursor,topicNo,chartNo)
+            insertAnnotation(cursor,topicNo,diseaseID,chartNo)
+    return JsonResponse({})
