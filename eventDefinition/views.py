@@ -1008,9 +1008,7 @@ def processCorrelationPatientListAndAnnotation(request):
     
     for topicNo,diseaseID,annotated,checked in zip(topicNo_set,diseaseID_set,annotated_set,checked_set):
         if int(annotated)==1 and int(checked)==0:
-            deleteAnnotation(cursor,topicNo,chartNo)
             deleteCorrelationPatientDisease(cursor,topicNo,chartNo)
         elif int(annotated)==0 and int(checked)==1:
             insertCorrelationPatientDisease(cursor,topicNo,chartNo)
-            insertAnnotation(cursor,topicNo,diseaseID,chartNo)
     return JsonResponse({})
