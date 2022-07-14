@@ -606,9 +606,9 @@ def formGenerator(request):
             cursor.execute(structureQuery,[mainSubject[0]])
             structureSet = cursor.fetchall()
             
-            formObject += '<ul>'
+            
             for ind2,structure in enumerate(structureSet):
-
+                formObject += '<ul>'
                 num += 1
                 type = structure[4].replace(' ','')
                 stop = structure[7]
@@ -630,8 +630,8 @@ def formGenerator(request):
                 if stop != True:
                     step = 3
                     formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
-                    formObject += '</ul>'
-            formObject += '</ul>'
+                    
+                formObject += '</ul>'
             formObject += '</div>'
 
         formObject += '</div>'
@@ -687,13 +687,14 @@ def insertExtractedFactors(request):
     (select eventFactorID from eventFactor where eventFactorCode=%s)
     and eventID=%s and seq=%s'''
     cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq])
-    
+    print(eventFactorCode,eventID,insertSeq)
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
         cursor.execute(query,[eventID,factorID,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
             queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s)'''
             cursor.execute(queryInsert,[eventID,factorID,factorValue,insertSeq])
+            print(eventID,factorID,factorValue,insertSeq)
     return JsonResponse({})
 
 @csrf_exempt

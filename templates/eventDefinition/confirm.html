@@ -256,7 +256,7 @@
     #extractedFactor .ascriptionHeader{border-radius:0px;}
     #extractedFactor li{font-size:10pt}
     #factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
-    .H_True{margin-left:15px}
+    
     #extractedFactor label{padding-left:5px}
     #extractedFactor ul{margin-left: 0; padding-left: 20px;}
     .mainBlock{
@@ -1040,6 +1040,7 @@
         let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
+        alert(checkboxIDArray)
         let checkboxValArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
             return $(this).prop('checked')
         }).get()
@@ -1853,6 +1854,7 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
+                $('#filter option:not(:first-child)').remove()
                 for(var i=0;i<response.topic.length;i++){
                     $('#filter').append(`<option value=${response.topicNo[i]}>${response.topic[i]}(${response.num[i]})</option>`)
                 }
