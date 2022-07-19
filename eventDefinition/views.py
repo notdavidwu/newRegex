@@ -947,8 +947,8 @@ def getTopicPatientNum(request):
     query = '''
         SELECT topicNo,topicName,COUNT(chartNo) FROM(
         SELECT distinct topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
-        inner join correlationPatientDisease as b on a.topicNo=b.diseaseNo 
-        inner join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
+        left join correlationPatientDisease as b on a.topicNo=b.diseaseNo 
+        left join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
         where a.diseaseID=%s
         ) as num
         GROUP BY topicNo,topicName
