@@ -948,7 +948,7 @@ def getTopicPatientNum(request):
         SELECT distinct topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
         inner join correlationPatientDisease as b on a.topicNo=b.diseaseNo 
         inner join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
-        where c.diseaseID=%s
+        where a.diseaseID=%s
         ) as num
         GROUP BY topicNo,topicName
         order by topicNo

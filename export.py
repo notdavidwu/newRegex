@@ -87,6 +87,7 @@ for i in tqdm(range(len(PatientListID))):
             StudyID = str(res[j]['StudyID'])
             seriesID = str(res[j]['seriesID'])
             path = searchFilePath(PID,MedExecTime,StudyID,seriesID)
+            print(PID,MedExecTime,StudyID,seriesID)
             fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image_v2',path[0]['filePath'])
             fileDir = fileDir.replace('-','')
             fileDir = fileDir.replace(' ', '')
