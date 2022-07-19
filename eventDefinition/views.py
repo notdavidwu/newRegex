@@ -912,9 +912,10 @@ def isDone(request):
 
 @csrf_exempt
 def getTopic(request):
+    disease = request.POST.get('disease')
     cursor = connections['practiceDB'].cursor()
-    query = 'select * from researchTopic'
-    cursor.execute(query,[])
+    query = 'select * from researchTopic where diseaseID=%s order by topicNo'
+    cursor.execute(query,[disease])
     result = cursor.fetchall()
     topic = []
     topicNo = []

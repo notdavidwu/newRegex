@@ -290,7 +290,7 @@
     input[name="deletePatientDisease"]{display:none}
     .deletePatientDisease{width:20px}
     .form-control{font-size:10pt}
-    #topicArea{padding:10px}
+    #topicArea{position:absolute;top:40px;left:10px;height:500px;overflow-y:auto;display:inline}
     .hiddenRow {
         padding: 0 !important;
         padding-left:20px !important;
@@ -1756,12 +1756,14 @@
     }
 
     function addTopicFormOpen(){
+        let disease = $('#ChangeDisease').val()
         $('#addTopicForm').css('display','inline')
         $('#statusMenu').css('display','none')
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:getTopic" %}', // this is the mapping between the url and view
             data:{
+                'disease':disease,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
@@ -1921,6 +1923,7 @@
             cancerRegistCheckClose()
             patientStatusCheckClose()
             extractedFactorClose()
+            addTopicFormClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
@@ -1928,12 +1931,14 @@
             $('#Report').empty()
             statusFilter()
             getTopicPatientNum()
+            $('#statusFilterPannel').css('display','inline')
         })
         $('#filter').on('change',function (){
             ascriptionClose(detect=true)
             cancerRegistCheckClose()
             patientStatusCheckClose()
             extractedFactorClose()
+            addTopicFormClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
