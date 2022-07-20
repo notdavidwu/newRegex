@@ -55,7 +55,7 @@
     .loader{display:none;position:absolute;top:40%;left:50%}
     .ball-grid-pulse div{background-color:#000000}
     @media (min-width: 0px) {
-        body{overflow-x: auto}
+        body{overflow-x: hidden}
         .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
@@ -107,20 +107,20 @@
         }
 
     }
-    @media (min-width: 1200px) {
+    @media (min-width: 0px) {
         body{overflow-x: hidden}
-        .loader2{display:none;position:absolute;top:52%;left:38%;transform: scale(2)}
-        #Report td{color: whitesmoke;font-size: 16pt;}
+        .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
+        #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
-        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
-        #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 200px;text-align: center}
+        #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;min-width:150px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+        #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;text-align: center}
         input[name='confirmPID']{display: none}
-        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: 200px;}
+        input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
         input[name='confirmPID']:checked ~label{background-color: #e78632;}
 
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
-        input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;opacity:0.8;}
+        input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
         #timetable{position: absolute;top:105px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 90px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
         #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
@@ -153,6 +153,21 @@
             position: absolute;
             margin-left: 0px;
             left:calc(54.5% + 200px) ;
+            border-radius:0px;
+            font-size: 10pt;
+            border:1px solid #000;
+            overflow-x:hidden;
+            display:inline;
+        }
+        #extractedFactor2{
+            position:absolute;
+            background:url("{% static 'image/texture.png' %}");
+            top:55px;
+            height: calc(50% - 55px);
+            width: calc(22.75% - 100px);
+            position: absolute;
+            margin-left: 0px;
+            left:calc(77.25% + 100px) ;
             border-radius:0px;
             font-size: 10pt;
             border:1px solid #000;
@@ -255,7 +270,7 @@
 
     #extractedFactor .ascriptionHeader{border-radius:0px;}
     #extractedFactor li{font-size:10pt}
-    #factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
+    .factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
     
     #extractedFactor label{padding-left:5px}
     #extractedFactor ul{margin-left: 0; padding-left: 20px;}
@@ -273,9 +288,14 @@
     #statusFilterPannel{padding-left:5px}
     .exclude{color:red}
     #header_disabled{width:50px;font-size:10pt}
-    #formVersion{position:absolute;width:80px;top:2px;right:35px;height:26px}
-    #formDisease{position:absolute;width:100px;top:2px;left:10px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
-    #procedureOfForm{position:absolute;width:100px;top:2px;right:130px;height:26px}
+    #formVersion{position:absolute;top:2px;right:0px;height:26px}
+    #formDisease{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
+    #procedureOfForm{position:absolute;top:2px;right:20%;height:26px}
+
+    #formVersion2{position:absolute;top:2px;right:0px;height:26px}
+    #formDisease2{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
+    #procedureOfForm2{position:absolute;top:2px;right:20%;height:26px}
+
     #formDesignPannel{display:none;width:1400px;background:url("{% static 'image/texture.png' %}") #08192D;left:10%;}
     .formFilter{width:calc(20% - 3.2px);display:inline;border-radius:0}
     #designArea{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFFFFF;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden;border-right:1px solid}
@@ -295,6 +315,9 @@
         padding: 0 !important;
         padding-left:20px !important;
     }
+    .customSelect{background-image:none;width:20%;font-size:5pt;padding:0px;padding-left:5px}
+    #extractedFactor2{display:none;}
+    #extractedFactor2 .ascriptionHeader{border-radius:0px}
 </style>
 
 
@@ -953,18 +976,18 @@
         })
     }
 
-    function extractedFactorOpen(){
+    function extractedFactorOpen(data_form,procedureID,diseaseId){
         let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
-        let diseaseId = $('#formDisease').val()
-        let procedureID = $('#procedureOfForm').val()
-        
+
+        let nWindow = $('#extractedFactor').attr('data-window')
         $('#factorGroupArea').empty()
         $("#extractedFactor").css('display', 'inline');
         $("#menu").css('display', 'none');
-        $('#factorGroupArea .addButton').prevAll().remove()
-        $('#factorGroupArea').attr('data-eventID',eventID)
+        $(`.factorGroupArea`).empty()
+        $(`#factorGroupArea${data_form[0]} .addButton`).prevAll().remove()
+        $(`#factorGroupArea${data_form[0]}`).attr('data-eventID',eventID)
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
@@ -977,9 +1000,9 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('#formVersion').empty()
+                $('.formVersion').empty()
                 for(let i=0;i<response.eventFactorCode.length;i++){
-                    $('#formVersion').append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                    $('.formVersion').append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
 
                 for(let j=response.isRecorded.length-1;j>=0;j--){
@@ -987,32 +1010,49 @@
                         $('#formVersion').children('option').eq(j).prop('selected',true)
                     }
                 }
+                $('#formVersion2').val($('#formVersion').children('option:not(:selected)').eq(0).val())
             },
             complete:function(){
-                let eventFactorCode = $('#formVersion').val()
-                formGenerator(eventID,eventFactorCode,'#factorGroupArea','prepend',true)
+                
+                let eventFactorCode = $('.formVersion').map(function(){
+                    return $(this).val()
+                }).get()
+
+                if(eventFactorCode.length!=0){
+                    for(let i=0;i<data_form.length;i++){
+                        
+                        formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
+                    }
+                }
             }
         })
     }
     
     function changeFormbyDisease(){
-        extractedFactorOpen()
+        let data_form = [$(event.target).attr('data-form')]
+        let disease = $(event.target).val()
+        let procedure = $(event.target).next('.procedureOfForm').val()
+        extractedFactorOpen(data_form,procedure,disease)
     }
 
     function changeForm(){
+        let data_form = $(event.target).attr('data-form')
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
-        let eventFactorCode = $('#formVersion').val()
         $('#factorGroupArea .formStructure').remove()
-        formGenerator(eventID,eventFactorCode,'#factorGroupArea','prepend',true)
+        let eventFactorCode = $('.formVersion').map(function(){
+            return $(this).val()
+        }).get()
+        formGenerator(eventID,eventFactorCode[data_form],`#factorGroupArea${data_form}`,'prepend',true,data_form)
     }
 
-    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction){
+    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction,form=0){
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:formGenerator" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'eventFactorCode':eventFactorCode,
+                'form':form,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
@@ -1024,7 +1064,7 @@
             },
             complete:function(){
                 if(otherFunction==true){
-                    searchExtractedFactorsRecord()
+                    searchExtractedFactorsRecord(form)
                 }
             }
         })
@@ -1034,63 +1074,65 @@
         $('#factorGroupArea').empty()
     }
 
-    function extractedFactorSubmit(){
-        let eventID = $('#factorGroupArea').attr('data-eventID')
+    function extractedFactorSubmit(form){
+        let container = `#factorGroupArea${form}`
+        let eventID = $(container).attr('data-eventID')
         //------------------------------------------------------------
-        let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
+        let checkboxIDArray = $(`${container} input[name^="formStructure"][type="checkbox"]:checked`).map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        alert(checkboxIDArray)
-        let checkboxValArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
+
+        let checkboxValArray = $(`${container} input[name^="formStructure"][type="checkbox"]:checked`).map(function(){
             return $(this).prop('checked')
         }).get()
 
-        let checkboxRecordedArray = $('input[name^="formStructure"][type="checkbox"]:checked').map(function(){
+        let checkboxRecordedArray = $(`${container} input[name^="formStructure"][type="checkbox"]:checked`).map(function(){
             return $(this).attr('data-recorded')
         }).get()
        
         //------------------------------------------------------------
-        let radioIDArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
+        let radioIDArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-        let radioValArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
+        let radioValArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
             return $(this).prop('checked')
         }).get()
 
-        let radioRecordedArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]:checked').map(function(){
+        let radioRecordedArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
             return $(this).attr('data-recorded')
         }).get()
 
         //------------------------------------------------------------
-        let textIDArray = $('input[name^="formStructure"][type="text"]').map(function(){
+        let textIDArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-eventFactorID')}
         }).get()
-        let textValArray = $('input[name^="formStructure"][type="text"]').map(function(){
+        let textValArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
             if($(this).val()!=''){return $(this).val()}
         }).get()
 
-        let textRecordedArray = $('input[name^="formStructure"][type="text"]').map(function(){
+        let textRecordedArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
 
         //------------------------------------------------------------
-        let dateIDArray = $('input[name^="formStructure"][type="date"]').map(function(){
+        let dateIDArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-eventFactorID')}
         }).get()
-        let dateValArray = $('input[name^="formStructure"][type="date"]').map(function(){
+        let dateValArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
             if($(this).val()!=''){return $(this).val()}
         }).get()
 
-        let dateRecordedArray = $('input[name^="formStructure"][type="date"]').map(function(){
+        let dateRecordedArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
 
-        let version =  $('#formVersion').val()
-        let procedure =  $('#procedureOfForm').val()
-        let insertSeq = $('#procedureOfForm').children('option:selected').attr('data-seq')
+        let version =  $(`.formVersion[data-form=${form}]`).val()
+        let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
+        let insertSeq = $(`.procedureOfForm[data-form=${form}]`).children('option:selected').attr('data-seq')
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
+        console.log(insertSeq,insertIDArray,insertValArray)
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:insertExtractedFactors" %}', // this is the mapping between the url and view
@@ -1120,8 +1162,9 @@
     
     }
 
-    function searchExtractedFactorsRecord(){
-
+    function searchExtractedFactorsRecord(form){
+        let container = `#factorGroupArea${form}`
+        
         //------------------------------------------------------------
         let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
             return $(this).attr('data-eventFactorID')
@@ -1157,9 +1200,9 @@
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
 
-        let seq = $('#procedureOfForm').children('option:selected').attr('data-seq')
-        let eventID = $('#factorGroupArea').attr('data-eventID')
-        let diseaseId = $('#ChangeDisease').val()
+        let eventID = $(container).attr('data-eventID')
+        let seq = $(`.procedureOfForm[data-form=${form}]`).children('option:selected').attr('data-seq')
+        let diseaseId = $(`.ChangeDisease[data-form=${form}]`).val()
         let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
         $.ajax({
@@ -1174,7 +1217,7 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function(response){
-
+                
                 for(let i=0; i<response.seqRecorded.length; i++){
                     let targetObject = $(`.${response.classRecorded[i]} [data-eventFactorID=${response.factorIdRecorded[i]}]`)
                     let type = targetObject.attr('type')
@@ -1744,15 +1787,29 @@
     function getCurrentEventProcedure(){
         let optionName = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').html()}).get()
         let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
-        $('#procedureOfForm').empty()
-        for(let i=0;i<optionName.length;i++){
-            $('#procedureOfForm').append(`<option data-seq=${i+1} value=${optionValue[i]}>${i+1}.${optionName[i]}</option>`)
+        $('.procedureOfForm').empty()
+
+        $('.procedureOfForm').map(function(){
+            for(let i=0;i<optionName.length;i++){
+                $(this).append(`<option data-seq=${i+1} value=${optionValue[i]}>${i+1}.${optionName[i]}</option>`)
+            }  
+        },optionName,optionValue)
+
+        let procedureID = $('.procedureOfForm').map(function(){return $(this).val()}).get()
+        let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
+        let data_form = [0,1]
+        for(let j=0;j<diseaseId.length;j++){
+            
+            extractedFactorOpen([data_form[j]],procedureID[j],diseaseId[j]);
         }
-        extractedFactorOpen();
+        
     }   
 
     function procedureOfForm(){
-        extractedFactorOpen();
+        let data_form = [$(event.target).attr('data-form')]
+        let procedure = $(event.target).val()
+        let disease = $(event.target).prev('.formDisease').val()
+        extractedFactorOpen(data_form,procedure,disease)
     }
 
     function addTopicFormOpen(){
@@ -1864,6 +1921,31 @@
         })
     }
 
+    function onewindow(){
+        let width = $('#extractedFactor').width()
+        let nWindow = $('#extractedFactor').attr('data-window')
+        let select = $('#extractedFactor .ascriptionHeader .form-select').map(function(){return $(this).css('width')}).get()
+        if(nWindow==2){
+            $('#extractedFactor').css('width',`calc(45.5% - 200px)`)
+            $('#extractedFactor').attr('data-window',1)
+            
+        }
+        $('#extractedFactor2').css('display','none')
+    }
+
+    function twowindow(){
+        let width = $('#extractedFactor').width()
+        let nWindow = $('#extractedFactor').attr('data-window')
+        let select = $('#extractedFactor .ascriptionHeader .form-select').map(function(){return $(this).css('width')}).get()
+        let half = 45.5/2 
+        if(nWindow==1){
+            $('#extractedFactor').css('width',`calc(${half}% - 100px)`)
+            $('#extractedFactor').attr('data-window',2)
+            
+        }
+        $('#extractedFactor2').css('display','inline')
+    }
+
     $(document).ready(function (e) {
         
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -1896,7 +1978,7 @@
             success:function (response){
                 for(var i=0;i<response.DiseaseNo.length;i++){
                     $('#Disease').children('#ChangeDisease').append(`<option value=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
-                    $('#formDisease').append(`<option value=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
+                    $('.formDisease').append(`<option value=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
                 }
             },
             complete:function (){
@@ -2118,24 +2200,32 @@
 
         <div id="extractFactorMenu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="emptyAll" role="button" onclick="emptyAll()">全部清空</p>
+            <p class="btn btn-secondary resetbtn" id="1window" role="button" onclick="onewindow()">單視窗</p>
+            <p class="btn btn-secondary resetbtn" id="2window" role="button" onclick="twowindow()">雙視窗</p>
         </div>
 
 
-        <div class="checkPannel" id="extractedFactor">
+        <div class="checkPannel" id="extractedFactor" data-window=1 data-windowSeq=1>
             <div class="ascriptionHeader">
                 報告萃取
-                <select class="form-select" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease"></select>
-                <select class="form-select form-select-sm" onchange="procedureOfForm()" id="procedureOfForm"></select>
-                <select class="form-select form-select-sm" onchange="changeForm()" id="formVersion"></select>
-                <button type="button" class="btn-close close" aria-label="Close" onclick="extractedFactorClose()"></button>
-            </div>
-            <div id="factorGroupArea"  class="row">
+                <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
+                <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
+                <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>
                 
-
             </div>
-            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit()">Submit</button>
+            <div id="factorGroupArea0"  class="row factorGroupArea"></div>
+            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
         </div>
-
+        <div class="checkPannel" id="extractedFactor2" data-windowSeq=2>
+            <div class="ascriptionHeader">
+                報告萃取
+                <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease2" data-form=1></select>
+                <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm2" data-form=1></select>
+                <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion2" data-form=1></select>
+            </div>
+            <div id="factorGroupArea1"  class="row factorGroupArea"></div>
+            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(1)">Submit</button>
+        </div>
         <div class="checkPannel" id="formDesignPannel">
             <div class="ascriptionHeader">
                 表單設計

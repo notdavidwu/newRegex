@@ -561,6 +561,8 @@ def formGenerator(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
     eventFactorCode = request.POST.get('eventFactorCode')
+    form = request.POST.get('form')
+    print(form)
     formObject=''
     dictionary={}
     if len(eventFactorCode)!=0:
@@ -615,21 +617,21 @@ def formGenerator(request):
                 if type=='text':
                     formObject += f'''
                     <li>
-                        <label for="item_{num}">{structure[3]}：
-                        <input type={type} name="formStructure_[1]_[{ind1}][{structure[6]}]" data-recorded=0 data-eventFactorID={structure[0]} id="item_{num}"></label>
+                        <label for="item_{form}_{num}">{structure[3]}：
+                        <input type={type} name="formStructure_[1]_[{ind1}][{structure[6]}]" data-recorded=0 data-eventFactorID={structure[0]} id="item_{form}_{num}"></label>
                     </li>
                     '''
                 elif type=='date':
-                    formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}" value="{structure[3]}"></li>'''  
+                    formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{form}_{num}" value="{structure[3]}"></li>'''  
                 elif type=='NE':
-                    formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
+                    formObject += f'''<li class="H_{stop}"><label for="item_{form}_{num}">{structure[3]}</label></li>'''
                 else:
-                    formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
+                    formObject += f'''<li><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name="formStructure_[1]_[{ind1}][{structure[6]}]" id="item_{form}_{num}"><label for="item_{form}_{num}">{structure[3]}</label></li>'''
 
                 factorID=structure[0]
                 if stop != True:
                     step = 3
-                    formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor)
+                    formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor,form)
                     
                 formObject += '</ul>'
             formObject += '</div>'
@@ -637,7 +639,7 @@ def formGenerator(request):
         formObject += '</div>'
     return JsonResponse({'formObject':formObject})
 
-def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
+def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor,form):
     
     step = depth
     query =f'''
@@ -660,14 +662,14 @@ def subForm(dictionary,depth,ind1,num,factorID,formObject,cursor):
         num += 1
         type = structure[4].replace(' ','')
         if type=='text':
-            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name=formStructure_[1]_[{ind1}][{structure[6]}] id="item_{num}"></li>'''
+            formObject += f'''<li class="H_{stop}"><label for="item_{form}_{num}">{structure[3]}：</label><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} data-eventFactorID={structure[0]} name=formStructure_[1]_[{ind1}][{structure[6]}] id="item_{form}_{num}"></li>'''
         elif type=='NE':
-            formObject += f'''<li class="H_{stop}"><label for="item_{num}">{structure[3]}</label></li>'''
+            formObject += f'''<li class="H_{stop}"><label for="item_{form}_{num}">{structure[3]}</label></li>'''
         else:
-            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure[6]}] data-eventFactorID={structure[0]} id="item_{num}"><label for="item_{num}">{structure[3]}</label></li>'''
+            formObject += f'''<li class="H_{stop}"><input onclick="myFunction()" data-recorded=0 data-checked=0 type={type} name=formStructure_[1]_[{ind1}][{structure[6]}] data-eventFactorID={structure[0]} id="item_{form}_{num}"><label for="item_{form}_{num}">{structure[3]}</label></li>'''
         factorID=structure[0]
         if stop != True:
-            formObject,num = subForm(dictionary,depth+1,ind1,num,factorID,formObject,cursor)
+            formObject,num = subForm(dictionary,depth+1,ind1,num,factorID,formObject,cursor,form)
     formObject += '</ul>'
     
     return formObject,num
