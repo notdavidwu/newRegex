@@ -980,13 +980,11 @@
         let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
-
         let nWindow = $('#extractedFactor').attr('data-window')
         $('#factorGroupArea').empty()
         $("#extractedFactor").css('display', 'inline');
         $("#menu").css('display', 'none');
-        $(`.factorGroupArea`).empty()
-        $(`#factorGroupArea${data_form[0]} .addButton`).prevAll().remove()
+        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
         $(`#factorGroupArea${data_form[0]}`).attr('data-eventID',eventID)
         $.ajax({
             type: 'post',
@@ -1020,7 +1018,6 @@
 
                 if(eventFactorCode.length!=0){
                     for(let i=0;i<data_form.length;i++){
-                        
                         formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
                     }
                 }
@@ -1038,7 +1035,7 @@
     function changeForm(){
         let data_form = $(event.target).attr('data-form')
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
-        $('#factorGroupArea .formStructure').remove()
+        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
         let eventFactorCode = $('.formVersion').map(function(){
             return $(this).val()
         }).get()
@@ -1931,6 +1928,7 @@
             
         }
         $('#extractedFactor2').css('display','none')
+        $('#extractFactorMenu').css('display','none')
     }
 
     function twowindow(){
@@ -1944,6 +1942,7 @@
             
         }
         $('#extractedFactor2').css('display','inline')
+        $('#extractFactorMenu').css('display','none')
     }
 
     $(document).ready(function (e) {
@@ -1959,7 +1958,7 @@
         menu('defaultMenuBlock1','statusMenu')
         menu('defaultMenuBlock2','menu')
         menu('extractedFactor','extractFactorMenu',false)
-        
+        menu('extractedFactor2','extractFactorMenu',false)
         move('ascription')
         move('cancerRegistCheck')
         move('patientStatusCheck')
