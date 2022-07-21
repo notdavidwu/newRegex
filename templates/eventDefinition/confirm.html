@@ -1014,8 +1014,6 @@
                     }
                     $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
                 }
-            },
-            complete:function(){
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
                 if(!eventFactorCode==false){
                     formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
