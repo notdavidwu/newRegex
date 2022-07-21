@@ -1802,6 +1802,7 @@
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
         for(let j=0;j<data_form.length;j++){
+            console.log(data_form[j])
             extractedFactorOpen([data_form[j]],procedureID[j],diseaseId[j]);
         }
         
