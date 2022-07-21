@@ -1018,16 +1018,10 @@
                 let eventFactorCode = $('.formVersion').map(function(){
                     return $(this).val()
                 }).get()
-                
-                if(eventFactorCode.length!=0){
-                    for(let i=0;i<data_form.length;i++){
-                        console.log(typeof $(`.formVersion[data-form=${data_form[i]}] option:selected`).val())
-                        if(typeof $(`.formVersion[data-form=${data_form[i]}] option:selected`).val()!='undefined'){
-                            
-                            formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
-                        } 
-                    }
-                }
+                console.log(typeof $(`.formVersion[data-form=${data_form[0]}] option:selected`).val())
+                if(typeof $(`.formVersion[data-form=${data_form[0]}] option:selected`).val()!='undefined'){
+                    formGenerator(eventID,eventFactorCode[data_form[0]],`#factorGroupArea${data_form[0]}`,'prepend',true,data_form[i])
+                } 
             }
         })
     }
