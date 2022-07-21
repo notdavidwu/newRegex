@@ -979,7 +979,7 @@
         })
     }
 
-    function extractedFactorOpen(data_form,procedureID,diseaseId){
+    function extractedFactorOpen(data_form,procedureID,diseaseId,source){
         let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
@@ -1003,19 +1003,34 @@
             },
             success:function (response){
                 
-                $(`.formVersion`).empty()
+                $(`.formVersion[data-form=${data_form}]`).empty()
                 for(let i=0;i<response.eventFactorCode.length;i++){
-                    $(`.formVersion`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                    $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
-                for(let j=response.isRecorded.length-1;j>=0;j--){
-                    if(response.isRecorded[j]==1){
-                        $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                if(source==1){
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
+                }else{
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+                    let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+                    if(eventFactorCode0==eventFactorCode1){
+                        $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
                     }
                 }
-                $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
+                
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
                 if(!eventFactorCode==false){
                     formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
                 } 
             }
         })
@@ -1024,10 +1039,12 @@
     
     
     function changeFormbyDisease(){
-        let data_form = [$(event.target).attr('data-form')]
+        let data_form = $(event.target).attr('data-form')
         let disease = $(event.target).val()
         let procedure = $(event.target).next('.procedureOfForm').val()
-        extractedFactorOpen(data_form,procedure,disease)
+        let source = 0 //0=特定的 1=全部
+        
+        extractedFactorOpen(data_form,procedure,disease,source)
     }
 
     function changeForm(){
@@ -1795,8 +1812,9 @@
         let procedureID = $('.procedureOfForm').map(function(){return $(this).val()}).get()
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
+        let source = 1 //0=特定的 1=全部
         for(let j=0;j<data_form.length;j++){
-            extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j]);
+            extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j],source);
         }
         
     }   
@@ -1805,7 +1823,8 @@
         let data_form = [$(event.target).attr('data-form')]
         let procedure = $(event.target).val()
         let disease = $(event.target).prev('.formDisease').val()
-        extractedFactorOpen(data_form,procedure,disease)
+        let source = 0 //0=特定的 1=全部
+        extractedFactorOpen(data_form,procedure,disease,source)
     }
 
     function addTopicFormOpen(){
