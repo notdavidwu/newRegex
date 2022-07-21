@@ -998,9 +998,9 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('.formVersion').empty()
+                $(`.formVersion[data-form=${data_form}]`).empty()
                 for(let i=0;i<response.eventFactorCode.length;i++){
-                    $('.formVersion').append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                    $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
 
                 for(let j=response.isRecorded.length-1;j>=0;j--){
