@@ -1016,8 +1016,9 @@
             complete:function(){
                 
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+                console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
                 if(!eventFactorCode==false){
-                    console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    
                     formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
                     
                 } 
