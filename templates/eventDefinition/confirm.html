@@ -1002,17 +1002,17 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                if(data_form==0){
-                    $(`.formVersion`).empty()
-                    for(let i=0;i<response.eventFactorCode.length;i++){
-                        $(`.formVersion`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                
+                $(`.formVersion`).empty()
+                for(let i=0;i<response.eventFactorCode.length;i++){
+                    $(`.formVersion`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                }
+                for(let j=response.isRecorded.length-1;j>=0;j--){
+                    if(response.isRecorded[j]==1){
+                        $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                    }else{
+                        $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
                     }
-                    for(let j=response.isRecorded.length-1;j>=0;j--){
-                        if(response.isRecorded[j]==1){
-                            $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
-                        }
-                    }
-                    $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
                 }
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
                 if(!eventFactorCode==false){
