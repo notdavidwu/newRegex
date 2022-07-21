@@ -383,7 +383,7 @@
         let IND = id.split('timePID')[1]
         addPhaseAndSeq(id,medType,seqNoOption,'prepend')
         let target = $(`#${id}`).next('label').children('.menu').children('div')
-        console.log(id)
+
         if("{{eventDefinition_edit}}"=='False' ){
             target.eq(target.length-2).children('.phase').prop('disabled',true)
             target.eq(target.length-2).children('.IntervalNo').prop('disabled',true)
@@ -467,7 +467,7 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                console.log(eventID)
+
                 for(var i =0 ;i<response.Record;i++){
                     let id = 'timePID'+IND.toString()
                     addPhaseAndSeq(id,medType,seqNoOption,'append')
@@ -1021,8 +1021,9 @@
                 
                 if(eventFactorCode.length!=0){
                     for(let i=0;i<data_form.length;i++){
+                        console.log(typeof $(`.formVersion[data-form=${data_form[i]}] option:selected`).val())
                         if(typeof $(`.formVersion[data-form=${data_form[i]}] option:selected`).val()!='undefined'){
-                            console.log(data_form[i])
+                            
                             formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
                         } 
                     }
@@ -1048,7 +1049,7 @@
         formGenerator(eventID,eventFactorCode[data_form],`#factorGroupArea${data_form}`,'prepend',true,data_form)
     }
 
-    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction,form=0){
+    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction,form){
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:formGenerator" %}', // this is the mapping between the url and view
@@ -1135,7 +1136,7 @@
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
-        console.log(insertSeq,insertIDArray,insertValArray)
+
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:insertExtractedFactors" %}', // this is the mapping between the url and view
