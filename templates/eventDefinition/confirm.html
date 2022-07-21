@@ -987,8 +987,8 @@
         $('#factorGroupArea').empty()
         $("#extractedFactor").css('display', 'inline');
         $("#menu").css('display', 'none');
-        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
-        $(`#factorGroupArea${data_form[0]}`).attr('data-eventID',eventID)
+        $(`#factorGroupArea${data_form} .formStructure`).remove()
+        $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
@@ -1015,9 +1015,11 @@
             },
             complete:function(){
                 
-                let eventFactorCode = $(`.formVersion[data-form=${data_form[0]}]`).val()
+                let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
                 if(!eventFactorCode==false){
-                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form[0]}`,'prepend',true,data_form[0])
+                    console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    
                 } 
             }
         })
@@ -1794,7 +1796,7 @@
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
         for(let j=0;j<data_form.length;j++){
-            extractedFactorOpen([data_form[j]],procedureID[j],diseaseId[j]);
+            extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j]);
         }
         
     }   
