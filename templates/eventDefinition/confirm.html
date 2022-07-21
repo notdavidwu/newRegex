@@ -1018,10 +1018,12 @@
                 let eventFactorCode = $('.formVersion').map(function(){
                     return $(this).val()
                 }).get()
-
+                
                 if(eventFactorCode.length!=0){
                     for(let i=0;i<data_form.length;i++){
-                        formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
+                        if(typeof $(`.formVersion[data-form=${data_form[i]}] option:selected`).val()!='undefined'){
+                            formGenerator(eventID,eventFactorCode[data_form[i]],`#factorGroupArea${data_form[i]}`,'prepend',true,data_form[i])
+                        } 
                     }
                 }
             }
@@ -1799,7 +1801,6 @@
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
         for(let j=0;j<data_form.length;j++){
-            
             extractedFactorOpen([data_form[j]],procedureID[j],diseaseId[j]);
         }
         
