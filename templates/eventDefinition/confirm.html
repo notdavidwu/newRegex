@@ -1015,12 +1015,9 @@
             },
             complete:function(){
                 
-                let eventFactorCode = $('.formVersion').map(function(){
-                    return $(this).val()
-                }).get()
-                console.log(typeof $(`.formVersion[data-form=${data_form[0]}] option:selected`).val())
-                if(typeof $(`.formVersion[data-form=${data_form[0]}] option:selected`).val()!='undefined'){
-                    formGenerator(eventID,eventFactorCode[data_form[0]],`#factorGroupArea${data_form[0]}`,'prepend',true,data_form[i])
+                let eventFactorCode = $(`.formVersion[data-form=${data_form[0]}]`).val()
+                if(!eventFactorCode==false){
+                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form[0]}`,'prepend',true,data_form[0])
                 } 
             }
         })
@@ -1797,7 +1794,6 @@
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
         for(let j=0;j<data_form.length;j++){
-            console.log(data_form[j])
             extractedFactorOpen([data_form[j]],procedureID[j],diseaseId[j]);
         }
         
