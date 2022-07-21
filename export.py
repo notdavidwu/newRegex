@@ -38,7 +38,7 @@ First, searching PatientID
 '''
 list_file_dir = input('請輸入清單位置:')
 user=input('請輸入所標註帳號:')
-diseaseNo = input('請輸入研究主題編號:')
+topicNo = input('請輸入研究主題編號:')
 saveFilePath = input('請輸入儲存影像路徑:')
 date1 = input('請輸入標註日期範圍(前)，格式:yyyy-mm-dd:')
 date2 = input('請輸入標註日期範圍(後)，格式:yyyy-mm-dd:')
@@ -50,48 +50,38 @@ cursor = connect.cursor(as_dict=True)
 for i in tqdm(range(len(PatientListID))):
     #取得標記資料
     query = '''
-    select distinct [PID],[SD],[x],[y],[z],[LabelGroup],[LabelName],[StudyID],[seriesID] 
-	from annotation where PID=%(var1)s and Disease=%(var3)s 
-     and CONVERT(date,[date]) >= %(var4)s　and　CONVERT(date,[date]) <= %(var5)s and LabelGroup='Primary tumor'
+    select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[labelName],[studyID],[seriesID] 
+	from annotation_new where [chartNo]=%(var1)s and topicNo=%(var2)s 
+     and CONVERT(date,[updateTime]) >= %(var3)s　and　CONVERT(date,[updateTime]) <= %(var4)s and labelGroup='Primary tumor'
     '''
-    cursor.execute(query, {'var1': PatientListID[i],'var3':diseaseNo,'var4':date1,'var5':date2})
+    cursor.execute(query, {'var1': PatientListID[i],'var2':topicNo,'var3':date1,'var4':date2})
 
-    SD = []
+    studyID = []
 
 
     for row in cursor:
-        SD.append(row['StudyID'])
-    print(PatientListID[i],len(SD))
-    if len(SD)!=0:#代表有標記資料
-
-
+        studyID.append(row['studyID'])
+    if len(studyID)!=0:#代表有標記資料
         query = '''
-            select distinct PID ,SD,StudyID,seriesID 
-            from annotation 
-            where PID=%(var1)s 
-            and Disease=%(var3)s 
-            and CONVERT(date,[date]) >= %(var4)s　
-            and　CONVERT(date,[date]) <= %(var5)s 
-            and LabelGroup='Primary tumor'
-            group by PID,SD,StudyID,seriesID
-
+            select distinct [chartNo],[studyDate],[studyID],[seriesID] 
+	        from annotation_new where [chartNo]=%(var1)s and topicNo=%(var2)s 
+            and CONVERT(date,[updateTime]) >= %(var3)s　and　CONVERT(date,[updateTime]) <= %(var4)s and labelGroup='Primary tumor'
         ''' #取得影像位置資料
-        cursor.execute(query, {'var1': PatientListID[i],'var3':diseaseNo,'var4':date1,'var5':date2})
+        cursor.execute(query, {'var1': PatientListID[i],'var2':topicNo,'var3':date1,'var4':date2})
         res = cursor.fetchall()
 
         for j in range(len(res)):
-            
-
-            PID = str(res[j]['PID'])
-            MedExecTime = str(res[j]['SD'].replace('-',''))
-            StudyID = str(res[j]['StudyID'])
+            PID = str(res[j]['chartNo'])
+            MedExecTime = str(res[j]['studyDate'].replace('-',''))
+            studyID = str(res[j]['studyID'])
             seriesID = str(res[j]['seriesID'])
-            path = searchFilePath(PID,MedExecTime,StudyID,seriesID)
-            print(PID,MedExecTime,StudyID,seriesID)
+            path = searchFilePath(PID,MedExecTime,studyID,seriesID)
+
+            print(PID,MedExecTime,studyID,seriesID)
             fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image_v2',path[0]['filePath'])
             fileDir = fileDir.replace('-','')
             fileDir = fileDir.replace(' ', '')
-            saveFiledir = os.path.join(saveFilePath,'image',PID,MedExecTime,StudyID,seriesID)
+            saveFiledir = os.path.join(saveFilePath,'image',PID,MedExecTime,studyID,seriesID)
             pathlib.Path(saveFiledir).mkdir(parents=True, exist_ok=True)
             tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
             #print(tempPath)
@@ -117,22 +107,22 @@ for i in tqdm(range(len(PatientListID))):
 
             query = '''
             select distinct
-            [PID]
-            ,[SD]
+            [chartNo]
+            ,[studyDate]
             ,[x]
             ,[y]
             ,[z]
             ,[SUV]
-            ,[LabelGroup]
-            ,[LabelName]
-            ,[Disease]
-            ,[StudyID]
+            ,[labelGroup]
+            ,[labelName]
+            ,[topicNo]
+            ,[studyID]
             ,[seriesID] 
-            from annotation 
-            where PID=%(var1)s 
-            and Disease=%(var3)s and StudyID=%(var4)s and seriesID=%(var5)s and LabelGroup='Primary tumor'
+            from annotation_new 
+            where chartNo=%(var1)s 
+            and topicNo=%(var2)s and studyID=%(var3)s and seriesID=%(var4)s and labelGroup='Primary tumor'
             '''
-            cursor.execute(query, {'var1': PID,'var3':diseaseNo,'var4':StudyID,'var5':seriesID})
+            cursor.execute(query, {'var1': PID,'var2':topicNo,'var3':studyID,'var4':seriesID})
             data = cursor.fetchall()
             #print('PID:',PID,' user:',user,' diseaseNo:',diseaseNo,' StudyID:',StudyID,' seriesID:',seriesID)
             Main = ET.Element('Main')
@@ -142,7 +132,7 @@ for i in tqdm(range(len(PatientListID))):
             SeriesDescription = ET.SubElement(Image_Info, 'SeriesDescription')
             SeriesDescription.text = str(PET_tag[0].SeriesDescription)
             StudyNumber = ET.SubElement(Image_Info, 'StudyNumber')
-            StudyNumber.text =str(StudyID)
+            StudyNumber.text =str(studyID)
             SeriesNumber = ET.SubElement(Image_Info, 'SeriesNumber')
             SeriesNumber.text =str(PET_tag[0].SeriesNumber)
             SeriesDate = ET.SubElement(Image_Info, 'SeriesDate')
@@ -165,7 +155,7 @@ for i in tqdm(range(len(PatientListID))):
                 Tumor_Center = ET.SubElement(Tumor_Area, 'Tumor_Center')
                 Tumor_Center.set('C_Type', 'LocalMax')
                 Tumor_Center.set('UserName', str(user))
-                Tumor_Center.set('memo', str(row['LabelName'][0:5]).replace(' ','_')+'_'+str(ind))
+                Tumor_Center.set('memo', str(row['labelName'][0:5]).replace(' ','_')+'_'+str(ind))
                 Tumor_Center.set('X', str(math.floor(float(row['x']))))
                 Tumor_Center.set('Y', str(math.floor(float(row['y']))))
                 Tumor_Center.set('Z', str(math.floor(float(row['z']))))

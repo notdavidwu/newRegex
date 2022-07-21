@@ -51,6 +51,7 @@ def getPreviousAction(request):
     return JsonResponse({'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
 def SQL(cursor,filter,hospital,Disease,username):
+    print(hospital,Disease,username)
     if filter=='0':
         query = f"""
             select * from correlationPatientDisease as a
