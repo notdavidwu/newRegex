@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'channels_redis',
     'MEWS.apps.MEWSConfig',
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
-    "compressor"
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -273,7 +272,6 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'django_plotly_dash.finders.DashAssetFinder',
     'django_plotly_dash.finders.DashComponentFinder',
-    'compressor.finders.CompressorFinder',
 ]
 
 PLOTLY_COMPONENTS = [
