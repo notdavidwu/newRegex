@@ -27,19 +27,6 @@ SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-COMPRESS_ENABLED=True
-
-COMPRESS_ENABLED = True
-COMPRESS_OFFLINE = True
-COMPRESS_CSS_FILTERS = [
-    #creates absolute urls from relative ones
-    'compressor.filters.css_default.CssAbsoluteFilter',
-    #css minimizer
-    'compressor.filters.cssmin.CSSMinFilter'
-]
-COMPRESS_JS_FILTERS = [
-    'compressor.filters.jsmin.JSMinFilter'
-]
 
 ALLOWED_HOSTS = []
 
