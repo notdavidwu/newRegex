@@ -26,9 +26,24 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = TRUE
+DEBUG = True
+COMPRESS_ENABLED=True
+
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = True
+COMPRESS_CSS_FILTERS = [
+    #creates absolute urls from relative ones
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    #css minimizer
+    'compressor.filters.cssmin.CSSMinFilter'
+]
+COMPRESS_JS_FILTERS = [
+    'compressor.filters.jsmin.JSMinFilter'
+]
 
 ALLOWED_HOSTS = []
+
+
 
 import mimetypes
 mimetypes.add_type("text/css", ".css", True)
@@ -62,7 +77,7 @@ INSTALLED_APPS = [
     'channels_redis',
     'MEWS.apps.MEWSConfig',
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
-    
+    "compressor"
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -271,7 +286,7 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'django_plotly_dash.finders.DashAssetFinder',
     'django_plotly_dash.finders.DashComponentFinder',
-
+    'compressor.finders.CompressorFinder',
 ]
 
 PLOTLY_COMPONENTS = [
@@ -304,3 +319,4 @@ STATICFILES_DIRS = (
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5242880
+

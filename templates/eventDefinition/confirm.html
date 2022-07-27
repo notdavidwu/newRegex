@@ -109,7 +109,7 @@
     }
     @media (min-width: 0px) {
         body{overflow-x: hidden}
-        .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
+        .loader2{display:none;position:absolute;top:50%;left:36%;transform: scale(2)}
         #Report td{color: whitesmoke;font-size: 16pt}
         #Report tr{padding: 0;margin: 0}
         #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;min-width:150px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
@@ -318,11 +318,17 @@
     .customSelect{background-image:none;width:20%;font-size:5pt;padding:0px;padding-left:5px}
     #extractedFactor2{display:none;}
     #extractedFactor2 .ascriptionHeader{border-radius:0px}
+    #batchDefinite {
+        display: none;
+    }
+    .buttonAtBottom{position:absolute;height:30px;line-height:15px;width:calc(100% - 20px);margin-left:10px;margin-top:calc(32%)}
+    .event_content{height:calc(30% - 50px)}
+
 </style>
 
 
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
-<script>
+<script >
     function setdisplay(i){
         
         //if($('#timePID'+i).next('label').height()> $('#timePID'+i).next('label').children('.note').height()&& $('#timePID'+i).next('label').height()>$('#timePID'+i).next('label').children('.type2').height()){
@@ -454,6 +460,7 @@
 
     }
     function searchRecord(IND,eventID,medType,seqNoOption,total){
+        console.log(total)
         let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         let username = '{{user.username}}'
         $.ajax({
@@ -470,6 +477,7 @@
 
                 for(var i =0 ;i<response.Record;i++){
                     let id = 'timePID'+IND.toString()
+                    $(`#timePID${IND}`).next('label').children('.menu').children('div').remove()
                     addPhaseAndSeq(id,medType,seqNoOption,'append')
                     let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
                     
@@ -526,6 +534,7 @@
         cancerRegistCheckClose()
         patientStatusCheckClose()
         extractedFactorClose()
+        batchDefiniteClose()
         text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         seqNoOption='<option value=0>?</option>'
         let scrollTop = $('#patient').scrollTop()
@@ -1401,19 +1410,23 @@
 
     function move(id){
         var move=false;//移動標記  
+        var height = $(window).height()-$(`#${id}`).height();
+        var width = $(window).width()-$(`#${id}`).width();
         var _x,_y;//左上角位置 
-            $(`#${id}`).mousedown(function(e){  
+            $(`#${id} .ascriptionHeader`).mousedown(function(e){  
                 move=true;  
                 _x=e.pageX-parseInt($(`#${id}`).css("left"));  
-                _y=e.pageY-parseInt($(`#${id}`).css("top"));       
+                _y=e.pageY-parseInt($(`#${id}`).css("top")); 
             });  
-            
             $(document).mousemove(function(e){  
                 if(move){  
                     var x=e.pageX-_x;
-                    var y=e.pageY-_y;  
-                    $(`#${id}`).css({"top":y,"left":x}); 
-                    $(`#${id}`).css({"z-index":2000});
+                    var y=e.pageY-_y; 
+                    if(x>=0 && y>=50 && x<=width && y<=height){
+                        $(`#${id}`).css({"top":y,"left":x}); 
+                        $(`#${id}`).css({"z-index":2000});
+                    }
+
                 }  
             }).mouseup(function(){  
                 $(`#${id}`).css({"z-index":1030});
@@ -1501,6 +1514,7 @@
                         $(`#isDone`).html('標記已完成');
                     }
                 }
+
             })
         }else{
             $(`#${pannel}`).on('mousedown',function(d){
@@ -1516,6 +1530,9 @@
                     $(".customMenu").css('display', 'none');
                 }
 
+                if(menu=='extractFactorMenu'){
+                    $(this).parent('label').prev('input').prop('checked',true)
+                }
             })
         }
     }
@@ -1767,10 +1784,11 @@
     }
 
     function emptyAll(){
-        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="checkbox"]').prop('checked',false)
-        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="radio"]').prop('checked',false)
-        $('#extractedFactor #factorGroupArea .formStructure').find('input[type="text"]').val('')
-        $('#extractFactorMenu').css('display','none')
+        let seq = $('input[name="extractedFactorPannel"]:checked').attr('data-windowSeq')
+        $(`#factorGroupArea${seq-1} .formStructure`).find('input[type="checkbox"]').prop('checked',false)
+        $(`#factorGroupArea${seq-1} .formStructure`).find('input[type="radio"]').prop('checked',false)
+        $(`#factorGroupArea${seq-1} .formStructure`).find('input[type="text"]').val('')
+        $(`#extractFactorMenu`).css('display','none')
     }
 
     function isDone(){
@@ -1812,7 +1830,14 @@
         let procedureID = $('.procedureOfForm').map(function(){return $(this).val()}).get()
         let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
         let data_form = [0,1]
-        let source = 1 //0=特定的 1=全部
+        let source = 0 //0=特定的 1=全部
+        let window = $('#extractedFactor').attr('data-window')
+        if(window==1){
+            data_form = [0]
+        }else{
+            data_form = [1]
+        }
+
         for(let j=0;j<data_form.length;j++){
             extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j],source);
         }
@@ -1947,6 +1972,8 @@
         }
         $('#extractedFactor2').css('display','none')
         $('#extractFactorMenu').css('display','none')
+        $('#extractedFactor2 .formVersion').empty()
+        getCurrentEventProcedure()
     }
 
     function twowindow(){
@@ -1961,6 +1988,91 @@
         }
         $('#extractedFactor2').css('display','inline')
         $('#extractFactorMenu').css('display','none')
+        getCurrentEventProcedure()
+    }
+
+    function addTTP(){
+        let eventID = $('input[name=timePID]:checked').next('label').children('.eventID').html()
+        let diseaseID = $('#ChangeDisease').val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:addTTP" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'diseaseID':diseaseID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                GetTime()
+            }
+        })
+    }
+
+    function batchDefiniteClose(){
+        $('#batchDefinite').css('display','none')
+    }
+
+    function batchDefiniteOpen(){
+        $('#batchDefinite').css('display','inline')
+        $('#menu').css('display','none')
+        $('#event_setting').html($('.IntervalNo').eq(0).clone())
+        $('#event_setting .IntervalNo option').eq(0).remove()
+        $('#event_setting .IntervalNo').attr('onchange','')
+        $('#event_setting .IntervalNo').attr('class','form-select seq')
+        $('#event_setting').append(`<select class="form-select therapy">
+            <option value="defineDefinitiveRT">DefinitiveRT</option>
+            <option value="defineDefinitiveCCRT">DefinitiveCCRT</option>
+            <option value="defineAdjuvantChemotherapy">AdjuvantChemotherapy</option>
+            <option value="defineNeoadjuvantCCRT">NeoadjuvantCCRT</option>
+            <option value="defineInductionChemotherapy">InductionChemotherapy</option>
+        </select>`)
+    }
+
+    function batchDefinite(pannel){
+        let target = $('input[name="timePID"]:checked').next('label')
+        let eventID = target.children('.eventID').html()
+        let edate = target.children('.edate').html()
+        let type2 = target.children('.type2').html()
+        let IND = target.attr('for').split('timePID')[1]
+        $(`#${pannel} .event_content`).html(`
+        <table class="table">
+            <tr><td>eventID</td><td class="batchDefiniteEventID">${eventID}</td></tr>
+            <tr><td>Date</td><td>${edate}</td></tr>
+            <tr><td>Exam</td><td>${type2}</td></tr>
+            <tr style="display:none"><td>IND</td><td class="batchDefiniteIND">${IND}</td></tr>
+        </table>
+        `)
+    }
+
+    function batchDefiniteSubmit(){
+        let startTherapy = $('#event_start .event_content .batchDefiniteEventID').html()
+        let endTherapy = $('#event_end .event_content .batchDefiniteEventID').html()
+        let seqNo =  $('#event_setting .seq').val()
+        let therapy = $('#event_setting .therapy').val()
+        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
+        let startTherapyIND = $('#event_start .event_content .batchDefiniteIND').html()
+        let endTherapyIND = $('#event_end .event_content .batchDefiniteIND').html()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:batchDefinite" %}', // this is the mapping between the url and view
+            data:{
+                'startTherapy':startTherapy,
+                'endTherapy':endTherapy,
+                'seqNo':seqNo,
+                'therapy':therapy,
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                let total = $('#accordionExample tr').length
+                for(let ind =startTherapyIND;ind<=endTherapyIND;ind++){
+                    let eventID = $(`label[for="timePID${ind}"] .eventID`).html()
+                    let medType = $(`label[for="timePID${ind}"] .medType`).html()
+                    searchRecord(ind,eventID,medType,seqNoOption,total)
+                }
+                
+            }
+        })
     }
 
     $(document).ready(function (e) {
@@ -1982,6 +2094,7 @@
         move('patientStatusCheck')
         move('addTopicForm')
         move('formDesignPannel')
+        move('batchDefinite')
         
 
 
@@ -2023,6 +2136,7 @@
             patientStatusCheckClose()
             extractedFactorClose()
             addTopicFormClose()
+            batchDefiniteClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
@@ -2041,6 +2155,7 @@
             patientStatusCheckClose()
             extractedFactorClose()
             addTopicFormClose()
+            batchDefiniteClose()
             $('#accordionExample').empty()
             let filter = $('#filter').val()
             let disease = $('#ChangeDisease').val()
@@ -2216,6 +2331,10 @@
             <p class="btn btn-secondary resetbtn" id="extract" role="button" onclick="extractedFactorOpen()">報告萃取</p>
             <p class="btn btn-secondary resetbtn" id="disableEvent" role="button" data-eventCheck=1 onclick="disableEvent()">disabled</p>
             <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="formDesign()">表單設計</p>
+            {% if user.is_superuser %}
+            <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="addTTP()"  aria-label="Close" data-bs-toggle="modal" data-bs-target="#addTTPModal">add TTP</p>
+            {% endif %}
+            <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="batchDefiniteOpen()">批次定義</p>
         </div>
 
         <div id="extractFactorMenu" class="customMenu">
@@ -2224,28 +2343,32 @@
             <p class="btn btn-secondary resetbtn" id="2window" role="button" onclick="twowindow()">雙視窗</p>
         </div>
 
-
-        <div class="checkPannel" id="extractedFactor" data-window=1 data-windowSeq=1>
-            <div class="ascriptionHeader">
-                報告萃取
-                <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
-                <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
-                <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>
-                
+        <input type='radio' id='extractedFactorPannel_1' name='extractedFactorPannel' data-windowSeq=1>
+        <label for='extractedFactorPannel_1'>
+            <div class="checkPannel" id="extractedFactor" data-window=1 data-windowSeq=1>
+                <div class="ascriptionHeader">
+                    報告萃取
+                    <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
+                    <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
+                    <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>    
+                </div>
+                <div id="factorGroupArea0"  class="row factorGroupArea"></div>
+                <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
             </div>
-            <div id="factorGroupArea0"  class="row factorGroupArea"></div>
-            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
-        </div>
+        </label>
+        <input type='radio' id='extractedFactorPannel_2' name='extractedFactorPannel' data-windowSeq=2>
+        <label for='extractedFactorPannel_2'>
         <div class="checkPannel" id="extractedFactor2" data-windowSeq=2>
-            <div class="ascriptionHeader">
-                報告萃取
-                <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease2" data-form=1></select>
-                <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm2" data-form=1></select>
-                <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion2" data-form=1></select>
+                <div class="ascriptionHeader">
+                    報告萃取
+                    <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease2" data-form=1></select>
+                    <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm2" data-form=1></select>
+                    <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion2" data-form=1></select>
+                </div>
+                <div id="factorGroupArea1"  class="row factorGroupArea"></div>
+                <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(1)">Submit</button>
             </div>
-            <div id="factorGroupArea1"  class="row factorGroupArea"></div>
-            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(1)">Submit</button>
-        </div>
+        </label>
         <div class="checkPannel" id="formDesignPannel">
             <div class="ascriptionHeader">
                 表單設計
@@ -2293,7 +2416,25 @@
             </div>
         </div>
 
-
+        
+        <div class="checkPannel" id="batchDefinite">
+            <div class="ascriptionHeader">
+                batchDefinite
+                <button type="button" class="btn-close close" aria-label="Close" onclick="batchDefiniteClose()"></button>
+            </div>
+            <div id="event_start"   style="height:30%;background-color:#999">
+                <div class="event_content"></div>
+                <button type="button" class="btn btn-warning buttonAtBottom" onclick="batchDefinite('event_start')">設定</button>
+            </div>
+            <div id="event_end"   style="height:30%;background-color:#DDD">
+                <div class="event_content"></div>
+                <button type="button" class="btn btn-warning buttonAtBottom" onclick="batchDefinite('event_end')">設定</button>
+            </div>
+            <div id="event_setting"   style="height:30%;background-color:#AAA">
+                
+            </div>
+            <button type="submit" class="btn btn-primary submit"  onclick="batchDefiniteSubmit()">Submit</button>
+        </div>
     </div>    
 
     <div id="slideout">
@@ -2341,6 +2482,23 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="delete" onclick="deleteFactor()">刪除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addTTPModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">TTP</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div id="InsertMessage" class="modal-body">
+                    確定要新增?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="addTTP()">確定</button>
                 </div>
             </div>
         </div>

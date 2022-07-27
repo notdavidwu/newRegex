@@ -1016,3 +1016,38 @@ def processCorrelationPatientListAndAnnotation(request):
         elif int(annotated)==0 and int(checked)==1:
             insertCorrelationPatientDisease(cursor,topicNo,chartNo)
     return JsonResponse({})
+
+@csrf_exempt
+def addTTP(request):
+    eventID = request.POST.get('eventID')
+    diseaseID = request.POST.get('diseaseID')
+    cursor = connections['practiceDB'].cursor()
+    query = '''
+        declare @eventID int
+        set @eventID=%s
+
+        insert into allEvents(chartNo, orderNo, orderSource, medType, eventDate)
+        select chartNo, YEAR(GETDATE())*10000+MONTH(GETDATE())*100+DAY(GETDATE()), 'AIC', 31006, DATEADD(second, 1, eventDate)
+        from allEvents
+        where eventID=@eventID
+
+        insert into eventDefinitions (PDID, procedureID, eventID)
+        select a.PD, 50, SCOPE_IDENTITY()
+        from PatientDisease as a inner join allEvents as b on a.chartNo=b.chartNo
+        where a.diseaseID=%s and b.eventID=@eventID
+    '''
+    cursor.execute(query,[eventID,diseaseID])
+    return JsonResponse({})
+
+@csrf_exempt
+def batchDefinite(request):
+    startTherapy = request.POST.get('startTherapy')
+    endTherapy = request.POST.get('endTherapy')
+    seqNo = request.POST.get('seqNo')
+    therapy = request.POST.get('therapy')
+    chartNo = request.POST.get('chartNo')
+    cursor = connections['practiceDB'].cursor()
+    print(therapy,seqNo,chartNo,startTherapy,endTherapy)
+    query = 'EXEC %s @seqNo=%s , @pid=%s , @startTherapy=%s , @endTherapy=%s '
+    cursor.execute(query,[therapy,seqNo,chartNo,startTherapy,endTherapy])
+    return JsonResponse({})

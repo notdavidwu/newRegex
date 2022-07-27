@@ -58,5 +58,6 @@ urlpatterns = [
     path('getTopicPatientNum/', views.getTopicPatientNum, name='getTopicPatientNum'),
     path('getTopicRecord/', views.getTopicRecord, name='getTopicRecord'),
     path('processCorrelationPatientListAndAnnotation/', views.processCorrelationPatientListAndAnnotation, name='processCorrelationPatientListAndAnnotation'),
-
+    path('addTTP/', views.addTTP, name='addTTP'),
+    path('batchDefinite/', views.batchDefinite, name='batchDefinite'),
 ]
