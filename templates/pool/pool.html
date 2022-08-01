@@ -125,6 +125,7 @@
                             '<td style="display:none" class="StudyID">' + response.StudyID[i] + '</td>' +
                             '<td style="display:none" class="SeriesID">' + response.SeriesID[i] + '</td>' +
                             '<td style="display:none" class="SeriesDes">' + response.SeriesDes[i] + '</td>' +
+                            '<td style="display:none" class="viewplane">' + response.viewplane[i] + '</td>' +
                             '<td><button onclick="link()" class="btn btn-primary" >Link</button></td>' +
                             '</tr>'
                         )
@@ -165,6 +166,7 @@
                 'StudyID':$(event.target).parents('td').prevAll('.StudyID').html(),
                 'SeriesID':$(event.target).parents('td').prevAll('.SeriesID').html(),
                 'SeriesDes':$(event.target).parents('td').prevAll('.SeriesDes').html(),
+                'viewplane':$(event.target).parents('td').prevAll('.viewplane').html(),
                 'Disease':$('#Disease').val(),
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },

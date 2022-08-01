@@ -14,8 +14,8 @@ class UserForm(forms.Form):
     password = forms.CharField(label='密碼', widget=forms.PasswordInput())
     realname = forms.CharField(label='姓名', max_length=100)
     hospital_type_choices = (
-        (1, '中山附醫'),
-        (2, '台大'),
+        (0, '中山附醫'),
+        (1, '台大'),
     )
     hospital = forms.ChoiceField(label='院別', widget=forms.Select(attrs={"id": "select_0"}),
                                  choices=hospital_type_choices,

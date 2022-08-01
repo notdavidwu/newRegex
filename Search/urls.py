@@ -27,4 +27,9 @@ urlpatterns = [
     path('getDivName/', views.getDivName,name='getDivName'),
     path('getCategory/', views.getCategory,name='getCategory'),
     path('structureDatatest/', views.structureDatatest,name='structureDatatest'),
+    path('deletebacteria/', views.deletebacteria,name='deletebacteria'),
+    path('recoverybacteria/', views.recoverybacteria,name='recoverybacteria'),   
+    path('bodyevaluate/', views.bodyevaluate,name='bodyevaluate'),   
+    path('commensals/', views.commensals,name='commensals'),  
+    path('test/', views.test,name='test'),  
 ]

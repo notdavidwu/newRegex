@@ -56,37 +56,33 @@ def SQL(cursor,filter,hospital,Disease,username):
         query = f"""
             select * from correlationPatientDisease as a
             inner join allEvents as b on a.chartNo=b.chartNo
-            inner join ExamStudySeries_6 as c on b.eventID=c.eventID
-            where a.diseaseNo = {Disease} 
+            inner join examStudy as c on b.eventID=c.eventID
+            where a.diseaseNo = {Disease} {f" and c.hospitalID = {int(hospital)-1}　" if len(hospital)!=0 else '' }
+            order by a.chartNo
         """
-        if len(hospital)!=0:
-            query += f"""and b.hospital = {hospital}　"""
-        
-        query += f"""order by a.chartNo"""
         cursor.execute(query)
+
     elif filter=='1':
         query = f"""
         select * from (
-            select *,ISNULL(PID,0) as 'checked' from(
+            select *,ISNULL(b.annotation_chartNo,0) as 'checked' from(
                 select a.* from correlationPatientDisease as a
                 inner join allEvents as b on a.chartNo=b.chartNo
-                inner join ExamStudySeries_6 as c on b.eventID=c.eventID
-                where a.diseaseNo = {Disease} """
-        if(len(hospital))!=0:
-            query += f"""and b.hospital=1"""
-        query += f"""
-            ) as a 
+                inner join examStudy as c on b.eventID=c.eventID
+                where a.diseaseNo = {Disease}  {f" and c.hospitalID = {int(hospital)-1}　" if len(hospital)!=0 else '' }
+                ) as a 
             left join (
-                select distinct PID from annotation where Disease  = {Disease} and username = '{username}'
-            ) as b on a.chartNo=b.PID
+                select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo  = {Disease} and username = '{username}'
+            ) as b on a.chartNo=b.annotation_chartNo
         ) as c where checked=0 order by chartNo
         """
         cursor.execute(query)
+
     elif filter=='2':
         query = '''
-        select a.PID,a.Disease,b.sno from annotation as a
-        inner join correlationPatientDisease as b on a.PID=b.chartNo
-        where a.Disease=%s and a.username=%s and b.diseaseNo=%s
+        select b.sno,a.chartNo,a.topicNo from AIC.dbo.annotation_new as a
+        inner join correlationPatientDisease as b on a.chartNo=b.chartNo
+        where a.topicNo=%s and a.username=%s and b.diseaseNo=%s
         order by b.sno
         '''
         cursor.execute(query,[Disease,username,Disease])
@@ -100,7 +96,7 @@ def SubjectPatientList(request):
     request.session['diseaseCode']=Disease
     request.session['filter']=filter
     PID_previous_select = str(request.session.get('PID',0))
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     cursor = SQL(cursor,filter,hospital,Disease,username)
     sno=[]
     PatientListID=[]
@@ -128,27 +124,27 @@ def Patient_num(request):
     Disease=request.POST.get('Disease')
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))+'%'
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     query = f"""
         select count(distinct a.chartNo),'1' AS seq
         from correlationPatientDisease as a 
             inner join allEvents as f on a.chartNo=f.chartNo
-            inner join ExamStudySeries_6 as g on f.eventID=g.eventID
-            where a.diseaseNo={Disease} and hospital like '{hospital}'
+            inner join examStudy as g on f.eventID=g.eventID
+            where a.diseaseNo={Disease} and hospitalID like '0'
         UNION
         select count(chartNo) ,'2' AS seq from (
-            select *,ISNULL(PID,0) as checked from (
-			    select distinct　c.chartNo from(
-				    select distinct　b.chartNo from ExamStudySeries_6 as a inner join allEvents as b on a.eventID=b.eventID where hospital like '{hospital}'
-				        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
+            select *,ISNULL(annotation_chartNo,0) as checked from (
+                select distinct　c.chartNo from(
+                    select distinct　b.chartNo from examStudy as a inner join allEvents as b on a.eventID=b.eventID where hospitalID like '0'
+                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
                 ) as all_list
                 left outer join (
-                    select distinct PID from annotation where Disease={Disease} and username='{username}'
-                ) as located on all_list.chartNo=located.PID 
+                    select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo={Disease} and username='{username}'
+                ) as located on all_list.chartNo=located.annotation_chartNo 
             ) as list
         where checked=0
         UNION
-        select count(distinct PID) ,'3' AS seq from annotation where Disease={Disease} and username='{username}'
+        select count(distinct chartNo) ,'3' AS seq from AIC.dbo.annotation_new where topicNo={Disease} and username='{username}'
         ORDER BY seq ASC
     """
     cursor.execute(query)
@@ -167,84 +163,95 @@ def searchFilePath(chartNo,eventDate,studyID,seriesID):
 
 @csrf_exempt
 def PatientList(request):
-    condition = request.POST.get('PID')
+    chartNo = request.POST.get('PID')
     scrollTop = request.POST.get('scrollTop')
-    request.session['PID']=condition
+    request.session['PID']=chartNo
     request.session['scrollTop']=scrollTop
     
     query =  '''
-  select b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category from allEvents as b 
-		left join EventDefinition as c on b.eventID=c.eventID
-		inner join medTypeSet as d on  b.medType=d.MedType
-        inner join ExamStudySeries_6 as e on b.eventID=e.eventID
-		left join ClinicalEvents as f on c.EventID=f.EventID
-        where b.chartNo=%s
-        group by b.chartNo,b.eventDate,d.TypeName,f.Enent,b.eventID,e.category
-		order by b.eventDate DESC
+    select * from (
+    select distinct b.chartNo,e.studyDate,d.typeName,f.procedureName,b.eventID,e.category,e.isReady, e.studyID,g.seriesID,g.seriesDes,g.sliceNo,g.note,ROW_NUMBER() OVER (PARTITION BY e.eventID ORDER BY g.sliceNo DESC) as rank
+    from allEvents as b 
+    left join eventDefinitions as c on b.eventID=c.eventID
+    inner join medTypeSet as d on  b.medType=d.medType
+    inner join examStudy as e on b.eventID=e.eventID
+    inner join examSeries as g on e.storageID=g.storageID
+    left join clinicalProcedures as f on c.procedureID=f.procedureID
+    where b.chartNo=%s 
+    ) as result where rank=1
+    order by studyDate DESC
     '''
 
-    query2 = '''
-        select studyID,seriesID,seriesDes from ExamStudySeries_6 where sliceNo in
-                (select MAX(sliceNo) from (
-                select eventID,studyID,category,seriesID,seriesDes,sliceNo
-                from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
-                where b.eventID=%s ) and eventID=%s group by studyID,seriesID,seriesDes
-        '''
-    queryMRI = '''
-        select top(1)* from ExamStudySeries_6 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
-    '''
+    # query2 = '''
+    #     select studyID,seriesID,seriesDes from ExamStudySeries_6 where sliceNo in
+    #             (select MAX(sliceNo) from (
+    #             select eventID,studyID,category,seriesID,seriesDes,sliceNo
+    #             from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
+    #             where b.eventID=%s ) and eventID=%s group by studyID,seriesID,seriesDes
+    #     '''
+    # queryMRI = '''
+    #     select top(1)* from ExamStudySeries_6 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
+    # '''
 
-    cursor = connections['AIC'].cursor()
-    cursor.execute(query,[condition])
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[chartNo])
     PID = []
     MedExecTime = []
     Item = []
     phase = []
     Check = []
-    Study = []
-    Series=[]
+    StudyID = []
+    SeriesID=[]
     StudyDes=[]
     SeriesDes=[]
+    viewplane=[]
     res = cursor.fetchall()
-    for j in range(len(res)):
-        cursor2 = connections['AIC'].cursor()
-        cursor2.execute(query2, [res[j][4],res[j][4]])
-        res2 = cursor2.fetchall()
-        if res2 != []:
-            StudyID = (res2[0][0])
-            SeriesID = (res2[0][1])
-            Study.append(StudyID)
-            Series.append(SeriesID)
-            SeriesDes.append(res2[0][2])
-        else:
-            Study.append(0)
-            Series.append(0)
-            SeriesDes.append(0)
+    # for j in range(len(res)):
+    #     cursor2 = connections['AIC'].cursor()
+    #     cursor2.execute(query2, [res[j][4],res[j][4]])
+    #     res2 = cursor2.fetchall()
+    #     if res2 != []:
+    #         StudyID = (res2[0][0])
+    #         SeriesID = (res2[0][1])
+    #         Study.append(StudyID)
+    #         Series.append(SeriesID)
+    #         SeriesDes.append(res2[0][2])
+    #     else:
+    #         Study.append(0)
+    #         Series.append(0)
+    #         SeriesDes.append(0)
 
-        filePath = searchFilePath(res[j][0],res[j][1],StudyID,SeriesID)
-        if platform.system()!='Windows':
-            fileDir = os.path.join('/home','user','netapp',filePath)
-        else:
-            fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
+    #     filePath = searchFilePath(res[j][0],res[j][1],StudyID,SeriesID)
+    #     if platform.system()!='Windows':
+    #         fileDir = os.path.join('/home','user','netapp',filePath)
+    #     else:
+    #         fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
-        fileDir = fileDir.replace('-', '')
-        fileDir = fileDir.replace(' ', '')
+    #     fileDir = fileDir.replace('-', '')
+    #     fileDir = fileDir.replace(' ', '')
 
-        fileExt = "*.h5"
+    #     fileExt = "*.h5"
 
-        if len(list(pathlib.Path(fileDir).glob(fileExt))) == 0:
-            Check.append('N')
-        else:
-            Check.append('Y')
+    #     if len(list(pathlib.Path(fileDir).glob(fileExt))) == 0:
+    #         Check.append('N')
+    #     else:
+    #         Check.append('Y')
 
     for i in range(len(res)):
         PID.append(res[i][0])
-        MedExecTime.append(res[i][1])
+        MedExecTime.append(str(res[i][1]))
         Item.append(res[i][2])
         phase.append(res[i][3])
         StudyDes.append(res[i][5])
-    
-    return JsonResponse({'PID': PID, 'MedExecTime': MedExecTime,'StudyID':Study ,'SeriesID':Series,'Item': Item,'StudyDes':StudyDes,'SeriesDes':SeriesDes, 'phase': phase, 'Check': Check},
+        if res[i][6]==0:
+            Check.append('N')
+        else:
+            Check.append('Y')
+        StudyID.append(res[i][7])
+        SeriesID.append(res[i][8])
+        SeriesDes.append(res[i][9])
+        viewplane.append(res[i][11])
+    return JsonResponse({'PID': PID, 'MedExecTime': MedExecTime,'StudyID':StudyID ,'SeriesID':SeriesID,'Item': Item,'StudyDes':StudyDes,'SeriesDes':SeriesDes, 'phase': phase, 'Check': Check,'viewplane':viewplane},
                         status=200)
 
 from cryptography.fernet import Fernet
@@ -257,6 +264,8 @@ def Session(request):
     SeriesID = request.POST.get('SeriesID')
     SeriesDes = request.POST.get('SeriesDes')
     Disease = request.POST.get('Disease')
+    viewplane = request.POST.get('viewplane')
+    print(viewplane)
     request.session['PID'] = PID
     request.session['MedExecTime'] = MedExecTime
     request.session['Item'] = Item
@@ -264,5 +273,6 @@ def Session(request):
     request.session['SeriesID'] = SeriesID
     request.session['SeriesDes'] = SeriesDes
     request.session['Disease'] = Disease
+    request.session['viewplane'] = viewplane
     return JsonResponse({})
     #return render(request, 'DICOM/DICOM.html', {'PID':PID,'MedExecTime':MedExecTime,'Item':Item})

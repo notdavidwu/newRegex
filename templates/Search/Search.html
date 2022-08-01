@@ -43,6 +43,157 @@
 
 </head>
 <style>
+    /*嘟嘟嘟*/
+    .spinner {
+    display: none;
+    margin: 100px auto;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    }
+    .container1 > div, .container2 > div, .container3 > div {
+    width: 9px;
+    height: 9px;
+    background-color: #333;
+    border-radius: 100%;
+    position: absolute;
+    -webkit-animation: bouncedelay 1.2s infinite ease-in-out;
+    animation: bouncedelay 1.2s infinite ease-in-out;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+    }
+    .spinner .spinner-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    }
+    .container2 {
+    -webkit-transform: rotateZ(45deg);
+    transform: rotateZ(45deg);
+    }
+    .container3 {
+    -webkit-transform: rotateZ(90deg);
+    transform: rotateZ(90deg);
+    }
+    .circle1 { top: 0; left: 0; }
+    .circle2 { top: 0; right: 0; }
+    .circle3 { right: 0; bottom: 0; }
+    .circle4 { left: 0; bottom: 0; }
+    .container2 .circle1 {
+    -webkit-animation-delay: -1.1s;
+    animation-delay: -1.1s;
+    }
+    .container3 .circle1 {
+    -webkit-animation-delay: -1.0s;
+    animation-delay: -1.0s;
+    }
+    .container1 .circle2 {
+    -webkit-animation-delay: -0.9s;
+    animation-delay: -0.9s;
+    }
+    .container2 .circle2 {
+    -webkit-animation-delay: -0.8s;
+    animation-delay: -0.8s;
+    }
+    .container3 .circle2 {
+    -webkit-animation-delay: -0.7s;
+    animation-delay: -0.7s;
+    }
+    .container1 .circle3 {
+    -webkit-animation-delay: -0.6s;
+    animation-delay: -0.6s;
+    }
+    .container2 .circle3 {
+    -webkit-animation-delay: -0.5s;
+    animation-delay: -0.5s;
+    }
+    .container3 .circle3 {
+    -webkit-animation-delay: -0.4s;
+    animation-delay: -0.4s;
+    }
+    .container1 .circle4 {
+    -webkit-animation-delay: -0.3s;
+    animation-delay: -0.3s;
+    }
+    .container2 .circle4 {
+    -webkit-animation-delay: -0.2s;
+    animation-delay: -0.2s;
+    }
+    .container3 .circle4 {
+    -webkit-animation-delay: -0.1s;
+    animation-delay: -0.1s;
+    }
+    @-webkit-keyframes bouncedelay {
+    0%, 80%, 100% { -webkit-transform: scale(0.0) }
+    40% { -webkit-transform: scale(1.0) }
+    }
+    @keyframes bouncedelay {
+    0%, 80%, 100% {
+        transform: scale(0.0);
+        -webkit-transform: scale(0.0);
+    } 40% {
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
+    }
+    }
+    /*時鍾*/
+     
+    .shadow {
+        display:none;
+        position:absolute;
+        z-index: 100;
+        top:50%;
+        left:77%;
+        border-radius:50%;
+        margin-top:-50px;
+        margin-left:-50px;
+        box-shadow:-2px 2px 10px 0 rgba(0,0,0,0.5),
+                            2px -2px 10px 0 rgba(255,255,255,0.5);
+    }
+
+    .loader {
+        background: -webkit-linear-gradient(left, rgb(65, 76, 80) 50%, #fafafa 50%); /* Foreground color, Background colour */
+        border-radius: 100%;
+        height: 70px; /* Height and width */
+        width: 70px; /* Height and width */
+        animation: time 8s steps(500, start) infinite;
+    }
+    .mask {
+        border-radius: 100% 0 0 100% / 50% 0 0 50%;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 50%;
+        animation: mask 8s steps(250, start) infinite;
+        transform-origin: 100% 50%;
+    }
+    @-webkit-keyframes time {
+        100% { 
+            transform: rotate(360deg);
+        }
+    }
+    @-webkit-keyframes mask {
+        0% {
+            background: #fafafa; /* Background colour */
+            transform: rotate(0deg);
+        }
+        50% {
+            background: #fafafa; /* Background colour */
+            transform: rotate(-180deg);
+        }
+        50.01% {
+            background: rgb(65, 76, 80); /* Foreground colour */
+            transform: rotate(0deg);
+        }
+        100% {
+            background: rgb(65, 76, 80); /* Foreground colour */
+            transform: rotate(-180deg);
+        }
+    }
+
+</style>
+<style>
     body{background:url("{% static 'image/texture.png' %}");background-color: #EEEEEE ;height: 100%;width: 100%;position: fixed}
     ::-webkit-scrollbar {
         width: 10px;
@@ -57,7 +208,7 @@
   
       /* Handle */
       ::-webkit-scrollbar-thumb {
-        background: #F05454;
+        background: rgb(112, 173, 247);
         border-radius: 10px 10px 10px 10px;
       }
   
@@ -157,7 +308,7 @@
     #tableframe{border:10px solid #333333;position:absolute;overflow-y:auto;overflow-x:hidden;border-radius: 10px;top:100px;height:calc(100% - 140px);width:calc(100% - 40px);margin:20px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF}
     #chartSearchArea{position:absolute;margin:20px;width:calc(100% - 40px)}
     #filter{position:absolute;margin:20px;width:calc(100% - 40px);top:50px}
-    #TimeShow{margin-bottom: -0px;margin-top:-2px;overflow-x:auto}
+    #TimeShow{margin-bottom: -0px;margin-top:-2px}
         input[name='Timetable']{display: none}/*radio  消失*/
         input[name='Timetable'] +label{width: 130%;height: 50px;margin: -12px;left:0px}
         input[name='Timetable']:checked ~label{background:url("{% static 'image/texture.png' %}");color:#FFFFFF;background-color: #2E5C6E;;padding-left: 2%}
@@ -168,14 +319,14 @@
         .MedType{display: none}
         .locationnow{
             display: none;
-            right: 5px;
+            margin-left: calc(2% + 420px);
             margin-top: -35px;
             position:absolute;}
         .hospital{
             height:20px;
             width:20px;
             display: none;
-            right: 50px;
+            margin-left: calc(2% + 400px);
             margin-top: -40px;
             position:absolute;
         }
@@ -261,7 +412,7 @@
     .Report-label { transform-origin: top right; transform: rotate(0deg) translate(0%, 50%); z-index: 2;writing-mode: vertical-rl }
     .Reportform {background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--width); transform: translate(-100%, -0%);  overflow: auto; background-color: #FFFFFF; z-index: 7; border-radius:10px}
     .Report-label { padding: 5px 10px; border-radius:  0 var(--border-radius)  var(--border-radius) 0;; }
-    .Report-label { background: brown; color: white}
+    .Report-label{ background: brown; color: white}
     .Report-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
     #Reportcheckbox:checked + .Report-label { background: #e78632; transform:  translate(calc((var(--width) - 20%) * 1),50%)}
     #Reportcheckbox:checked ~ .Reportform { transform: translate(0%, -0%);z-index: 7;}
@@ -289,6 +440,34 @@
     #tubeReport tr{height:20px}
     .center{text-align:center;vertical-align: middle}
     .noMarginAndPadding{padding:0px;margin:0px}
+    #EvaluationTable{
+        background-color: antiquewhite;
+        min-width: 395px;
+        /*min-width:106%;*/
+        font-size: AUTO;
+        overflow: hidden;
+    }
+    .EvaluationTD1{
+        width: 21%;
+    }
+    .EvaluationTD2{
+        width: 35%;
+    }
+    .EvaluationTD3{
+        width: 25%;
+    }
+    .EvaluationTD4{
+        width: 33%;
+    }
+    .EvaluationTR{
+        line-height:5.5px;
+        font-size:10px;
+        height:7px;
+        max-height: 100px;
+        vertical-align: middle;
+        text-align: center;
+    }
+    .spinner{position: fixed;top: 45%;left:37%}             /*    嘟嘟嘟特效         */
 </style>
 
 
@@ -333,7 +512,26 @@
                 }
             }
         })
-        
+        $('body').on('click',function(event){
+            /*
+            if ($(event.target).attr('class')=="Report-label" || $(event.target).attr('class')=="TypeName-label" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="Bacteria" || $(event.target).attr('class')=="TypeName" || $(event.target).attr('class')=="ExecDate" || $(event.target).attr('class')=="ExecDateTime" || $(event.target).attr('class')=="TimeShowLabel"){
+                
+                return true;
+            }else if(event.target.id=='Reportcheckbox' || event.target.id.includes('TimeShow')){
+                return true;
+            }else if(event.target.name=='Timetable' || event.target.name=='Ttable'){
+                alert('1')
+                return true;
+            }else{
+                $('#Reportcheckbox').prop('checked',false);
+            }*/
+        })
+        $('#chartsearch').on('keyup',function(event){//onkeyup 或 onchange 或 oninput 
+            $('.ChartNo').css('background-color','#7C99AC')
+            TimeShow(document.getElementById("chartsearch").value)
+            //input[name='Pooltable']~label{
+            //alert(document.getElementById("chartsearch").value)
+        })
         $("#partystart").datepicker({
             dateFormat:"yy-mm-dd",
             changeMonth: true,
@@ -351,9 +549,10 @@
     function createFloatingBox(pannel,id,ChartNo){
         $('#'+pannel).append(''+
         '<div class="floatingBox" >'+
-            '<input type="radio" onclick="TimeShow()" name="Pooltable" id=PoolList' + id + '>' +
+            '<input type="radio" onclick="TimeShow(-327)" name="Pooltable" id=PoolList' + id + '>' +
             '<label for=PoolList' + id + '><p  class="ChartNo">' + ChartNo + '</p></label>' +
         '</div>')
+        
     }
     
     function PoolList(){
@@ -364,7 +563,9 @@
         let ward = $('#ward option:selected').val()
         let DivName = $('#DivName option:selected').val()
         $('#Imagecheckbox').prop('checked',false)
-
+        $('.floatingBox').remove()                                    ///病人pool清空
+        $('#TimeShow').children('tr').remove()                        ///事件AllExam清空
+        //window.location.reload();
         $.ajax({
             type: 'post',
             url: '{% url "Search:PoolList" %}', // this is the mapping between the url and view
@@ -378,7 +579,8 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
-                $('#PoolList').children('tr').remove()
+                
+                //alert('1')
                 for (var i = 0; i < response.ChartNo.length; i++) {
                     createFloatingBox('tableList',i,response.ChartNo[i])
                 }
@@ -386,13 +588,28 @@
         })
     }
 
-    function TimeShow(){
+    function TimeShow(CHART){
+        $('.spinner').css('display', 'inline');
         let partystart = $('#partystart').val()
         let partyend = $('#partyend').val()
         let ChartNo = ($('input[name="Pooltable"]:checked').next('label').children('.ChartNo').text())
+        //alert(document.getElementById("chartsearch").value)
+        if((CHART!=null||document.getElementById("chartsearch").value!='')&&CHART!=-327)//用搜尋病歷號的
+        {
+            //alert(CHART)
+            ChartNo=document.getElementById("chartsearch").value;
+        }else if(CHART==-327){                                                          //點擊左邊pool
+            document.getElementById('chartsearch').value = "";
+            $('.ChartNo').css('background-color','#7C99AC')
+            $(`#${event.target.id}`).next('label').children('p').css('background-color','#F05454')
+        }
+        else{
+            
+        }
         let careRecordCheck = $('#careRecord_check').is(':checked')
         let hospitalized =  $('#hospitalized_check').is(':checked')
         let tubeCheck =  $('#tube_check').is(':checked')
+        let bodycheck =  $('#body_check').is(':checked')
         $('#priReport').empty()
         $('#abstract').empty()
         $.ajax({
@@ -403,12 +620,15 @@
                 'careRecordCheck':careRecordCheck,
                 'hospitalized':hospitalized,
                 'tubeCheck':tubeCheck,
+                'bodycheck':bodycheck,
                 'partystart':partystart,
                 'partyend':partyend,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function (response) {
                 $('#TimeShow').children('tr').remove()
+                $('.spinner').css('display', 'none');
+                var BTnum=1
                 for (var i = 0; i < response.ChartNo.length; i++) {
                     //alert(response.Token[i])
                     tempword='<tr><td>' +
@@ -472,6 +692,67 @@
                         $('#TimeShow'+i).parents('td').css('background-color',"#24936E")
                         $('#TimeShow'+i).parents('td').css('color',"#FFFFFF")
                     }
+                    if(response.MedType[i]==30501){ //異常生理評值
+                        BTnum+=1
+                        $('#TimeShow'+i).parents('td').css('background-color',"rgb(230, 243, 159)")
+                        //alert(response.BT[i])
+                        $('#TimeShow'+i).next('label').children('.TypeName').css('display','none')
+                        j=`<div style="height:60px;
+                        position:absolute;
+                        border:1;
+                        margin-left: calc(6% + 60px);
+                        margin-top: -57px;">
+                        <table id="EvaluationTable">
+                        <tr class="EvaluationTR" style="font-weight:bold;min-width:50px">
+                            <td class="EvaluationTD1">BT</td>
+                            <td class="EvaluationTD2">BP(mmHg)</td>
+                            <td class="EvaluationTD3">PULSE</td>
+                            <td class="EvaluationTD4">SPO2</td>
+                        </tr>
+                        <tr class="EvaluationTR">`
+                            if(response.BT[i]>38.0){
+                                j+=`<td style="background-color:#fa7474"> ${response.BT[i]} &nbsp°C</td>`
+                                //j+=`<td style="background-color:#70adf7"> ${response.BT[i]} &nbsp°C</td>`
+                                //alert(response.BT[i])
+                            }
+                            else if(response.BT[i]<36.0 && response.BT[i]>0){
+                                //j+=`<td style="background-color:#fa7474"> ${response.BT[i]} &nbsp°C</td>`
+                                j+=`<td style="background-color:#70adf7"> ${response.BT[i]} &nbsp°C</td>`
+                                //alert(response.BT[i])
+                            }
+                            else{
+                                j+=`<td> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp</td>`
+                            }
+                            if(response.BP[i]!=-1){
+                                j+=`<td>${response.BP[i]}</td>`
+                            }
+                            else{
+                                j+=`<td> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp</td>`
+                            }
+                            if(response.PULSE[i]!=-1){
+                                j+=`<td>${response.PULSE[i]}</td>`
+                            }
+                            else{
+                                j+=`<td> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp</td>`
+                            }
+                            if(response.SPO2[i]!=-1){
+                                j+=`<td>${response.SPO2[i]}</td>`
+                            }
+                            else{
+                                j+=`<td> &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp</td>`
+                            }
+                        j+=`
+                        </tr>
+                        </table>
+                        </div>`
+                        //alert(j)//style="background-color:#fa7474"
+                        $('#TimeShow'+i).parents('td').append(j)
+                        
+                    }
+                }
+                if(BTnum==1&&response.bodycheck[0]==1)
+                {
+                    alert('無異常生理評值')
                 }
             }
         })
@@ -479,11 +760,15 @@
 
 
     function primarytext(){
+        const list=['2131','2132','2133','2134','2135','2136','2137','2138']
         var OrderNo = ($('input[name="Timetable"]:checked').next('label').children('.OrderNo').text())
         var ExecDate = ($('input[name="Timetable"]:checked').next('label').children('.ExecDate').text())
         var MedType = ($('input[name="Timetable"]:checked').next('label').children('.MedType').text())
         var ChartNo = ($('input[name="Timetable"]:checked').next('label').children('.timeChartNo').text())
         var ItemNo = ($('input[name="Timetable"]:checked').next('label').children('.ItemNo').text())
+        if (list.indexOf(MedType)>=0){
+            $('.shadow').css('display', 'inline');
+        }
         $.ajax({
             type: 'post',
             url: '{% url "Search:PrimaryText" %}', // this is the mapping between the url and view
@@ -498,9 +783,11 @@
             success: function (response) {
                 //alert(response.ReportID[0])
                 $('#priReport').empty()//or text('')
-                const list =['2131','2132','2133','2134','2135','2136','2137']
-                //alert('1')
+
+                
+
                 if(MedType==30801){                                      //點擊護理紀錄
+                    //alert('2')
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
@@ -513,7 +800,8 @@
                     //$('#tubeReport').append(response.object)
                     a='<tr class="table-secondary"><th style="width=60px">導管名稱 </th><th>中心導管</th><th>置入時間 </th><th>停用/取出時間</th></tr>'
                     for (var i = 0; i < response.TubeUsageNo.length; i++) {
-                        a=a+`<tr ><td ><input type="radio" onclick="TubeReport()"  name="Ttable" id="Ttable${i}"  style="zoom:1.5;"><label for=Ttable${i} id="tuberadio">${response.TubeName[i]}<BR>-> <span class="TubeUsageNo">${response.TubeUsageNo[i]}</span></label></td><td>`
+                        a=a+`<tr ><td ><input type="radio" onclick="TubeReport()"  name="Ttable" id="Ttable${i}"  style="zoom:1.5;">
+                            <label for=Ttable${i} id="tuberadio">${response.TubeName[i]}<BR>(<span class="TubeUsageNo">${response.TubeUsageNo[i]}</span>)</label></td><td>`
                         if (response.IsCenter[i]==1)
                         {
                             a=a+'<img class="catheter2" src={% static "image/catheter.png" %}></img></td>'
@@ -544,6 +832,9 @@
                     //$('.TubeRemark').height($('.Reportform').height()-$('#tubeReport').height())
 
                 }else if (list.indexOf(MedType)>=0){                     //點擊檢驗報告
+                    
+                    $('#priReport').empty()
+                    $('#abstract').empty()
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
@@ -557,6 +848,7 @@
                             'csrfmiddlewaretoken': window.CSRF_TOKEN
                         },
                         success: function (response) {
+                            $('.shadow').css('display', 'none');
                             var acount =0,bacterianum=0
                             bacteria=''
                             bacteria2=''
@@ -584,53 +876,107 @@
                                         acount=0
                                         bacterianum=0
                                     }
-                                    a+=`<div>菌種：<span>${response.Bacteria[i]}</span><button class="btn btn-danger">非菌種</button></div>`
+                                        a+=`<div>菌種：<span id="responsebac${i}">${response.Bacteria[i]}</span><button id="deletebtn${i}" class="btn btn-danger" onclick="deletebacteria()">非菌種</button>
+                                        <button id="recoverybtn${i}" class="btn btn-success" onclick="recoverybacteria()" style="display:none">復原</button>
+                                        </div>`
+                                    b='<span style="background-color:#ffffff">此為非常見菌</span>'
+                                    $.ajax({
+                                    type: 'post',
+                                    url: '{% url "Search:commensals" %}', // this is the mapping between the url and view
+                                    data: {
+                                        'Bacteria': response.Bacteria[i],
+                                        'csrfmiddlewaretoken': window.CSRF_TOKEN
+                                    },
+                                    success: function (response) {
+                                        //alert(response.iscommensals[0])
+                                        if(response.iscommensals[0]==null)
+                                        {
+                                           // alert('非常見菌')
+                                            b=1
+                                            //alert(b)
+                                        }
+                                        else{
+                                            b=0
+                                            //alert(b)
+                                            //a=a+'<span>此為常見菌</span>'   
+                                            //alert('常見菌')                                   
+                                        }
+                                    }})
+                                    if(b==1)
+                                    {
+                                        a+='<span>此為非常見菌</span>'
+                                        alert('08')
+                                    }
+                                    else if(b==0)
+                                    {
+                                        a+='<span>此為常見菌</span>'
+                                        alert('08')
+                                    }
+                                    
                                     bacterianum+=1
                                     
                                     bacteriarecord[bacterianum]=response.Bacteria[i]
+                                    
                                 }
                                 else{
                                     if(acount==0)
                                     {//alert(bacteriarecord[1])
+                                        
                                         a+=`<div><table class="table table-striped table-success table-hover" style=" width:97%;word-wrap: break-word;text-align:center;table-layout: fixed;">`+
-                                            `<tr><td colspan="2" style="width:23%">${bacteriarecord[1]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
+                                            `<tr><td colspan="2" style="width:23%"><p>${bacteriarecord[1]}</p><button id="but${i}" class="btn btn-warning" onclick="collectbtn()">收案</button></td>`    
+
                                             if(bacteriarecord[2]!=null){
-                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[2]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
+                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[2]}<button id="but${i}" class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
                                             }else{
                                                 a+=`<td colspan="2" style="width:23%">無</td>`
                                             }if(bacteriarecord[3]!=null){
-                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[3]}<button class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
+                                                bacc3=bacteriarecord[3]
+                                                a+=`<td colspan="2" style="width:23%">${bacteriarecord[3]}<button id="but${i}" class="btn btn-warning" onclick="collectbtn()">收案</button></td>`
                                             }else{
                                                 a+=`<td colspan="2" style="width:23%">無</td><td></td>`
                                             }
-                                            `<tr><td>${response.Resistance1w[i]}</td><td>${response.Resistance1n[i]}</td>`+
+                                            a+=`<tr><td>${response.Resistance1w[i]}</td><td>${response.Resistance1n[i]}</td>`+
                                             `<td>${response.Resistance2w[i]}</td><td>${response.Resistance2n[i]}</td>`+
                                             `<td>${response.Resistance3w[i]}</td><td>${response.Resistance3n[i]}</td>`+
                                             `<th>${response.drug[i]}</th></tr>`
+                                            //alert(response.drug[i])
                                     }
                                     else{
                                         a+=`<tr><td>${response.Resistance1w[i]}</td><td>${response.Resistance1n[i]}</td>`+
                                             `<td>${response.Resistance2w[i]}</td><td>${response.Resistance2n[i]}</td>`+
                                             `<td>${response.Resistance3w[i]}</td><td>${response.Resistance3n[i]}</td>`+
                                             `<th>${response.drug[i]}</th></tr>`
+                                            //alert('3')
                                     }
                                     acount+=1;
+                                    //alert(a)
                                 }
                             }
                             if(response.drug[response.Bacteria.length-1]==null){
                                 a+=`</table>`
                             }
                             a+=`</div>`
-                            //alert(a)
-                            $('#abstract').append(a)
+                            
+                            
+                            //alert(bacc1) 
+                            //alert(bacc2) 
                             //$('.Examtable').css('border','3px #cccccc solid')
                             //$('.Examtable').children('td').css('background','lightblue')
                             //$('.table table-striped table-primary table-hover').css('width','60%')
+
+                            //alert(a)
+                            $('#abstract').append(a)
                         }
                         
-                    }) 
+                    })
+                    
                 }
-                else{                                          //點擊檢驗報告
+                /*else if (MedType==30501){
+                    $('#priReport').css('display','block')
+                    $('#tubeReport').css('display','none')
+                    alert('有跑')
+                }*/
+                else{                                          //點擊檢驗報告(舊的 不用了)
                     $('#priReport').css('display','block')
                     $('#tubeReport').css('display','none')
                     for(var i =0;i<response.ReportText.length;i++){
@@ -750,10 +1096,12 @@
             },
             complete:function(){
                 $('#Reportcheckbox').prop('checked',true)
-
             }
         })
 
+    }
+    function app(){
+        
     }
     function TubeReport(){
         var TubeUsageNo = ($('input[name="Ttable"]:checked').parents('td').children('label').children('.TubeUsageNo').text())
@@ -776,13 +1124,109 @@
         
     }
     function collectbtn(){
-        alert('收')
+        alert('選取菌種:\n'+$(`#${event.target.id}`).parents('td').children('p').text())
+        //alert('收案')
+        alert('功能尚未完整...')
     }
-
+    function deletebacteria()
+    {
+        //alert(event.target.id)
+        $(`#${event.target.id}`).css('display','none')
+        $(`#${event.target.id}`).parents('div').children('span').css('text-decoration','line-through') //.children('span').text())
+        $(`#${event.target.id}`).parents('div').children('span').css('font-weight','bolder') 
+        $(`#${event.target.id}`).parents('div').children('span').next('button').next('button').css('display','inline') //.children('span').text())
+        //alert($(`#${event.target.id}`).parents('div').children('span').text())
+        $.ajax({
+                type: 'post',
+                url: '{% url "Search:deletebacteria" %}', // this is the mapping between the url and view
+                data: {
+                    'bacName': $(`#${event.target.id}`).parents('div').children('span').text(),
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                    alert('成功')
+                    //alert($(`#${event.target.id}`).parents('div').children('span').text())
+                }
+        })
+    }
+    function recoverybacteria(){
+        //alert(event.target.id)
+        $(`#${event.target.id}`).css('display','none')
+        $(`#${event.target.id}`).parents('div').children('span').css('text-decoration','none') //.children('span').text())
+        $(`#${event.target.id}`).parents('div').children('span').css('font-weight','normal') 
+        $(`#${event.target.id}`).parents('div').children('span').next('button').css('display','inline') //.children('span').text())
+        //alert($(`#${event.target.id}`).parents('div').children('span').text())
+        $.ajax({
+                type: 'post',
+                url: '{% url "Search:recoverybacteria" %}', // this is the mapping between the url and view
+                data: {
+                    'bacName': $(`#${event.target.id}`).parents('div').children('span').text(),
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                    alert('成功')
+                    //alert($(`#${event.target.id}`).parents('div').children('span').text())
+                }
+        })
+    }
+    function bodyevaluate(){
+        alert('body')
+        $.ajax({
+                type: 'post',
+                url: '{% url "Search:bodyevaluate" %}', // this is the mapping between the url and view
+                data: {
+                    'bacName':'20',
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                    alert(response.temperature[6])
+                }
+        })
+    }
+    function pyyy(){
+        $.ajax({
+                type: 'post',
+                url: '{% url "Search:test" %}', // this is the mapping between the url and view
+                data: {
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success: function (response) {
+                    alert('成')
+                }
+        })
+    }
 </script>
 <body >
    
-    {% include 'navBar.html' %}
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href={% url 'demo:index' %}>AI Center</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href={% url 'demo:index' %}>Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false" >Link</a>
+                <div class="dropdown-menu" aria-labelledby="dropdown01">
+                    <a class="dropdown-item" href="http://www.csh.org.tw/">中山醫學大學附設醫院</a>
+                </div>
+            </li>
+            {% if '1' in au or 'F' in au %}{% include 'accounts/loginpartial2.html' %}{% endif %}
+            {% if '2' in au or 'F' in au %}{% include 'accounts/Infection_prevention_and_control.html' %}{% endif %}
+            {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
+            {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if 'F' in au %}{% include 'accounts/auth.html' %}{% endif %}
+        </ul>
+
+        {% include 'accounts/loginpartial.html' %}
+    </div>
+</nav>
 
 
 
@@ -881,7 +1325,7 @@
     <div id="Timeline">
         
         <div id="chartSearchArea">
-            <input type='text' class="form-control " id="chartsearch" placeholder="病歷號查詢" autocomplete="off">
+            <input type='text' class="form-control " id="chartsearch" placeholder="病歷號查詢" autocomplete="off" oninput="value=value.replace(/[^\d]/g,'')">
         </div>
 
         <div id="filter" class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
@@ -892,8 +1336,10 @@
             <label class="btn btn-outline-secondary" for="careRecord_check">護理紀錄</label>
           
             <input type="checkbox" class="btn-check" onclick="TimeShow()" id="tube_check" autocomplete="off" checked>
-            <label class="btn btn-outline-secondary" for="tube_check">中心導管</label>
+            <label class="btn btn-outline-secondary" for="tube_check">導管</label>
 
+            <input type="checkbox" class="btn-check" onclick="TimeShow()" id="body_check" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="body_check">異常生理評值</label>
         </div>
 
 
@@ -901,11 +1347,39 @@
         <div id="tableframe">
             <table class="table table-striped" id="TimeShow"></table>
         </div>
+
+        <div class="spinner">
+            <div class="spinner-container container1">
+              <div class="circle1"></div>
+              <div class="circle2"></div>
+              <div class="circle3"></div>
+              <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container2">
+              <div class="circle1"></div>
+              <div class="circle2"></div>
+              <div class="circle3"></div>
+              <div class="circle4"></div>
+            </div>
+            <div class="spinner-container container3">
+              <div class="circle1"></div>
+              <div class="circle2"></div>
+              <div class="circle3"></div>
+              <div class="circle4"></div>
+            </div>
+            <br>
+            <br>
+            <label style="width: 200px;margin-left: -20px;font-family:DFKai-sb;font-size: 20px;">請稍後...</label>
+        </div>
     </div>
     
 
-    <div  id="abstract" ></div>
-
+    <div  id="abstract" ><!--<button onclick="pyyy()">123</button>--></div>
+    <div class="shadow">
+        <div class="loader">
+            <div class="mask"></div>
+        </div>
+    </div>
     <div  id="Report" >
         <input type="checkbox" id="Reportcheckbox">
         <label for="Reportcheckbox" class="Report-label">原始報告</label>
@@ -913,6 +1387,8 @@
             <textarea class="form-control" id="priReport" rows="3" readonly></textarea>
             <table class="form-control table table-striped table-hover center" id="tubeReport"></table>
         </form>
+        
     </div>
+    
 </body>
 </html>

@@ -144,12 +144,14 @@ def DICOM(request):
     StudyID = request.session.get('StudyID', 0)
     SeriesID = request.session.get('SeriesID', 0)
     SeriesDes = request.session.get('SeriesDes', 0)
+    viewplane = request.session.get('viewplane', 0)
+
     Disease = request.session.get('Disease', 0)
     request.session['SeriesIdIndex'] = SeriesIdIndex
     au = request.session.get('au')
 
     return render(request, 'DICOM/DICOM.html',
-                  {'de_identification':de_identification,'PID': PID, 'MedExecTime': MedExecTime, 'Item': Item, 'StudyID': StudyID, 'SeriesID': SeriesID,'SeriesDes':SeriesDes,'Disease':Disease,'au':au})
+                  {'de_identification':de_identification,'PID': PID, 'MedExecTime': MedExecTime, 'Item': Item, 'StudyID': StudyID, 'SeriesID': SeriesID,'SeriesDes':SeriesDes,'viewplane':viewplane,'Disease':Disease,'au':au})
 
 
 
@@ -191,7 +193,7 @@ def convert_MRI_coordinate(request):
     y = int(request.POST.get('y',0))
     z = int(request.POST.get('z',0))
     ind = int(request.POST.get('ind',0))
-    
+
     source_position = list(request.session.get('ImagePosition_'+source))[z]
     
     target_position = request.session.get('ImagePosition_'+target)
@@ -224,8 +226,12 @@ def convert2draw(x, y, Ori_W, Ori_H, Ori_D, plane, width, height):
     return x, y
 
 def searchFilePath(chartNo,eventDate,studyID,seriesID):
-    cursor = connections['AIC'].cursor()
-    searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%s and [eventDate]=%s and [studyID]=%s and [seriesID]=%s'''
+    cursor = connections['practiceDB'].cursor()
+    searchQuery='''
+    SELECT [filePath]  FROM examStudy AS a
+    INNER JOIN examSeries AS b on a.storageID=b.storageID
+    WHERE [chartNo]=%s and [studyDate]=%s and [studyID]=%s and [seriesID]=%s
+    '''
     cursor.execute(searchQuery,[chartNo,eventDate,studyID,seriesID])
     filePath = cursor.fetchall()[0][0]
     return filePath
@@ -237,6 +243,7 @@ def load_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+
     filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
     if platform.system()!='Windows':
         dir = os.path.join('/home','user','netapp',filePath)
@@ -251,7 +258,7 @@ def load_DICOM(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
-    print(SeriesIdIndex)
+
     tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
     paths = sorted([os.path.join(filename) for filename in tempPath])[0]
     request.session['PET_' + WindowNo] = paths
@@ -304,7 +311,9 @@ def load_RT_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
+    print(PID,MedExecTime,StudyIDText,SeriesIDText)
     filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
+    print(filePath)
     if platform.system()!='Windows':
         dir = os.path.join('/home','user','netapp',filePath)
     else:
@@ -318,11 +327,12 @@ def load_RT_DICOM(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
-
-
+    
+    print(fileDir)
     fileExt = "*RTCT*.h5"
     tempPath = list(pathlib.Path(fileDir).glob(fileExt))
     paths = sorted([os.path.join(filename) for filename in tempPath])
+    print(paths)
     request.session['CT_view_' + WindowNo] = paths
     with h5py.File(list(filter(lambda path: 'Axial' in path, paths))[0], "r") as f:
         headers = f['header']
@@ -423,14 +433,7 @@ def load_MRI_DICOM(request):
     with h5py.File(paths[0], "r") as f:
         headers = f['header']
         request.session['MRI_pixelspacing_' + WindowNo] = float(pydicom.dataset.Dataset.from_json(headers[0]).PixelSpacing[0])
-        if SeriesIDText[0]=='1':
-            delta_Z = (abs(float(pydicom.dataset.Dataset.from_json(headers[1]).ImagePositionPatient[2])-float(pydicom.dataset.Dataset.from_json(headers[2]).ImagePositionPatient[2])))
-        elif SeriesIDText[0]=='2':
-            delta_Z = (abs(float(pydicom.dataset.Dataset.from_json(headers[1]).ImagePositionPatient[1])-float(pydicom.dataset.Dataset.from_json(headers[2]).ImagePositionPatient[1])))
-        elif SeriesIDText[0]=='3':
-            delta_Z = (abs(float(pydicom.dataset.Dataset.from_json(headers[1]).ImagePositionPatient[0])-float(pydicom.dataset.Dataset.from_json(headers[2]).ImagePositionPatient[0])))
 
-        request.session['MRI_delta_Z_' + WindowNo] = delta_Z
         request.session['MRI_slicethickness_' + WindowNo] = float(pydicom.dataset.Dataset.from_json(headers[1]).SliceThickness)
         MRIWC = []
         MRIWW = []
@@ -1005,7 +1008,6 @@ def insertAnnotationFactor(request):
     insert_query = '''insert into annotationFactor (a_id,factor,detail) values(%s,%s,%s)'''
     cursor = connections['AIC'].cursor()
     for perFactor, perDetail in zip(factor,detail):
-        print(a_id,perFactor,perDetail)
         cursor.execute(insert_query,[a_id,perFactor,perDetail])
     return JsonResponse({})
 
@@ -1239,8 +1241,6 @@ def findLocalMax(request):
     Category = request.session.get('Category_' + ind)
     x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,Category)
 
-    print(x,' ', y,' ', z)
-
     return JsonResponse({'x': x, 'y': y, 'z': z, 'maxValue': maxValue})
 
 
@@ -1357,7 +1357,6 @@ def TextReport(request):
     #         left join medTypeSet as c on a.medType=c.medType
     #         where (b.descriptionType>2 or b.descriptionType is null)and a.chartNo=%s
     #         ) as a where a.eventDate<=%s"""
-    print(pid,MedExecTime)
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]
     return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
@@ -1430,11 +1429,10 @@ def PatientImageInfo(request):
     PID = request.POST.get('PID')
 
     query = ''' 
-    select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
-    select b.chartNo,a.studyID,a.category,a.eventDate,a.seriesID,a.sliceNo,a.seriesDes
-    ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_6
-    as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
-    as a　order by a.eventDate ASC,v2 ASC,v1 ASC
+        select a.chartNo,a.studyID,a.category,a.studyDate,
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        inner join examSeries as b on a.storageID=b.storageID
+        where chartNo=%s
             '''
     # select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
     # select b.chartNo,a.studyID,a.category,a.eventDate,a.seriesID,a.sliceNo,a.seriesDes
@@ -1442,7 +1440,7 @@ def PatientImageInfo(request):
     # as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
     # as a　order by a.eventDate ASC,v2 ASC,v1 ASC
 
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     cursor.execute(query, [PID])
     res = cursor.fetchall()
     ChartNo = []
@@ -1453,11 +1451,11 @@ def PatientImageInfo(request):
     SliceNo = []
     note = []
     SeriesDes=[]
-    
+    viewplane = []
     for i in range(len(res)):
         
         PID,MedExecTime,StudyIDText,SeriesIDText = res[i][0],res[i][3],res[i][1],res[i][4]
-        print(PID,' ',MedExecTime,' ',StudyIDText,' ',SeriesIDText)
+        
         filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
         if platform.system()!='Windows':
             fileDir = os.path.join('/home','user','netapp',filePath)
@@ -1476,20 +1474,9 @@ def PatientImageInfo(request):
             ExecDate.append(res[i][3])
             SeriesID.append(res[i][4])
             SliceNo.append(res[i][5])
-
-            if res[i][2]=='MRI':
-                if res[i][4][0]=='1':
-                    note.append('Axial')
-                elif res[i][4][0] =='2':
-                    note.append('Coronal')
-                elif res[i][4][0] =='3':
-                    note.append('Sagittal')
-                else:
-                    note.append('')
-            else:
-                note.append('')
-
+            note.append(res[i][6])
             SeriesDes.append(res[i][6])
+            viewplane.append(res[i][7])
     return JsonResponse({'ChartNo': ChartNo,
                          'StudyID': StudyID,
                          'StudyDes': StudyDes,
@@ -1497,7 +1484,8 @@ def PatientImageInfo(request):
                          'SeriesID': SeriesID,
                          'SliceNo': SliceNo,
                          'note':note,
-                         'SeriesDes':SeriesDes
+                         'SeriesDes':SeriesDes,
+                         'viewplane':viewplane
                          })
 
 
@@ -1738,7 +1726,6 @@ def getusers(request):
 @csrf_exempt
 def getAnnotationFactor(request):
     a_id = request.POST.get('a_id')
-    print(a_id)
     cursor = connections['AIC'].cursor()
     query='''select f_id, factor, detail from annotationFactor where a_id=%s'''
     cursor.execute(query,[a_id])
@@ -1759,7 +1746,6 @@ def getAnnotationFactor(request):
 def updateDrConfirm(request):
     id = request.POST.get('id')
     doctor_confirm = request.POST.get('doctor_confirm')
-    print(id,' ',doctor_confirm)
     query='''update annotation set doctor_confirm=%s where id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[doctor_confirm,id])

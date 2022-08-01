@@ -186,7 +186,7 @@
     .feedback-label, .form { transition: all 0.35s ease-in-out; }
     .form{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
 
-    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #8e8fef; --border-radius: 10px; --imagewidth: 600px; --form-mob-width: 420px; }
+    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #8e8fef; --border-radius: 10px; --imagewidth: 400px; --form-mob-width: 420px; }
     #Imagecheckbox { position: absolute; left: -9999px; }
     .Image-label{ position: fixed; top: 160px; left: 0px;}
     .Imageform { position: fixed; top: 50%; left: 0px;}
@@ -202,6 +202,8 @@
     .Imageform{overflow-x: hidden;-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
     #ImageReport{margin-top: 5px;margin-left: 5px;width: calc(100% - 10px)}
     .container{background:url("{% static 'image/texture.png' %}");padding: 5px;margin-bottom: 5px;background-color: whitesmoke;border-radius: 5px;box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2)}
+    .container th {width:30%}
+    .container-control {width:100%;margin-left:20px}
     .row{padding-top: 10px;height: 30px}
     .col{font-weight: bold;text-align: center}
     
@@ -424,6 +426,9 @@
         width:calc(10% + 300px);
     }
     .modal-dialog{width:100%}
+    .table-Light{font-weight: bold}
+    .container table tr td{font-weight: bold;}
+    .container table tr th{font-weight: bold;}
 </style>
 
 
@@ -509,13 +514,14 @@
         }else{
             var Con=[]
             for(var i =0;i<win_num;i++) {
-                Con.push($('.StudyDes').eq(i).text()+'_'+$('.StudyID').eq(i).text()+'_'+$('.StudyDate').eq(i).text()+'_'+$('.SeriesID').eq(i).text()[1])
+                Con.push($('.StudyDes').eq(i).text()+'_'+$('.StudyID').eq(i).text()+'_'+$('.StudyDate').eq(i).text())
             }
+            
             for(var i =0;i<win_num;i++) {
                 if(Con[i]==Con[window_sno-1]){
                     var ind=i+1
                     if(ind!=window_sno){
-                        if($('.SeriesID').eq(i).text()[0]==$('.SeriesID').eq(window_sno-1).text()[0]){
+                        if($('.viewplane').eq(i).text()==$('.viewplane').eq(window_sno-1).text()){
                             $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
                             
                             let height = Math.floor($('#frame'+ind).children('label').children('.slider').height());
@@ -716,7 +722,7 @@
             $('#MRI_tool').css('background','url("{% static 'image/texture.png' %}")');
             $('#MRI_tool').css('background-color','rgba(255,255,255,0.7)')
             $('#RT_Contour').css('display','none')
-        }else if(Des=='RTPLAN'){
+        }else if(Des=='RT'){
             $('#viewPlane').prop('disabled',false);
             $('#Mode').prop('disabled',true);
             $('#RT_Contour').css('display','inline-block')
@@ -752,7 +758,7 @@
 
         var StudyDes = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text()
         //console.log($("[name='group1']:checked").next("label").children('div').children('div').children('.series').text())
-        if(StudyDes=='RTPLAN'){
+        if(StudyDes=='RT'){
             $.ajax({
                 type: 'post',
                 url: "{% url 'DICOM:RT_change' %}", // this is the mapping between the url and view
@@ -866,7 +872,7 @@
         if(StudyDes=='PET'){
             var WC = $("#frame"+name.toString()).children('label').children('div').children('div').children('.PETWC').text()
             var WW = $("#frame"+name.toString()).children('label').children('div').children('div').children('.PETWW').text()
-        }else if(StudyDes=='RTPLAN'){
+        }else if(StudyDes=='RT'){
             var WC = $("#frame"+name.toString()).children('label').children('div').children('div').children('.CTWC').text()
             var WW = $("#frame"+name.toString()).children('label').children('div').children('div').children('.CTWW').text()
         }else if(StudyDes=='CT'){
@@ -1162,11 +1168,16 @@
         DrawWithMouse(lx,ly,lz,name)
     }
     function window_load(){
-        var ExecDate = $(event.target).parents('.col').parents('.row').prevAll('.row2').children('.ImageExecDate').html()
-        StudyDes = $(event.target).parents('.col').parents('.row').prevAll('.row2').children('.ImageStudyDes').html().replaceAll(' ','')
-        var StudyID = $(event.target).parents('.col').parents('.row').prevAll('.row2').children('.ImageStudyID').html()
-        var SeriesID = $(event.target).parents('.col').parents('.row').prevAll('.row2').children('.ImageSeriesID').html()
-        var SeriesDes = $(event.target).parents('.col').parents('.row').prevAll('.row2').children('.ImageSeriesDes').html()
+        let imageInfo = $(event.target).parents('.container-control').prevAll('.table').children('tbody').children('tr')
+        var ExecDate = imageInfo.eq(0).children('td').html()
+
+        StudyDes = imageInfo.eq(1).children('td').html().replaceAll(' ','')
+       
+        var StudyID = imageInfo.eq(2).children('td').html()
+        var SeriesID = imageInfo.eq(3).children('td').html()
+        var SeriesDes = imageInfo.eq(6).children('td').html()
+        var viewplane = imageInfo.eq(7).children('td').html()
+        var sliceNum = imageInfo.eq(5).children('td').html()
         var PID = $('#PIDText').text()
         var WindowNo = $(event.target).attr('name')
 
@@ -1190,21 +1201,25 @@
         $('#frame'+WindowNo).children('label').children('.main').children('div').children('.SeriesID').text(SeriesID)
         $('#frame'+WindowNo).children('label').children('.main').children('div').children('.SeriesDes').text(SeriesDes)
         $('#frame'+WindowNo).children('label').children('.main').children('div').children('.StudyDes').text(StudyDes)
-        
+        $('#frame'+WindowNo).children('label').children('.main').children('div').children('.viewplane').text(viewplane)
         $('#frame'+WindowNo).children('label').children('.slider').css('display','none');
         $('#frame'+WindowNo).children('label').children('.main').children('.loader').css('display','inline')
         $('#frame'+WindowNo).children("label").children('div').children('div').children('img').css('display','none')
         $('.loader').css('top',$("#frame1").height()/2)
         
+        $("#frame"+WindowNo).children('label').children('.slider').children('div').css('height',sliceNum*100+'%')
+        $('#frame'+WindowNo).children('label').children('.slider').scrollTop(0)
+        $('#frame'+WindowNo).children('label').children('div').children('div').children('.variable').text(1+'/'+sliceNum)
+
         if(StudyDes=='PET'){
             loadDICOMurlname="{% url 'DICOM:load_DICOM' %}"
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.StudyDes').text('PET')
             $("#frame"+WindowNo).children('label').children('div').children('div').children('.mode').text('Fusion')
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax').text(true)
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax_disable').text(false)
-        }else if(StudyDes=='RTPLAN'){
+        }else if(StudyDes=='RT'){
             loadDICOMurlname="{% url 'DICOM:load_RT_DICOM' %}"
-            $('#frame'+WindowNo).children('label').children('div').children('div').children('.StudyDes').text('RTPLAN')
+            $('#frame'+WindowNo).children('label').children('div').children('div').children('.StudyDes').text('RT')
             $("#frame"+WindowNo).children('label').children('div').children('div').children('.mode').text('CT')
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax').text(false)
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax_disable').text(true)
@@ -1221,6 +1236,7 @@
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax').text(false)
             $('#frame'+WindowNo).children('label').children('div').children('div').children('.LocalMax_disable').text(true)
         }
+        console.log(StudyDes,WindowNo,root,PID,ExecDate,StudyID,SeriesID)
         $.ajax({
             type: 'post',
             url: loadDICOMurlname, // this is the mapping between the url and view
@@ -1236,7 +1252,7 @@
             },
             success:function (response) {
                 $('#RT_Contour').empty()
-                if(StudyDes=='RTPLAN'){
+                if(StudyDes=='RT'){
                     $.ajax({
                         type: 'post',
                         url: '{% url "DICOM:ROIname" %}', // this is the mapping between the url and view
@@ -1309,10 +1325,7 @@
                     success: function(response) {
                         $('#frame'+name.toString()).children('label').children('.main').children('div').children('.thickness').text(response.thickness+'mm')
                         $("#frame"+name.toString()).children("label").children('div').children('div').children('img').attr('src',response.dicom_url);
-                        z=response.z
-                        $("#frame"+name.toString()).children('label').children('.slider').children('div').css('height',z*100+'%')
-                        $('#frame'+name.toString()).children('label').children('.slider').scrollTop(0)
-                        $('#frame'+name.toString()).children('label').children('div').children('div').children('.variable').text(1+'/'+z)
+
                         mouseover()
                         
                     },
@@ -1511,7 +1524,6 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function(response) {
-
                 selectLocation()
             },
         });
@@ -1878,6 +1890,7 @@
         StudyIDText=$('#StudyIDText').text()
         SeriesIDText=$('#SeriesIDText').text()
         SeriesDesText=$('#SeriesDesText').text()
+        viewplaneText=$('#viewplaneText').text()
         getuser()
         $(document).keydown(function(event) {
             if (event.ctrlKey==true && (event.which == '61' || event.which == '107' || event.which == '173' || event.which == '109'  || event.which == '187'  || event.which == '189'  ) ) {
@@ -1928,42 +1941,70 @@
                             }else{
                                 check=''
                             }
-                            $('#ImageReport').append('' +
-                                '<tr>' +
-                                    '<td>' +
-                                        '<div class="container">' +
-                                            '<div class="row row1" style="text-align: center;margin-bottom: -1px;margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
-                                                '<div class="col-3">檢查日期</div>'+
-                                                '<div class="col">項目</div>'+
-                                                '<div class="col">StudyID</div>'+
-                                                '<div class="col">SeriesID</div>'+
-                                                '<div class="col">note</div>'+
-                                                '<div class="col">張數</div>'+
-                                            '</div>'+
-                                            '<div class="row row2" style="margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
-                                                '<div class="col-3 ImageExecDate">'+response.ExecDate[i]+'</div>'+
-                                                '<div class="col ImageStudyDes">'+response.StudyDes[i]+'</div>'+
-                                                '<div class="col ImageStudyID">'+response.StudyID[i]+'</div>'+
-                                                '<div class="col ImageSeriesID">'+response.SeriesID[i]+'</div>'+
-                                                '<div class="col ImageSeriesDes" style="display:none">'+response.SeriesDes[i]+'</div>'+
-                                                '<div class="col Imagenote">'+response.note[i]+'</div>'+
-                                                '<div class="col ImageSliceNo">'+response.SliceNo[i]+'</div>'+
-                                            '</div>'+
-                                            '<div class="row row3" >' +
-                                                '<div class="col"><p class="window">window1</p></div>'+
-                                                '<div class="col"><p class="window">window2</p></div>'+
-                                                '<div class="col"><p class="window">window3</p></div>'+
-                                                '<div class="col"><p class="window">window4</p></div>'+
-                                            '</div>'+
-                                            '<div class="row row4" >' +
-                                                '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" '+check+'></div></div>'+
-                                                '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></div>'+
-                                                '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></div>'+
-                                                '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></div>'+
-                                            '</div>'+
-                                        '</div>'+
-                                    '</td>'+
-                                '</tr>')
+                            //$('#ImageReport').append('' +
+                            //    '<tr>' +
+                            //        '<td>' +
+                            //            '<div class="container">' +
+                            //                '<div class="row row1" style="text-align: center;margin-bottom: -1px;margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
+                            //                    '<div class="col-3">檢查日期</div>'+
+                            //                    '<div class="col">項目</div>'+
+                            //                    '<div class="col">StudyID</div>'+
+                            //                    '<div class="col">SeriesID</div>'+
+                            //                    '<div class="col">note</div>'+
+                            //                    '<div class="col">張數</div>'+
+                            //                '</div>'+
+                            //                
+                            //                '<div class="row row2" style="margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
+                            //                    '<div class="col-3 ImageExecDate">'+response.ExecDate[i]+'</div>'+
+                            //                    '<div class="col ImageStudyDes">'+response.StudyDes[i]+'</div>'+
+                            //                    '<div class="col ImageStudyID">'+response.StudyID[i]+'</div>'+
+                            //                    '<div class="col ImageSeriesID">'+response.SeriesID[i]+'</div>'+
+                            //                    '<div class="col ImageSeriesDes" style="display:none">'+response.SeriesDes[i]+'</div>'+
+                            //                    '<div class="col ImageViewplane" style="display:none">'+response.viewplane[i]+'</div>'+
+                            //                    '<div class="col Imagenote">'+response.note[i]+'</div>'+
+                            //                    '<div class="col ImageSliceNo">'+response.SliceNo[i]+'</div>'+
+                            //                '</div>'+
+                            //                '<div class="row row3" >' +
+                            //                    '<div class="col"><p class="window">window1</p></div>'+
+                            //                    '<div class="col"><p class="window">window2</p></div>'+
+                            //                    '<div class="col"><p class="window">window3</p></div>'+
+                            //                    '<div class="col"><p class="window">window4</p></div>'+
+                            //                '</div>'+
+                            //                '<div class="row row4" >' +
+                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" '+check+'></div></div>'+
+                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></div>'+
+                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></div>'+
+                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></div>'+
+                            //                '</div>'+
+                            //            '</div>'+
+                            //        '</td>'+
+                            //    '</tr>')
+                            $('#ImageReport').append(`
+                            <tr>
+                                <td>
+                                    <div class="container">
+                                    <table class="table table-Light table-striped" >
+                                        <tr><th>檢查日期</th><td class="ImageExecDate">${response.ExecDate[i]}</td></tr>
+                                        <tr><th>項目</th><td class="ImageStudyDes">${response.StudyDes[i]}</td></tr>
+                                        <tr><th>StudyID</th><td class="ImageStudyID">${response.StudyID[i]}</td></tr>
+                                        <tr><th>SeriesID</th><td class="ImageSeriesID">${response.SeriesID[i]}</td></tr>
+                                        <tr><th>note</th><td class="Imagenote">${response.note[i]}</td></tr>
+                                        <tr><th>張數</th><td class="ImageSliceNo">${response.SliceNo[i]}</td></tr>
+                                        <tr style="display:none"><th></th><td class="ImageSeriesDes">${response.SeriesDes[i]}</td></tr>
+                                        <tr style="display:none"><th></th><td class="ImageViewplane">${response.viewplane[i]}</td></tr>
+                                    </table>
+                                    <table class="container-control" id="a">
+                                        <tr>
+                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" ${check}></div></td>
+                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></td>
+                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></td>
+                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                </td>
+                            </tr>
+                            `)
                         }
 
 
@@ -1982,7 +2023,7 @@
                         }
                     }
                 })
-        
+                
                 if(Item=='PET'){
                     loadDICOMurlname="{% url 'DICOM:load_DICOM' %}"
                     $('#Mode').val('Fusion')
@@ -1995,7 +2036,7 @@
                     $("#frame1").children('label').children('div').children('div').children('.mode').text('CT')
                     $('#frame1').children('label').children('div').children('div').children('.LocalMax').text(false)
                     $('#frame1').children('label').children('div').children('div').children('.LocalMax_disable').text(true)
-                }else if(Item=='RTPLAN') {
+                }else if(Item=='RT') {
                     loadDICOMurlname="{% url 'DICOM:load_RT_DICOM' %}"
                     $('#Mode').val('CT')
                     $("#frame1").children('label').children('div').children('div').children('.mode').text('CT')
@@ -2015,6 +2056,7 @@
                     $('#frame1').children('label').children('div').children('div').children('.LocalMax_disable').text(true)
                 }
                 $('#frame1').children('label').children('div').children('div').children('.StudyDes').text(Item)
+                
                 root='D:'
                 $.ajax({
                     type: 'post',
@@ -2065,16 +2107,13 @@
                                     $("#frame1").children('label').children('div').children('div').children('.WC').text('WC: '+response.MRIWC[0])
                                     $("#frame1").children('label').children('div').children('div').children('.WW').text('WC: '+response.MRIWW[0])
                                 }
-                                $('#frame1').children('label').children('div').children('div').children('.StudyID').text(
-                                    $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageStudyID').html()
-                                )
+                                $('#frame1').children('label').children('div').children('div').children('.StudyID').text(StudyIDText)
                                 
-                                $('#frame1').children('label').children('div').children('div').children('.SeriesID').text(
-                                    $('input[name="1"]:checked').parents('.col').parents('.row4').prevAll('.row2').children('.ImageSeriesID').html()
-                                )
+                                $('#frame1').children('label').children('div').children('div').children('.SeriesID').text(SeriesIDText)
                                 $('#frame1').children('label').children('.main').children('div').children('.StudyDate').text(MedExecTime)
 
                                 $('#frame1').children('label').children('.main').children('div').children('.SeriesDes').text(SeriesDesText)
+                                $('#frame1').children('label').children('.main').children('div').children('.viewplane').text(viewplaneText)
                                 //alert($("#frame1").children('label').children('div').children('div').children('.StudyDate').text()+$("#frame1").children('label').children('div').children('div').children('.StudyID').text()+$("#frame1").children('label').children('div').children('div').children('.SeriesID').text())
                                 $.ajax({
                                     type: 'post',
@@ -2130,7 +2169,7 @@
                                         selectLocation()
                                         $('#RT_Contour').empty()
                                         
-                                        if(Item=='RTPLAN'){
+                                        if(Item=='RT'){
                                             $.ajax({
                                                 type: 'post',
                                                 url: '{% url "DICOM:ROIname" %}', // this is the mapping between the url and view
@@ -2806,6 +2845,8 @@
                             <p class="PID" style="">{{ PID }}</p>
                             <p class="LocalMax" style=""></p>
                             <p class="LocalMax_disable" style=""></p>
+                            <p class="viewplane" style=""></p>
+                            
                         </div>
 
                     </div>
@@ -2856,6 +2897,7 @@
                             <p class="PID" style="">{{ PID }}</p>
                             <p class="LocalMax" style=""></p>
                             <p class="LocalMax_disable" style=""></p>
+                            <p class="viewplane" style=""></p>
                         </div>
                     </div>
                     <div class='slider demoScroll sc1 s2'  onscroll="ajax2(event)" style="border: 1px #000000;margin: 0%;
@@ -2906,6 +2948,7 @@
                             <p class="PID" style="">{{ PID }}</p>
                             <p class="LocalMax" style=""></p>
                             <p class="LocalMax_disable" style=""></p>
+                            <p class="viewplane" style=""></p>
                         </div>
                     </div>
                     <div class='slider demoScroll sc1 s3'  onscroll="ajax3(event)" style="border: 1px #000000;margin: 0%;
@@ -2954,6 +2997,7 @@
                             <p class="PID" style="">{{ PID }}</p>
                             <p class="LocalMax" style=""></p>
                             <p class="LocalMax_disable" style=""></p>
+                            <p class="viewplane" style=""></p>
                         </div>
                     </div>
                     <div class='slider demoScroll sc1 s4'  onscroll="ajax4(event)" style="border: 1px #000000;margin: 0%;
@@ -3086,6 +3130,7 @@
         <p id="MedExecTimeText">{{ MedExecTime }}</p>
         <p id="ItemText">{{ Item }}</p>
         <p id="SeriesDesText"> {{ SeriesDes }} </p>
+        <p id="viewplaneText"> {{ viewplane }} </p>
         <p id="DiseaseText">{{Disease}}</p>
         <textarea id="T1" readonly></textarea>
         <textarea id="T2" readonly></textarea>
