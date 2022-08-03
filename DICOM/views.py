@@ -1390,13 +1390,14 @@ def cancer(request):
 
 @csrf_exempt
 def LabelGroup(request):
+    subjectID = request.POST.get('SubjectID')
     query = '''
             select SeqNo as 'GroupID',LabelGroup
             from SubjectLabelGroup 
-            where SubjectID=''' + str(request.POST.get('SubjectID')) + ''' group by SeqNo,LabelGroup
+            where SubjectID=%s group by SeqNo,LabelGroup
             '''
     cursor = connections['AIC'].cursor()
-    cursor.execute(query)
+    cursor.execute(query,[subjectID])
     GroupID = []
     LabelGroup = []
     res = cursor.fetchall()

@@ -1482,16 +1482,28 @@
     }
 
     function menu(pannel,menu,useRadio=true){
+        var window_height = $(window).height()
+        var window_width = $(window).width()
         if(useRadio){
             $(`#${pannel}`).on('mousedown','td',function(d){
                 $(this).children('input[type="radio"]').prop('checked',true)
                 showReport()
                 if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
-                    
                     var x = d.originalEvent.x || d.originalEvent.layerX || 0;
                     var y = d.originalEvent.y || d.originalEvent.layerY || 0;
-                    $(`#${menu}`).css('left', x);
-                    $(`#${menu}`).css('top', y);
+                    let menu_height = parseInt($(`#${menu}`).css('height').split('px')[0])
+                    let menu_width = parseInt($(`#${menu}`).css('width').split('px')[0])
+                    if((menu_width+x)>window_width){
+                        $(`#${menu}`).css('left', x - menu_width)
+                    }else{
+                        $(`#${menu}`).css('left', x);
+                    }
+                    if((menu_height+y)>window_height){
+                        $(`#${menu}`).css('top', y-menu_height)
+                    }else{
+                        $(`#${menu}`).css('top', y);
+                    }
+                    
                     $(".customMenu").css('display', 'none');
                     $(".customMenu").css('z-index', '100');
                     $(`#${menu}`).css('display', 'inline');
@@ -1521,8 +1533,18 @@
                 if(d.which == 3){  // 1 = 滑鼠左鍵; 2 = 滑鼠中鍵; 3 = 滑鼠右鍵
                     var x = d.originalEvent.x || d.originalEvent.layerX || 0;
                     var y = d.originalEvent.y || d.originalEvent.layerY || 0;
-                    $(`#${menu}`).css('left', x);
-                    $(`#${menu}`).css('top', y);
+                    let menu_height = parseInt($(`#${menu}`).css('height').split('px')[0])
+                    let menu_width = parseInt($(`#${menu}`).css('width').split('px')[0])
+                    if((menu_width+x)>window_width){
+                        $(`#${menu}`).css('left', x - menu_width)
+                    }else{
+                        $(`#${menu}`).css('left', x);
+                    }
+                    if((menu_height+y)>window_height){
+                        $(`#${menu}`).css('top', y-menu_height)
+                    }else{
+                        $(`#${menu}`).css('top', y);
+                    }
                     $(".customMenu").css('display', 'none');
                     $(".customMenu").css('z-index', '100');
                     $(`#${menu}`).css('display', 'inline');
@@ -1835,7 +1857,7 @@
         if(window==1){
             data_form = [0]
         }else{
-            data_form = [1]
+            data_form = [0,1]
         }
 
         for(let j=0;j<data_form.length;j++){
@@ -1973,7 +1995,10 @@
         $('#extractedFactor2').css('display','none')
         $('#extractFactorMenu').css('display','none')
         $('#extractedFactor2 .formVersion').empty()
-        getCurrentEventProcedure()
+        if($('input[name="timePID"]').is(':checked')){
+            getCurrentEventProcedure()
+        }
+        
     }
 
     function twowindow(){
@@ -1981,6 +2006,7 @@
         let nWindow = $('#extractedFactor').attr('data-window')
         let select = $('#extractedFactor .ascriptionHeader .form-select').map(function(){return $(this).css('width')}).get()
         let half = 45.5/2 
+
         if(nWindow==1){
             $('#extractedFactor').css('width',`calc(${half}% - 100px)`)
             $('#extractedFactor').attr('data-window',2)
@@ -1988,7 +2014,9 @@
         }
         $('#extractedFactor2').css('display','inline')
         $('#extractFactorMenu').css('display','none')
-        getCurrentEventProcedure()
+        if($('input[name="timePID"]').is(':checked')){
+            getCurrentEventProcedure()
+        }
     }
 
     function addTTP(){
