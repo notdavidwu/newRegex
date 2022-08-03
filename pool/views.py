@@ -21,17 +21,32 @@ def pool(request):
 @csrf_exempt
 def Disease(request):
     cursor = connections['practiceDB'].cursor()
-    au = '%' if (str(request.POST.get('username')) == 'AIC') else  request.POST.get('username')+'%'
-    print(request.user.is_superuser)
+    query = '''select * from diseasetList order by diseaseID'''
+    cursor.execute(query,[])
+    diseaseNo = []
+    diseaseName = []
+    res = cursor.fetchall()
+    for i in range(len(res)):
+        diseaseNo.append(res[i][0])
+        diseaseName.append(res[i][1])
+    return JsonResponse({'diseaseNo': diseaseNo,'diseaseName': diseaseName})
+
+
+
+@csrf_exempt
+def topic(request):
+    cursor = connections['practiceDB'].cursor()
+    au = request.POST.get('username')
+    diseaseNo = request.POST.get('diseaseNo')
     if request.user.is_superuser:
-        query = '''SELECT topicNo,topicName FROM [researchTopic]'''
-        cursor.execute(query,[])
+        query = '''SELECT topicNo,topicName FROM [researchTopic] where diseaseID=%s order by topicNo'''
+        cursor.execute(query,[diseaseNo])
     else:
         query = '''select distinct b.* from Django.dbo.auth_disease as a
                 inner join researchTopic as b on a.disease=b.topicNo
-                where username like %s 
+                where username = %s and diseaseID=%s order by topicNo
                 '''
-        cursor.execute(query,[au])
+        cursor.execute(query,[au,diseaseNo])
     
     topicNo = []
     topicName = []
@@ -39,7 +54,7 @@ def Disease(request):
     for i in range(len(res)):
         topicNo.append(res[i][0])
         topicName.append(res[i][1])
-    print(topicName)
+
     return JsonResponse({'topicNo': topicNo,'topicName': topicName})
 
 
@@ -51,7 +66,7 @@ def getPreviousAction(request):
     return JsonResponse({'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
 def SQL(cursor,filter,hospital,Disease,username):
-    print(hospital,Disease,username)
+
     if filter=='0':
         query = f"""
             select * from correlationPatientDisease as a
@@ -89,15 +104,15 @@ def SQL(cursor,filter,hospital,Disease,username):
     return cursor
 @csrf_exempt
 def SubjectPatientList(request):
-    Disease=request.POST.get('Disease')
+    topic=request.POST.get('topic')
     filter=request.POST.get('filter')
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))
-    request.session['diseaseCode']=Disease
+    request.session['diseaseCode']=topic
     request.session['filter']=filter
     PID_previous_select = str(request.session.get('PID',0))
     cursor = connections['practiceDB'].cursor()
-    cursor = SQL(cursor,filter,hospital,Disease,username)
+    cursor = SQL(cursor,filter,hospital,topic,username)
     sno=[]
     PatientListID=[]
     res = cursor.fetchall()
@@ -121,33 +136,34 @@ def SubjectPatientList(request):
 
 @csrf_exempt
 def Patient_num(request):
-    Disease=request.POST.get('Disease')
+    topicNo=request.POST.get('topic')
     username=request.POST.get('username')
     hospital=str(request.POST.get('hospital'))+'%'
     cursor = connections['practiceDB'].cursor()
-    query = f"""
+    print(topicNo,username)
+    query = """
         select count(distinct a.chartNo),'1' AS seq
         from correlationPatientDisease as a 
             inner join allEvents as f on a.chartNo=f.chartNo
             inner join examStudy as g on f.eventID=g.eventID
-            where a.diseaseNo={Disease} and hospitalID like '0'
+            where a.diseaseNo=%s and hospitalID like '0'
         UNION
         select count(chartNo) ,'2' AS seq from (
             select *,ISNULL(annotation_chartNo,0) as checked from (
                 select distinct　c.chartNo from(
                     select distinct　b.chartNo from examStudy as a inner join allEvents as b on a.eventID=b.eventID where hospitalID like '0'
-                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo={Disease}
+                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
                 ) as all_list
                 left outer join (
-                    select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo={Disease} and username='{username}'
+                    select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo=%s and username=%s
                 ) as located on all_list.chartNo=located.annotation_chartNo 
             ) as list
         where checked=0
         UNION
-        select count(distinct chartNo) ,'3' AS seq from AIC.dbo.annotation_new where topicNo={Disease} and username='{username}'
+        select count(distinct chartNo) ,'3' AS seq from AIC.dbo.annotation_new where topicNo=%s and username=%s
         ORDER BY seq ASC
     """
-    cursor.execute(query)
+    cursor.execute(query,[topicNo,topicNo,topicNo,username,topicNo,username])
     res = cursor.fetchall()
     all = res[0][0]
     unlabeled = res[1][0]
