@@ -1139,7 +1139,7 @@ def deleteLocation(request):
     query = '''delete from annotation_new where id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
-    query = '''delete from measureTumor where EventID=%s'''
+    query = '''delete from measureTumor where annotationID=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
     query = '''delete from annotationFactor where a_id=%s'''
