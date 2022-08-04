@@ -1282,16 +1282,40 @@ def TextReport(request):
     MedExecTime= request.session.get('MedExecTime', 0)
     pid = request.POST.get('PID')
     image_type = request.POST.get('image_type')
+    print('get_report')
     query = '''
-    select TypeName,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText)　as ind from allEvents as a 
-    inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　
+    declare @chartNo int
+    set @chartNo= %s
+    select * ,ROW_NUMBER()　over(order by eventDate DESC,reportText)　as ind from(
+        select distinct result.typeName ,result.eventDate, (
+            select '--------------------------- \n '+
+                'DescriptionType:'+cast(c.descriptionType AS VARCHAR(max) )+
+                ' \n ---------------------------  \n '+cast(c.reportText AS VARCHAR(max) ) + ' \n  \n  \n '
+            from allEvents as a
+            inner join medTypeSet as b on a.medType=b.medType
+            left join eventDetails as c on a.eventID=c.eventID
+            where a.chartNo=@chartNo 
+            and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null) 
+            and a.orderNo = result.orderNo 
+            FOR XML PATH('')
+            ) as reportText
+                
+        from(
+            select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,a.eventID,a.eventChecked,a.note,c.descriptionType,c.reportText
+            from allEvents as a
+            inner join medTypeSet as b on a.medType=b.medType
+            left join eventDetails as c on a.eventID=c.eventID
+            where a.chartNo=@chartNo 
+            and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
+        ) as result where result.medType<30000 
+    ) as final
     '''
     # select c.typeName,a.eventDate,b.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText)　as ind 
 	# from allEvents as a
 	# left join eventDetails as b on a.eventID=b.eventID
 	# left join medTypeSet as c on a.medType=c.medType
 	# where (b.descriptionType>2 or b.descriptionType is null)and a.chartNo=%s
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[pid])
     sn = []
     examItem = []
@@ -1305,34 +1329,50 @@ def TextReport(request):
         examReport.append(exam[i][2])
         sn.append(exam[i][3])
     
+    print('find_index')
+    query_find_index = """
+    declare @chartNo int, @eventDate datetime
+    set @chartNo= %s
+    set @eventDate=%s  + ' 23:59:59 '
+    select top 1 ind from (
+        select * ,ROW_NUMBER()　over(order by eventDate DESC,reportText)　as ind from(
+            select distinct result.typeName ,result.eventDate,result.medType ,(
+                select '--------------------------- &#13;'+
+                'DescriptionType:'+cast(c.descriptionType AS VARCHAR(max) )+
+                '&#13--------------------------- &#13;'+cast(c.reportText AS VARCHAR(max) ) + '&#13;&#13;&#13; '
+                from allEvents as a
+                inner join medTypeSet as b on a.medType=b.medType
+                left join eventDetails as c on a.eventID=c.eventID
+                where a.chartNo=@chartNo 
+                and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null) 
+                and a.orderNo = result.orderNo 
+                FOR XML PATH('')
+                ) as reportText
+                    
+            from(
+                select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,a.eventID,a.eventChecked,a.note,c.descriptionType,c.reportText
+                from allEvents as a
+                inner join medTypeSet as b on a.medType=b.medType
+                left join eventDetails as c on a.eventID=c.eventID
+                where a.chartNo=@chartNo 
+                and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
+            ) as result where result.medType<30000 
+        ) as final
+    ) as a where a.eventDate<=@eventDate
+    """
+
+
     if image_type=='PET':
         medType='(3570,3579)'
-        query_find_index = """
-        select top 1 ind from(
-        select a.medType,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText) as ind from allEvents as a 
-        inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　 　
-        ) as a where  a.eventDate<=%s　and a.medType in """+medType
+        query_find_index += f''' and a.medType in {medType} '''
     elif image_type=='CT':
         medType='(3030,3031,3032,3036,3037,3038,3039)'
-        query_find_index = """
-        select top 1 ind from(
-        select a.medType,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText) as ind from allEvents as a 
-        inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　 　
-        ) as a where  a.eventDate<=%s and a.medType in """+medType
+        query_find_index += f''' and a.medType in {medType} '''
     elif image_type=='MRI':
         medType='(3040,3041,3042,3047,3048,3049)'
-        query_find_index = """
-        select top 1 ind from(
-        select a.medType,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText) as ind from allEvents as a 
-        inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　 　
-        ) as a where  a.eventDate<=%s　and a.medType in """+medType
-    else :
-        query_find_index = """
-        select top 1 ind from(
-        select a.medType,a.eventDate,a.reportText,ROW_NUMBER()　over(order by a.eventDate DESC,reportText) as ind from allEvents as a 
-        inner join medTypeSet as b on a.medType=b.MedType where chartNo=%s and medType <30000　 　
-        ) as a where  a.eventDate<=%s"""
+        query_find_index += f''' and a.medType in {medType} '''
 
+    print(query_find_index)
     # if image_type=='PET' or image_type=='CT' or image_type=='MRI':
     #     if image_type=='PET':
     #         medType='(3570,3579)'
@@ -1359,6 +1399,7 @@ def TextReport(request):
     #         ) as a where a.eventDate<=%s"""
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]
+    print(idx)
     return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
 
 

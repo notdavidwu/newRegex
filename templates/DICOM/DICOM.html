@@ -2070,7 +2070,7 @@
                         
                         for (var i = 0; i < response.examItem.length; i++) {
                             if(response.sn[i]==response.idx) {
-                                $('#T1').text(response.examDate[i]+'\n'+'\n'+response.examReport[i])
+                                $('#T1').html(response.examDate[i]+'\n'+'\n'+response.examReport[i])
                             }
                             $('#textReport').append(
                                     '<tr><td>' +
@@ -2082,6 +2082,7 @@
                                     '<input  type="checkbox" onclick="showReport()" name="Report" id=r' + i + '>' +
                                     '</td></tr>'
                             )
+                            $(`input[name="Report"][id="r${response.idx-1}"]`).prop('checked',true)
                         }
                     },
                     complete:function (){
