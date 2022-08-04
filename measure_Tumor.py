@@ -41,7 +41,7 @@ def measure_Tumor(img,pixelSpacing,sliceThickness,delta_Z):
     for i in range(1,len(contours)):
         temp = cp.vstack([contours[i]]*len(contours))
         distance_matrix_2 = cp.dstack((distance_matrix_2,temp))
-
+    print(distance_matrix_2)
     distance_matrix_1 = cp.dstack([contours]*len(contours))
     distance_matrix_1 = cp.transpose(distance_matrix_1,(2,0,1))
     distance_matrix_2 = cp.transpose(distance_matrix_2,(2,0,1))

@@ -1612,14 +1612,16 @@ def UNet(request):
         vol = np.array(h5py.File(img_path[0], "r")['vol'][(z-size):(z+size), (y-size):(y+size), (x-size):(x+size)])
         pad_x = np.repeat(np.array((pad_size - vol.shape[1]) / 2), 2).astype('int')
         pad_y = np.repeat(np.array((pad_size - vol.shape[2]) / 2), 2).astype('int')
-        vol = np.pad(vol, pad_width=((0, 0),pad_x, pad_y), mode='constant', constant_values=-2000)
-        vol = Window(vol, -550, 1600)
+        vol_ori = np.pad(vol, pad_width=((0, 0),pad_x, pad_y), mode='constant', constant_values=-2000)
+        vol = Window(vol_ori.copy(), -550, 1600)
         mask = model_UNet.predict(vol)
         predict = mask.argmax(axis=3)
 
         unet_tumor_path = os.path.join(saveFiledir,"Tumor_unet.h5")
         hf_tumor = h5py.File(unet_tumor_path, 'w') 
         hf_tumor.create_dataset('Tumor', data=predict)
+        hf_tumor.create_dataset('vol', data=vol_ori)
+
         #--------算體積--use cc3d------    
 
 
