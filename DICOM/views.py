@@ -1621,7 +1621,7 @@ def UNet(request):
         hf_tumor = h5py.File(unet_tumor_path, 'w') 
         hf_tumor.create_dataset('Tumor', data=predict)
         hf_tumor.create_dataset('vol', data=vol_ori)
-
+        hf_tumor.close()
         #--------算體積--use cc3d------    
 
 
