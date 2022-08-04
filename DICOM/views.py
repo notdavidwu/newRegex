@@ -311,9 +311,9 @@ def load_RT_DICOM(request):
     MedExecTime = request.POST.get('MedExecTime')
     StudyIDText = request.POST.get('StudyIDText')
     SeriesIDText = request.POST.get('SeriesIDText')
-    print(PID,MedExecTime,StudyIDText,SeriesIDText)
+
     filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
-    print(filePath)
+
     if platform.system()!='Windows':
         dir = os.path.join('/home','user','netapp',filePath)
     else:
@@ -327,12 +327,11 @@ def load_RT_DICOM(request):
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     SeriesIdIndex.update({str(WindowNo): (str(StudyIDText)+'_'+str(SeriesIDText))})
     request.session['SeriesIdIndex'] = SeriesIdIndex
-    
-    print(fileDir)
+
     fileExt = "*RTCT*.h5"
     tempPath = list(pathlib.Path(fileDir).glob(fileExt))
     paths = sorted([os.path.join(filename) for filename in tempPath])
-    print(paths)
+
     request.session['CT_view_' + WindowNo] = paths
     with h5py.File(list(filter(lambda path: 'Axial' in path, paths))[0], "r") as f:
         headers = f['header']
@@ -1282,7 +1281,7 @@ def TextReport(request):
     MedExecTime= request.session.get('MedExecTime', 0)
     pid = request.POST.get('PID')
     image_type = request.POST.get('image_type')
-    print('get_report')
+
     query = '''
     declare @chartNo int
     set @chartNo= %s
@@ -1329,7 +1328,7 @@ def TextReport(request):
         examReport.append(exam[i][2])
         sn.append(exam[i][3])
     
-    print('find_index')
+
     query_find_index = """
     declare @chartNo int, @eventDate datetime
     set @chartNo= %s
@@ -1372,7 +1371,7 @@ def TextReport(request):
         medType='(3040,3041,3042,3047,3048,3049)'
         query_find_index += f''' and a.medType in {medType} '''
 
-    print(query_find_index)
+
     # if image_type=='PET' or image_type=='CT' or image_type=='MRI':
     #     if image_type=='PET':
     #         medType='(3570,3579)'
@@ -1399,7 +1398,7 @@ def TextReport(request):
     #         ) as a where a.eventDate<=%s"""
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]
-    print(idx)
+
     return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
 
 
