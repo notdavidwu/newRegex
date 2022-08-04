@@ -1106,7 +1106,7 @@ def removeContourFile(request,PID,studyDate,studyID,seriesID,id):
         dir = os.path.join('/home','user','netapp',filePath,'segmentation',id)
     else:
         dir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath,'segmentation',id)
-        
+
     if os.path.isdir(dir):
         for ind in range(4):
             ind = str(ind)
@@ -1623,7 +1623,6 @@ def UNet(request):
         hf_tumor = h5py.File(unet_tumor_path, 'w') 
         hf_tumor.create_dataset('Tumor', data=predict)
         hf_tumor.create_dataset('vol', data=vol_ori)
-        hf_tumor.close()
         #--------算體積--use cc3d------    
 
 
