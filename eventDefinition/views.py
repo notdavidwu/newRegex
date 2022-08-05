@@ -183,11 +183,7 @@ def addInducedEvent(request):
     eventID=request.POST.get('eventID')
     cursor = connections['practiceDB'].cursor()
     query= '''
-	select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.note
-	from allEvents as a
-	inner join medTypeSet as b on a.medType=b.medType
-	left join eventDetails as c on a.eventID=c.eventID
-	where a.eventID_F=%s and (c.descriptionType=3 or c.descriptionType is null) order by a.eventDate 
+        EXEC EventDefinition_getInducedEvent @eventID_F=%s
     '''
     cursor.execute(query,[eventID])
     result = cursor.fetchall()
