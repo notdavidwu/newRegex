@@ -1712,6 +1712,8 @@ def UNet(request):
                 volume
             ]
         )
+    device = cuda.get_current_device()
+    device.reset()
     return JsonResponse({}, status=200)
     
 @csrf_exempt
