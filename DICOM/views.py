@@ -41,7 +41,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import codecs, json
 import platform 
 import tensorflow as tf
-
+from keras import backend as K
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu,True)
@@ -1713,7 +1713,9 @@ def UNet(request):
             ]
         )
     device = cuda.get_current_device()
-    device.reset()
+    #device.reset()
+    K.clear_session()
+    import cupy as cp
     return JsonResponse({}, status=200)
     
 @csrf_exempt
