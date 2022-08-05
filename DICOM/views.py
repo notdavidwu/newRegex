@@ -1713,8 +1713,7 @@ def UNet(request):
             ]
         )
     device = cuda.get_current_device()
-    #device.reset()
-    K.clear_session()
+    device.reset()
     import cupy as cp
     return JsonResponse({}, status=200)
     
