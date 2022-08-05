@@ -1712,9 +1712,9 @@ def UNet(request):
                 volume
             ]
         )
-    device = cuda.get_current_device()
-    device.reset()
-    import cupy as cp
+        device = cuda.get_current_device()
+        device.reset()
+        import cupy as cp
     return JsonResponse({}, status=200)
     
 @csrf_exempt
