@@ -45,6 +45,7 @@ from keras import backend as K
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu,True)
+import gc
 
 
 def negativeTo0(number):
@@ -1712,7 +1713,7 @@ def UNet(request):
                 volume
             ]
         )
-
+        gc.collect()
     return JsonResponse({}, status=200)
     
 @csrf_exempt
