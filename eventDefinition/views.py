@@ -193,22 +193,9 @@ def addInducedEvent(request):
             eventID_str += f',{eventID}'
     query= f'''
         select distinct 
-            result.chartNo,result.orderNo,result.eventDate ,result.medType,result.typeName,NULL as descriptionType,
-            (
-                select '--------------------------- &#13;'+
-                'DescriptionType:'+cast(c.descriptionType AS VARCHAR(max) )+
-                '&#13--------------------------- &#13;'+cast(c.reportText AS VARCHAR(max) ) + '&#13;&#13;&#13; '
-                from allEvents as a
-                inner join medTypeSet as b on a.medType=b.medType
-                left join eventDetails as c on a.eventID=c.eventID
-                where a.eventID_F in ({eventID_str})
-                and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
-                and a.orderNo = result.orderNo 
-                FOR XML PATH('')
-                ) as reportText
-                ,result.eventID,result.note,result.eventID_F
+        *
         from(
-            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,a.eventID,a.eventChecked,a.note,c.descriptionType,c.reportText,a.eventID_F
+            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,a.eventID,a.note,c.descriptionType,c.reportText,a.eventID_F
             from allEvents as a
             inner join medTypeSet as b on a.medType=b.medType
             left join eventDetails as c on a.eventID=c.eventID
