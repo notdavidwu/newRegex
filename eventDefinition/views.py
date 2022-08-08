@@ -195,7 +195,7 @@ def addInducedEvent(request):
         select distinct 
         *
         from(
-            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,a.eventID,a.note,c.descriptionType,c.reportText,a.eventID_F
+            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.note,a.eventID_F
             from allEvents as a
             inner join medTypeSet as b on a.medType=b.medType
             left join eventDetails as c on a.eventID=c.eventID
