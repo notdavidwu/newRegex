@@ -353,9 +353,9 @@
         //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
         //    console.log(3)
         //}
-        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
-        $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
-        $('#timePID'+i).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
+        $(`#${i}`).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
+        $(`#${i}`).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
+        $(`#${i}`).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
 
     }
     function addPhaseAndSeq(pannel,medType,selection,seqNoOption,appendOrPrepend){
@@ -403,7 +403,7 @@
             target.eq(target.length-2).children('.IntervalNo').prop('disabled',false)
         }
 
-        setdisplay(IND)
+        setdisplay(id)
     }
 
     function searchNote(IND,eventID){
@@ -520,7 +520,7 @@
                     //檢查是不是癌登尚未確認的資料
 
                     $(`#${id}`).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
-                    setdisplay(id.split('timePID')[1])
+                    setdisplay(id)
                 }
                 //for(var i =0 ;i<response.Record;i++){
                 //    let id = 'timePID'+IND.toString()
@@ -563,7 +563,7 @@
                     $('#timetable').css('visibility','visible')
                     $('.loader2').css('display','none')
                 //}
-                setdisplay(IND)
+
             }
         })
         
@@ -620,7 +620,7 @@
                                     $('#time').append(response.objectArray[i])
                                     $('#timePID'+i).parents('td').css('background-color', '#33333a')
                                     $('#timePID'+i).next('label').css('color', 'red')
-                                    setdisplay(i)
+                                    setdisplay(`timePID${i}`)
                                 }else if(response.MedType[i]==1218401){
                                     $('#time').append(response.objectArray[i])
                                     $('#timePID'+i).parents('td').css('background-color', '#aef2f1')
@@ -1387,7 +1387,7 @@
             let id = $('input[name="test"]').eq(i).attr('id')
             $(`#timetable #${id}`).parent('td').css('background-color','transparent')
             $(`#timetable #${id}`).parent('td').css('color','#000000')
-            setdisplay(id.split('timePID')[1])
+            setdisplay(id)
         }
     }
 
