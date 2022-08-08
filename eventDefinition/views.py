@@ -123,7 +123,7 @@ def confirmpat2(request):
         
         object = f'''<tr><td>'''
 
-        object += f'''<input type="radio" onclick="GetReport();getCurrentEventProcedure();" name="timePID" data-eventCheck={eventChecked} id=timePID{i}>
+        object += f'''<input type="radio" onclick="GetReport();getCurrentEventProcedure();" name="timePID" data-extractFactor=0 data-eventCheck={eventChecked} id=timePID{i}>
                     <label for=timePID{i}>'''
         object += f'''
         <div class="pdID">{i}</div>
@@ -179,19 +179,54 @@ def getCancerRegistData(request):
 
 @csrf_exempt
 def addInducedEvent(request):
-    ind=request.POST.get('ind')
-    eventID=request.POST.get('eventID')
+    ind=request.POST.getlist('ind[]')
+    eventID_list=request.POST.getlist('eventID[]')
+    index_list=request.POST.getlist('index[]')
+    index_result=[]
+    objectList = []
     cursor = connections['practiceDB'].cursor()
-    query= '''
-        EXEC EventDefinition_getInducedEvent @eventID_F=%s
+    eventID_str=''
+    for i,eventID in enumerate(eventID_list):
+        if i == 0:
+            eventID_str += f'{eventID}'
+        else:
+            eventID_str += f',{eventID}'
+    query= f'''
+        select distinct 
+            result.chartNo,result.orderNo,result.eventDate ,result.medType,result.typeName,NULL as descriptionType,
+            (
+                select '--------------------------- &#13;'+
+                'DescriptionType:'+cast(c.descriptionType AS VARCHAR(max) )+
+                '&#13--------------------------- &#13;'+cast(c.reportText AS VARCHAR(max) ) + '&#13;&#13;&#13; '
+                from allEvents as a
+                inner join medTypeSet as b on a.medType=b.medType
+                left join eventDetails as c on a.eventID=c.eventID
+                where a.eventID_F in ({eventID_str})
+                and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
+                and a.orderNo = result.orderNo 
+                FOR XML PATH('')
+                ) as reportText
+                ,result.eventID,result.note,result.eventID_F
+        from(
+            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,a.eventID,a.eventChecked,a.note,c.descriptionType,c.reportText,a.eventID_F
+            from allEvents as a
+            inner join medTypeSet as b on a.medType=b.medType
+            left join eventDetails as c on a.eventID=c.eventID
+            where a.eventID_F in ({eventID_str})
+            and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
+        ) as result order by result.eventDate
     '''
-    cursor.execute(query,[eventID])
+    cursor.execute(query,[])
     result = cursor.fetchall()
-    object=''
+
+    
     for i,row in enumerate(result):
+        index_collapse = ind[eventID_list.index(str(row[9]))]
+        index_result.append(index_list[eventID_list.index(str(row[9]))])
+        object=''
         object += f'''<tr><td class="hiddenRow" onclick="showReport()">'''
         object += f'''
-        <div  class="accordian-body collapse collapse{ind} " id="collapse{ind}" >'''
+        <div  class="accordian-body collapse collapse{index_collapse} " id="collapse{index_collapse}" >'''
 
         object += f'''
         <div class="pdID">?</div>
@@ -213,8 +248,8 @@ def addInducedEvent(request):
         <button type="button" class="btn-close close" aria-label="Close" onclick="deleteEvent_F()">
         </div></button></td></tr>
         '''
-
-    return JsonResponse({'objectList':object})
+        objectList.append(object)
+    return JsonResponse({'objectList':objectList,'index_result':index_result})
 
 @csrf_exempt
 def Phase(request):
@@ -372,13 +407,35 @@ def searchPhaseAndInterval(request):
 def searchRecord(request):
     IND = request.POST.get('IND')
     chartNo = request.POST.get('chartNo')
-    eventID = request.POST.get('eventID')
+    eventID_list = request.POST.getlist('eventID[]')
     username = request.POST.get('username')
     query = '''
-        EXEC EventDefinition_searchRecord @chartNo = %s,@eventID=%s, @username = %s
+        declare @chartNo int, @username varchar(50)
+        set @chartNo = %s
+        set @username = %s
+
+        select distinct * from (
+        select b.caSeqNo,c.EDID,c.eventID,c.procedureID,f.eventID as 'eventID_F',b.PD,c.caregExecDate,f.eventDate,b.diseaseID,c.username
+        from diseasetList as a inner join PatientDisease as b on a.diseaseID=b.diseaseID
+            inner join eventDefinitions as c on b.PD=c.PDID
+            inner join ProcedureEvent as d on c.procedureID=d.procedureID
+            inner join medTypeSet as e on d.groupNo=e.groupNo
+            left outer join allEvents as f on b.chartNo=f.chartNo and e.medType=f.medType
+            left outer join eventDetails as g on f.eventID=g.eventID
+        where b.chartNo=@chartNo and f.eventDate is not null
+        and  (DATEDIFF(DAY, c.caregExecDate, f.eventDate) between -15 and 15 or  c.caregExecDate is null)  
+        and ((c.eventID is null and f.eventID is not null) or (c.eventID is not null and c.eventID=f.eventID))
+        ) as res  where  (res.username is null or res.username=@username) and res.eventID_F in ( 
     '''
+    for i,eventID in enumerate(eventID_list):
+        if i == 0:
+            query += f'{eventID}'
+        else:
+            query += f',{eventID}'
+    query += f')'
+
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[chartNo,eventID,username])
+    cursor.execute(query,[chartNo,username])
     res = cursor.fetchall()
 
     caSeqNo = []
@@ -388,7 +445,6 @@ def searchRecord(request):
     eventID = []
     eventID_F = []
     editor = []
-
     if len(res)!=0:
         Record = len(res)
         for row in res:
@@ -439,16 +495,15 @@ def deleteEvent_F(request):
 
 @csrf_exempt
 def getClinicalProcedures(request):
-    medType = request.POST.get('medType')
     query = '''
-        EXEC EventDefinition_getClinicalProcedures @medType = %s
+        EXEC EventDefinition_getClinicalProcedures_2
     '''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[medType])
+    cursor.execute(query,[])
     result = cursor.fetchall()
-    selection = '<option value=0>請確認階段</option>'
+    selection = ''
     for row in result:
-        selection += f'<option value={row[0]}>{row[1]}</option>'
+        selection += f'<option data-medtype="{row[0]}" value={row[1]}>{row[2]}</option>'
     return JsonResponse({'selection':selection})
 
 @csrf_exempt
@@ -558,7 +613,7 @@ def formGenerator(request):
     eventID = request.POST.get('eventID')
     eventFactorCode = request.POST.get('eventFactorCode')
     form = request.POST.get('form')
-    print(form)
+
     formObject=''
     dictionary={}
     if len(eventFactorCode)!=0:
@@ -685,14 +740,14 @@ def insertExtractedFactors(request):
     (select eventFactorID from eventFactor where eventFactorCode=%s)
     and eventID=%s and seq=%s'''
     cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq])
-    print(eventFactorCode,eventID,insertSeq)
+
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
         cursor.execute(query,[eventID,factorID,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
             queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s)'''
             cursor.execute(queryInsert,[eventID,factorID,factorValue,insertSeq])
-            print(eventID,factorID,factorValue,insertSeq)
+
     return JsonResponse({})
 
 @csrf_exempt
@@ -1043,7 +1098,7 @@ def batchDefinite(request):
     therapy = request.POST.get('therapy')
     chartNo = request.POST.get('chartNo')
     cursor = connections['practiceDB'].cursor()
-    print(therapy,seqNo,chartNo,startTherapy,endTherapy)
+
     query = 'EXEC %s @seqNo=%s , @pid=%s , @startTherapy=%s , @endTherapy=%s '
     cursor.execute(query,[therapy,seqNo,chartNo,startTherapy,endTherapy])
     return JsonResponse({})

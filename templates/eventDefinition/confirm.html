@@ -63,7 +63,7 @@
         #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;text-align: center}
         input[name='confirmPID']{display: none}
         input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
-        input[name='confirmPID']:checked ~label{background-color: #e78632;}
+
 
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
@@ -117,7 +117,6 @@
         input[name='confirmPID']{display: none}
         input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
         input[name='confirmPID']:checked ~label{background-color: #e78632;}
-
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
@@ -328,7 +327,7 @@
     }
     .buttonAtBottom{position:absolute;height:30px;line-height:15px;width:calc(100% - 20px);margin-left:10px;margin-top:calc(32%)}
     .event_content{height:calc(30% - 50px)}
-
+    input[name='confirmPID']:disabled ~label{pointer-events: none;}
 </style>
 
 
@@ -359,8 +358,7 @@
         $('#timePID'+i).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
 
     }
-    function addPhaseAndSeq(pannel,medType,seqNoOption,appendOrPrepend){
-        let selection = getClinicalProcedures(medType)
+    function addPhaseAndSeq(pannel,medType,selection,seqNoOption,appendOrPrepend){
         let addObject = '<div class=menublock id="sno_-1_0_-1_0">'+
             '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+seqNoOption+'</select>'+
             '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
@@ -369,15 +367,17 @@
             $('#'+pannel).next('label').children('.menu').append(addObject)
         }else{
             $('#'+pannel).next('label').children('.menu').children('.addButton').before(addObject)
-        }           
+        }
+        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').children(`:not([data-medtype=${medType}])`).remove()
+        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').prepend('<option value=0>請確認階段</option>')
+        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').children('option').eq(0).prop('selected',true)
     }
 
-    function getClinicalProcedures(medType){
+    function getClinicalProcedures(){
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:getClinicalProcedures" %}', // this is the mapping between the url and view
             data:{
-                'medType':medType,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             async:false,
@@ -392,7 +392,7 @@
         let id = $(event.target).parents('label').prevAll('input').attr('id')
         let medType = $(event.target).parents('.menu').prevAll('.medType').html()
         let IND = id.split('timePID')[1]
-        addPhaseAndSeq(id,medType,seqNoOption,'prepend')
+        addPhaseAndSeq(id,medType,selection,seqNoOption,'prepend')
         let target = $(`#${id}`).next('label').children('.menu').children('div')
 
         if("{{eventDefinition_edit}}"=='False' ){
@@ -465,7 +465,6 @@
 
     }
     function searchRecord(IND,eventID,medType,seqNoOption,total){
-        console.log(total)
         let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
         let username = '{{user.username}}'
         $.ajax({
@@ -479,48 +478,91 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-
-                for(var i =0 ;i<response.Record;i++){
-                    let id = 'timePID'+IND.toString()
-                    $(`#timePID${IND}`).next('label').children('.menu').children('div').remove()
-                    addPhaseAndSeq(id,medType,seqNoOption,'append')
-                    let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
-                    
-                    $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).attr('id',RecordedID)
-                    $(`#${RecordedID}`).children('.phase').children('option[value='+response.procedureID[i]+']').attr('selected','selected')
-                    $(`#${RecordedID}`).children('.IntervalNo').children('option[value='+response.caSeqNo[i]+']').attr('selected','selected') 
-                    //console.log(response.editor[i],'{{user.username}}')
-
-                    //檢查是不是癌登尚未確認的資料
-                    if(response.eventID[i]==null){
-                        $(`#timePID${IND}`).attr('class','sno_'+response.EDID[i])
-                        $(`#timePID${IND}`).parent().css('background-color','#4D5139')
-                        $(`#timePID${IND}`).parent().css('color','#FFFFFF')
-                    }
-                    
-                    if("{{eventDefinition_edit}}"=='False'){
-                        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
-                        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
-                    }else if('{{user.is_superuser}}'=='True' ){
-                        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
-                        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
+                var eventID_search = response.eventID_F
+                var eventID_table = $('.eventID').map(function(){return parseInt($(this).html())}).get()
+                var id_table = $('.eventID').map(function(){return $(this).parents('label').attr('for')}).get()
+                for(let i =0 ;i<eventID_table.length;i++){
+                    let searchIndex = eventID_search.indexOf(eventID_table[i])
+                    var id = id_table[i]
+                    if(searchIndex != -1){
+                        
+                        $(`#${id}`).next('label').children('.menu').children('div').remove()
+                        addPhaseAndSeq(id,medType[i],selection,seqNoOption,'append')
+                        let RecordedID=`sno_${response.EDID[searchIndex]}_${response.eventID_F[searchIndex]}_${response.PDID[searchIndex]}_${response.caSeqNo[searchIndex]}`
+                        let n_menuBlock = $(`#${id}`).next('label').children('.menu').children('div').length-1
+                        $(`#${id}`).next('label').children('.menu').children('div').eq(n_menuBlock).attr('id',RecordedID)
+                        $(`#${RecordedID}`).children('.phase').children('option[value='+response.procedureID[searchIndex]+']').attr('selected','selected')
+                        $(`#${RecordedID}`).children('.IntervalNo').children('option[value='+response.caSeqNo[searchIndex]+']').attr('selected','selected') 
+                        if(response.eventID[searchIndex]==null){
+                            $(`#${id}`).attr('class','sno_'+response.EDID[searchIndex])
+                            $(`#${id}`).parent().css('background-color','#4D5139')
+                            $(`#${id}`).parent().css('color','#FFFFFF')
+                        }
+                        if("{{eventDefinition_edit}}"=='False'){
+                            $(`#${RecordedID}`).children('.phase').prop('disabled',true)
+                            $(`#${RecordedID}`).children('.IntervalNo').prop('disabled',true)
+                        }else if('{{user.is_superuser}}'=='True' ){
+                            $(`#${RecordedID}`).children('.phase').prop('disabled',false)
+                            $(`#${RecordedID}`).children('.IntervalNo').prop('disabled',false)
+                        }else{
+                            if(response.editor[searchIndex]!=username){
+                                $(`#${RecordedID}`).children('.phase').prop('disabled',true)
+                                $(`#${RecordedID}`).children('.IntervalNo').prop('disabled',true)
+                            }
+                            if(response.editor[searchIndex]=='NoRecord'){
+                                $(`#${RecordedID}`).children('.phase').prop('disabled',false)
+                                $(`#${RecordedID}`).children('.IntervalNo').prop('disabled',false)
+                            }
+                        }
                     }else{
-                        if(response.editor[i]!=username){
-                            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
-                            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
-                        }
-                        if(response.editor[i]=='NoRecord'){
-                            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
-                            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
-                        }
+                        addPhaseAndSeq(id,medType[i],selection,seqNoOption,'append')
                     }
-                }
-                $('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
+                    //檢查是不是癌登尚未確認的資料
 
-                if(IND==(total-1)){
+                    $(`#${id}`).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
+                    setdisplay(id.split('timePID')[1])
+                }
+                //for(var i =0 ;i<response.Record;i++){
+                //    let id = 'timePID'+IND.toString()
+                //    $(`#timePID${IND}`).next('label').children('.menu').children('div').remove()
+                //    addPhaseAndSeq(id,medType,seqNoOption,'append')
+                //    let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
+                //    
+                //    $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).attr('id',RecordedID)
+                //    $(`#${RecordedID}`).children('.phase').children('option[value='+response.procedureID[i]+']').attr('selected','selected')
+                //    $(`#${RecordedID}`).children('.IntervalNo').children('option[value='+response.caSeqNo[i]+']').attr('selected','selected') 
+                //    //console.log(response.editor[i],'{{user.username}}')
+//
+                //    //檢查是不是癌登尚未確認的資料
+                //    if(response.eventID[i]==null){
+                //        $(`#timePID${IND}`).attr('class','sno_'+response.EDID[i])
+                //        $(`#timePID${IND}`).parent().css('background-color','#4D5139')
+                //        $(`#timePID${IND}`).parent().css('color','#FFFFFF')
+                //    }
+                //    
+                //    if("{{eventDefinition_edit}}"=='False'){
+                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
+                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
+                //    }else if('{{user.is_superuser}}'=='True' ){
+                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
+                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
+                //    }else{
+                //        if(response.editor[i]!=username){
+                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
+                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
+                //        }
+                //        if(response.editor[i]=='NoRecord'){
+                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
+                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
+                //        }
+                //    }
+                //}
+                //$('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
+
+                //if(IND==(total-1)){
                     $('#timetable').css('visibility','visible')
                     $('.loader2').css('display','none')
-                }
+                //}
                 setdisplay(IND)
             }
         })
@@ -529,7 +571,10 @@
     }
 
     function GetTime(){
+        var id = $('input[type="radio"][name="confirmPID"]:checked').attr('id')
         
+        $('input[type="radio"][name="confirmPID"]').prop('disabled',true)
+        $('input[type="radio"][name="confirmPID"]').next('label').prop('disabled',true)
         $('#timetable').css('visibility','hidden')
         $('.loader2').css('display','inline')
         $('.factorGroupArea').empty()
@@ -582,25 +627,36 @@
                                 }else{
                                     $('#time').append(response.objectArray[i])
                                 }
+
                                 
-                                searchRecord(i,response.eventID[i],response.MedType[i],seqNoOption,response.objectArray.length)
                             }
+                            searchRecord(i,response.eventID,response.MedType,seqNoOption,response.objectArray.length)
                             total_num = response.objectArray.length
-                            for(let i=0;i<response.eventID_F.length;i++){
-                                let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
-                                let index = eventIDGroup.indexOf(response.eventID_F[i])
-                                let target = $('#timetable .eventID').eq(index)
-                                let targetID = $('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id')
-        
-                                target.parents('label').append(`<div class="btn btn-primary accordion accordion-toggle" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
-                                target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
-                                addInducedEvent(i,response.eventID_F[i],targetID)
+                            var InducedEvent_ind=[]
+                            var targetID = []
+                            if(response.eventID_F.length!=0){
+                                for(let i=0;i<response.eventID_F.length;i++){
+                                    let eventIDGroup = $('#timetable .eventID').map(function(){return parseInt($(this).html())}).get()
+                                    let index = eventIDGroup.indexOf(response.eventID_F[i])
+                                    let target = $('#timetable .eventID').eq(index)
+                                    targetID.push($('#timetable .eventID').eq(index).parents('label').prevAll('input').attr('id'))
+                                    target.parents('label').append(`<div class="btn btn-primary accordion accordion-toggle" data-bs-toggle="collapse" data-bs-target="#collapse${i}" ></div>`)
+                                    target.nextAll('.accordion').css('height',target.parents('label').height()+16+'px')
+                                    InducedEvent_ind.push(i)
+                                    
+                                }
+                                addInducedEvent(InducedEvent_ind,response.eventID_F,targetID)
                             }
                         }else{
                             $('#accordionExample').html('<p style="postion:absolute;width:100%;font-size: 40pt;font-weight:700;text-align: center;font-family: font-family: "LiGothic", "FangSong", Arial, serif;">查無資料</p>')
                             $('#timetable').css('visibility','visible')
+                            $('#timetable').css('visibility','visible')
                             $('.loader2').css('display','none')
+                            
                         }
+                        $(`input[type="radio"][name="confirmPID"][id=${id}]`).prop('checked',true)
+                        $('input[type="radio"][name="confirmPID"]').prop('disabled',false)
+                        $('input[type="radio"][name="confirmPID"]').next('label').prop('disabled',false)
                         $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
                     }
                 })
@@ -632,11 +688,13 @@
             data:{
                 'ind':i,
                 'eventID':eventID,
+                'index':index,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-
-                $(`#${index}`).parents('tr').after(response.objectList)
+                for(let i=0;i<response.index_result.length;i++){
+                    $(`#${response.index_result[i]}`).parents('tr').after(response.objectList[i])
+                }
             }
         })
     }
@@ -645,6 +703,10 @@
     }
     function GetReport() {
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
+        if($('input[name=timePID]:checked').attr('id')!=$('input[name=timePID][data-extractFactor=1]').attr('id')){
+            $('input[name=timePID]').attr('data-extractFactor',0)
+        }
+
         $('#text').html(reporttext)
         if($('#ascription').css('display')!='none'){
             let pdID = $('input[name="timePID"]:checked').next('label').children('.pdID').html()
@@ -998,56 +1060,61 @@
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
         let nWindow = $('#extractedFactor').attr('data-window')
-        $('#factorGroupArea').empty()
-        $("#extractedFactor").css('display', 'inline');
-        $("#menu").css('display', 'none');
-        $(`#factorGroupArea${data_form} .formStructure`).remove()
-        $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
+
+        let data_extractFactor = $('input[name="timePID"]:checked').attr('data-extractFactor')
+        if(data_extractFactor==0){
+            $('#factorGroupArea').empty()
+            $("#extractedFactor").css('display', 'inline');
+            $("#menu").css('display', 'none');
+            $(`#factorGroupArea${data_form} .formStructure`).remove()
+            $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
+            $.ajax({
+                type: 'post',
+                url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
+                data:{
+                    'pd':pd,
+                    'eventID':eventID,
+                    'medType':medType,
+                    'diseaseId':diseaseId,
+                    'procedureID':procedureID,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    
+                    $(`.formVersion[data-form=${data_form}]`).empty()
+                    for(let i=0;i<response.eventFactorCode.length;i++){
+                        $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                    }
+                    if(source==1){
+                        for(let j=response.isRecorded.length-1;j>=0;j--){
+                            if(response.isRecorded[j]==1){
+                                $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                            }
+                        }
+                        $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
+                    }else{
+                        for(let j=response.isRecorded.length-1;j>=0;j--){
+                            if(response.isRecorded[j]==1){
+                                $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
+                            }
+                        }
+                        let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+                        let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+                        if(eventFactorCode0==eventFactorCode1){
+                            $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
+                        }
+                    }
+                    
+                    let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+                    if(!eventFactorCode==false){
+                        formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                        console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    } 
+                }
+            })
+            $('input[name=timePID]:checked').attr('data-extractFactor',1)
+        }
         
-        $.ajax({
-            type: 'post',
-            url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
-            data:{
-                'pd':pd,
-                'eventID':eventID,
-                'medType':medType,
-                'diseaseId':diseaseId,
-                'procedureID':procedureID,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                
-                $(`.formVersion[data-form=${data_form}]`).empty()
-                for(let i=0;i<response.eventFactorCode.length;i++){
-                    $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
-                }
-                if(source==1){
-                    for(let j=response.isRecorded.length-1;j>=0;j--){
-                        if(response.isRecorded[j]==1){
-                            $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
-                        }
-                    }
-                    $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
-                }else{
-                    for(let j=response.isRecorded.length-1;j>=0;j--){
-                        if(response.isRecorded[j]==1){
-                            $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
-                        }
-                    }
-                    let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
-                    let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
-                    if(eventFactorCode0==eventFactorCode1){
-                        $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
-                    }
-                }
-                
-                let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
-                if(!eventFactorCode==false){
-                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
-                    console.log(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
-                } 
-            }
-        })
     }
         
     
@@ -1291,6 +1358,7 @@
     function cancerRegistSubmit(){
         let eventID = $('input[name="test"]:checked').next('label').children('.eventID').html().replaceAll(' ','')
         let EDID = $('input[name="test"]:checked').attr('class').split('sno_')[1]
+
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:updateCancerRegist" %}', // this is the mapping between the url and view
@@ -1363,7 +1431,7 @@
                     $(`.collapse${num}`).parents('tr').remove()
 
                     origin.parents('tr').remove()
-                    addInducedEvent(num,eventID_F,targetID)
+                    addInducedEvent([num],[eventID_F],[targetID])
                 },
                 complete:function(){
                     ascriptionClose()
@@ -2098,18 +2166,19 @@
             },
             success:function (response){
                 let total = $('#accordionExample tr').length
+                var eventID = []
+                var medType = []
                 for(let ind =startTherapyIND;ind<=endTherapyIND;ind++){
-                    let eventID = $(`label[for="timePID${ind}"] .eventID`).html()
-                    let medType = $(`label[for="timePID${ind}"] .medType`).html()
-                    searchRecord(ind,eventID,medType,seqNoOption,total)
+                    eventID.push($(`label[for="timePID${ind}"] .eventID`).html())
+                    medType.push($(`label[for="timePID${ind}"] .medType`).html())
                 }
-                
+                searchRecord(ind,eventID,medType,seqNoOption,total)
             }
         })
     }
 
     $(document).ready(function (e) {
-        
+        selection = getClinicalProcedures()
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
             return false
         };
@@ -2147,19 +2216,6 @@
             complete:function (){
                 statusFilter()
                 getTopicPatientNum()
-            }
-        })
-
-
-        selection ='<option value="0">請選擇階段</option>'
-        $.ajax({
-            type: 'post',
-            url: '{% url "eventDefinition:Phase" %}', // this is the mapping between the url and view
-            data:{
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                selection += response.phase
             }
         })
         
