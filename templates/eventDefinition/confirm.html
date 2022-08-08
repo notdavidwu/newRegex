@@ -353,9 +353,10 @@
         //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
         //    console.log(3)
         //}
-        $(`#${i}`).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
-        $(`#${i}`).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height()+10)
-        $(`#${i}`).next('label').children('.accordion').css('height',$('#timePID'+i).next('label').height())    
+        console.log(`#${i}`)
+        $(`#${i}`).next('label').css('height',$(`#${i}`).next('label').children('.menu').height()+10)
+        $(`#${i}`).next('label').css('height',$(`#${i}`).next('label').children('.menu').height()+10)
+        $(`#${i}`).next('label').children('.accordion').css('height',$(`#${i}`).next('label').height())    
 
     }
     function addPhaseAndSeq(pannel,medType,selection,seqNoOption,appendOrPrepend){
@@ -563,7 +564,6 @@
                     $('#timetable').css('visibility','visible')
                     $('.loader2').css('display','none')
                 //}
-
             }
         })
         
@@ -658,8 +658,11 @@
                         $('input[type="radio"][name="confirmPID"]').prop('disabled',false)
                         $('input[type="radio"][name="confirmPID"]').next('label').prop('disabled',false)
                         $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
+                        
+                        
                     }
                 })
+                
             }
         })
         
