@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 import mimetypes
 mimetypes.add_type("text/css", ".css", True)
 
-COMPRESS_OFFLINE = False 
+COMPRESS_OFFLINE = True 
 # Application definition
 
 INSTALLED_APPS = [
