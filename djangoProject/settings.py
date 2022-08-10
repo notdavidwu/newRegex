@@ -237,7 +237,7 @@ DATABASES = {
             'HOST': '172.31.6.157',
             'PORT': '1433',
             'OPTIONS': {
-                'driver': 'SQL Server Native Client 11.0',  # ODBC連線應用驅動
+                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
                 'MARS_Connection': True,
             },
         },
@@ -249,7 +249,7 @@ DATABASES = {
             'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
-                'driver': 'SQL Server Native Client 11.0',  # ODBC連線應用驅動
+                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
                 'MARS_Connection': True,
             },
         },
