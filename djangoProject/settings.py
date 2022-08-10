@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 import mimetypes
 mimetypes.add_type("text/css", ".css", True)
 
-COMPRESS_OFFLINE = True 
+COMPRESS_OFFLINE = False 
 # Application definition
 
 INSTALLED_APPS = [
@@ -320,13 +320,16 @@ STATIC_URL = '/static/'
 COMPRESS_ROOT = '/static/'
 HERE = os.path.dirname(os.path.abspath(__file__))
 HERE = os.path.join(HERE, '../')
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    #os.path.join(BASE_DIR, 'static/'),
-)
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+if DEBUG:
+    STATICFILES_DIRS = (
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        os.path.join(BASE_DIR, 'static/'),
+    )
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+#
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5242880
