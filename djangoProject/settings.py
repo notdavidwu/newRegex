@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'channels_redis',
     'MEWS.apps.MEWSConfig',
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
+    'appeal.apps.appealConfig',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -240,6 +241,18 @@ DATABASES = {
                 'MARS_Connection': True,
             },
         },
+        'NursingRecord': {
+            'ENGINE': 'mssql',
+            'NAME': 'NursingRecord',
+            'USER': 'TEST',
+            'PASSWORD': '81218',
+            'HOST': '172.31.6.22',
+            'PORT': '1433',
+            'OPTIONS': {
+                'driver': 'SQL Server Native Client 11.0',  # ODBC連線應用驅動
+                'MARS_Connection': True,
+            },
+        },
     }
 DATABASE_CONNECTION_POOLING  =  False
 
@@ -311,9 +324,9 @@ STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(BASE_DIR, 'static/'),
+    #os.path.join(BASE_DIR, 'static'),
 )
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT=os.path.join(BASE_DIR,"/static/")
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5242880
