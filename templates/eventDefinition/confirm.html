@@ -1068,58 +1068,59 @@
         let nWindow = $('#extractedFactor').attr('data-window')
 
         let data_extractFactor = $('input[name="timePID"]:checked').attr('data-extractFactor')
-        if(data_extractFactor==0){
-            $('#factorGroupArea').empty()
-            $("#extractedFactor").css('display', 'inline');
-            $("#menu").css('display', 'none');
-            $(`#factorGroupArea${data_form} .formStructure`).remove()
-            $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
-            $.ajax({
-                type: 'post',
-                url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
-                data:{
-                    'pd':pd,
-                    'eventID':eventID,
-                    'medType':medType,
-                    'diseaseId':diseaseId,
-                    'procedureID':procedureID,
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
-                },
-                success:function (response){
-                    
-                    $(`.formVersion[data-form=${data_form}]`).empty()
-                    for(let i=0;i<response.eventFactorCode.length;i++){
-                        $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
-                    }
-                    if(source==1){
-                        for(let j=response.isRecorded.length-1;j>=0;j--){
-                            if(response.isRecorded[j]==1){
-                                $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
-                            }
-                        }
-                        $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
-                    }else{
-                        for(let j=response.isRecorded.length-1;j>=0;j--){
-                            if(response.isRecorded[j]==1){
-                                $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
-                            }
-                        }
-                        let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
-                        let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
-                        if(eventFactorCode0==eventFactorCode1){
-                            $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
-                        }
-                    }
-                    
-                    let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
-                    if(!eventFactorCode==false){
-                        formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
-                        
-                    } 
+        
+        $('#factorGroupArea').empty()
+        $("#extractedFactor").css('display', 'inline');
+        $("#menu").css('display', 'none');
+        $(`#factorGroupArea${data_form} .formStructure`).remove()
+        $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
+            data:{
+                'pd':pd,
+                'eventID':eventID,
+                'medType':medType,
+                'diseaseId':diseaseId,
+                'procedureID':procedureID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                
+                $(`.formVersion[data-form=${data_form}]`).empty()
+                for(let i=0;i<response.eventFactorCode.length;i++){
+                    $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
-            })
-            $('input[name=timePID]:checked').attr('data-extractFactor',1)
-        }
+
+                if(source==1){
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
+                }else{
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+                    let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+                    if(eventFactorCode0==eventFactorCode1){
+                        $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
+                    }
+                }
+                
+                let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+                if(!eventFactorCode==false){
+                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                    
+                } 
+            }
+        })
+        $('input[name=timePID]:checked').attr('data-extractFactor',1)
+    
         
     }
         
@@ -1938,7 +1939,6 @@
         }else{
             data_form = [0,1]
         }
-
         for(let j=0;j<data_form.length;j++){
             extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j],source);
         }
