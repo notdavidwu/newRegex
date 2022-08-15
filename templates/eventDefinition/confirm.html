@@ -290,7 +290,7 @@
     #formVersion{position:absolute;top:2px;left:40%;height:26px}
     #formDisease{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
     #procedureOfForm{position:absolute;top:2px;left:20%;height:26px}
-
+    .changeSeq{position:absolute;top:2px;left:60%;height:26px}
     #formVersion2{position:absolute;top:2px;left:40%;height:26px}
     #formDisease2{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
     #procedureOfForm2{position:absolute;top:2px;left:20%;height:26px}
@@ -1086,12 +1086,13 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                
+
+                getExtractedFactorsRecordSeq(data_form)
+
                 $(`.formVersion[data-form=${data_form}]`).empty()
                 for(let i=0;i<response.eventFactorCode.length;i++){
                     $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
                 }
-
                 if(source==1){
                     for(let j=response.isRecorded.length-1;j>=0;j--){
                         if(response.isRecorded[j]==1){
@@ -1111,11 +1112,11 @@
                         $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
                     }
                 }
-                
+            },
+            complete:function(){
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
                 if(!eventFactorCode==false){
                     formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
-                    
                 } 
             }
         })
@@ -1136,6 +1137,19 @@
     }
 
     function changeForm(){
+        let data_form = $(event.target).attr('data-form')
+        getExtractedFactorsRecordSeq(data_form)
+        let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
+        let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+        let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+        let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+        if(eventFactorCode0!=eventFactorCode1){
+            formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+        }
+    }
+
+    function changeSeq(){
         let data_form = $(event.target).attr('data-form')
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
         $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
@@ -1230,7 +1244,7 @@
 
         let version =  $(`.formVersion[data-form=${form}]`).val()
         let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
-        let insertSeq = $(`.procedureOfForm[data-form=${form}]`).children('option:selected').attr('data-seq')
+        let insertSeq = $(`.changeSeq[data-form=${form}]`).val()
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
@@ -1303,7 +1317,8 @@
         }).get()
 
         let eventID = $(container).attr('data-eventID')
-        let seq = $(`.procedureOfForm[data-form=${form}]`).children('option:selected').attr('data-seq')
+        let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
+        let seq = $(`.changeSeq[data-form=${form}]`).val()
         let diseaseId = $(`.ChangeDisease[data-form=${form}]`).val()
         let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
@@ -1313,6 +1328,7 @@
             data:{
                 'eventID':eventID,
                 'diseaseId':diseaseId,
+                'procedure':procedure,
                 'seq':seq,
                 'idArray':idArray,
                 'classArray':classArray,
@@ -1330,6 +1346,30 @@
                         targetObject.prop('checked',response.factorValueRecorded[i])
                     }
                     targetObject.attr('data-recorded',1)
+                }
+            }
+        })
+    }
+
+    function getExtractedFactorsRecordSeq(form){
+        let container = `#factorGroupArea${form}`
+        let eventID = $(container).attr('data-eventID')
+        let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
+        let eventFactorCode = $(`.formVersion[data-form=${form}]`).val()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getExtractedFactorsRecordSeq" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'procedureID':procedure,
+                'eventFactorCode':eventFactorCode,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                $(`.changeSeq[data-form=${form}]`).empty()
+                $(`.changeSeq[data-form=${form}]`).append(`<option value="1">第1份</option>`)
+                for(let i=1;i<response.seq.length;i++){
+                    $(`.changeSeq[data-form=${form}]`).append(`<option value="${response.seq[i]}">第${response.seq[i]}份</option>`)
                 }
             }
         })
@@ -1940,6 +1980,7 @@
             data_form = [0,1]
         }
         for(let j=0;j<data_form.length;j++){
+            
             extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j],source);
         }
         
@@ -2436,6 +2477,7 @@
             <p class="btn btn-secondary resetbtn" id="emptyAll" role="button" onclick="emptyAll()">全部清空</p>
             <p class="btn btn-secondary resetbtn" id="1window" role="button" onclick="onewindow()">單視窗</p>
             <p class="btn btn-secondary resetbtn" id="2window" role="button" onclick="twowindow()">雙視窗</p>
+            <p class="btn btn-secondary resetbtn" id="addExtractFactorReport" role="button" onclick="addExtractFactorReport()">新增報告</p>
         </div>
 
         <input type='radio' id='extractedFactorPannel_1' name='extractedFactorPannel' data-windowSeq=1>
@@ -2446,6 +2488,7 @@
                     <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
                     <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
                     <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>    
+                    <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=0></select>
                 </div>
                 <div id="factorGroupArea0"  class="row factorGroupArea"></div>
                 <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
@@ -2459,6 +2502,7 @@
                     <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease2" data-form=1></select>
                     <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm2" data-form=1></select>
                     <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion2" data-form=1></select>
+                    <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=1></select>
                 </div>
                 <div id="factorGroupArea1"  class="row factorGroupArea"></div>
                 <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(1)">Submit</button>

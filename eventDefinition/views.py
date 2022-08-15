@@ -717,23 +717,24 @@ def insertExtractedFactors(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
     eventFactorCode = request.POST.get('version')
+    procedure = request.POST.get('procedure')
     insertSeq = request.POST.get('insertSeq')
     insertIDArray = request.POST.getlist('insertIDArray[]')
     insertValArray = request.POST.getlist('insertValArray[]')
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
 
     queryDelete='''DELETE 
-    FROM [practiceDB].[dbo].[extractedFactors] where factorID in 
+    FROM [practiceDB].[dbo].[extractedFactors2] where factorID in 
     (select eventFactorID from eventFactor where eventFactorCode=%s)
-    and eventID=%s and seq=%s'''
-    cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq])
+    and eventID=%s and seq=%s and procedureID=%s'''
+    cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq,procedure])
 
-    query = '''select * from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
+    query = '''select * from extractedFactors2 where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
-        cursor.execute(query,[eventID,factorID,insertSeq])
+        cursor.execute(query,[eventID,factorID,procedure,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
-            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,seq) VALUES(%s,%s,%s,%s)'''
-            cursor.execute(queryInsert,[eventID,factorID,factorValue,insertSeq])
+            queryInsert='''insert into extractedFactors2 (eventID,factorID,factorValue,procedureID,seq) VALUES(%s,%s,%s,%s,%s)'''
+            cursor.execute(queryInsert,[eventID,factorID,factorValue,procedure,insertSeq])
 
     return JsonResponse({})
 
@@ -741,18 +742,18 @@ def insertExtractedFactors(request):
 def searchExtractedFactorsRecord(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
-    diseaseId = request.POST.get('diseaseId')
+    procedure = request.POST.get('procedure')
     seq = request.POST.get('seq')
     idArray = request.POST.getlist('idArray[]')
     classArray = request.POST.getlist('classArray[]')
-    query='''select factorValue from extractedFactors where eventID=%s and factorID=%s and seq=%s'''
+    query='''select factorValue from extractedFactors2 where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
     factorIdRecorded = []
     factorValueRecorded = []
     seqRecorded = []
     classRecorded = []
 
     for factorId,className in zip(idArray,classArray):
-        cursor.execute(query,[eventID,factorId,seq])
+        cursor.execute(query,[eventID,factorId,procedure,seq])
         result = cursor.fetchall()
 
         if len(result)!=0:
@@ -762,6 +763,26 @@ def searchExtractedFactorsRecord(request):
             factorValueRecorded.append(result[0][0])
 
     return JsonResponse({'seqRecorded':seqRecorded,'classRecorded':classRecorded,'factorIdRecorded':factorIdRecorded,'factorValueRecorded':factorValueRecorded})
+
+@csrf_exempt
+def getExtractedFactorsRecordSeq(request):
+    eventID = request.POST.get('eventID')
+    procedureID = request.POST.get('procedureID')
+    eventFactorCode = request.POST.get('eventFactorCode')
+    cursor = connections['practiceDB'].cursor()
+    print(eventID,procedureID)
+    query='''
+        select distinct seq from [extractedFactors2] as a
+        inner join eventFactor as b on a.factorID = b.eventFactorID
+        where eventID = %s and procedureID = %s and eventFactorCode=%s
+    '''
+    cursor.execute(query,[eventID,procedureID,eventFactorCode])
+    result = cursor.fetchall()
+    seq=[]
+    for row in result :
+        seq.append(row[0])
+    print(seq)
+    return JsonResponse({'seq':seq})
 
 @csrf_exempt
 def searchEventFactorCode(request):

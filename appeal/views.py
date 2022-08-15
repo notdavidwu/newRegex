@@ -67,9 +67,9 @@ def SearchWord(request):
     #query = "insert into appeal(appealDate,appealTime,ResidentNo,appealText,appealcalldate,appealState)"+"values('"+appealDate+"',Convert(varchar(8),'"+appealTime+"',108),'A-4F-5','"+appealreason+"',Convert(varchar(8),Getdate(),108),0)"
     #print(query)
     #print(Wordnum)
-    #print(Word1)
-    #print(Word2)
-    #print(Word3)
+    print(Word1)
+    print(Word2)
+    print(Word3)
     if Wordnum=='2':
         cursor = connections['NursingRecord'].cursor()
         query = f'''select top 1 a.*,b.Token as 'Token5',b.TokenType as 'TokenType5',c.Token as 'Token6',c.TokenType as 'TokenType6' from mergeToken as a

@@ -60,4 +60,6 @@ urlpatterns = [
     path('processCorrelationPatientListAndAnnotation/', views.processCorrelationPatientListAndAnnotation, name='processCorrelationPatientListAndAnnotation'),
     path('addTTP/', views.addTTP, name='addTTP'),
     path('batchDefinite/', views.batchDefinite, name='batchDefinite'),
+    path('getExtractedFactorsRecordSeq/', views.getExtractedFactorsRecordSeq, name='getExtractedFactorsRecordSeq'),
+    
 ]
