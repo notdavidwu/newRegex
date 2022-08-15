@@ -1470,21 +1470,50 @@ def PatientImageInfo(request):
    
 
     PID = request.POST.get('PID')
+    ImageSelect_cat = request.POST.get('ImageSelect_cat')
+    ImageSelect_date = request.POST.get('ImageSelect_date')
+    cursor = connections['practiceDB'].cursor()
 
-    query = ''' 
+    if ImageSelect_date=='-1' and ImageSelect_cat=='-1':
+        query = ''' 
         select a.chartNo,a.studyID,a.category,a.studyDate,
         b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
         inner join examSeries as b on a.storageID=b.storageID
         where chartNo=%s
-            '''
+        '''
+        cursor.execute(query, [PID])
+    elif ImageSelect_date!='-1' and ImageSelect_cat=='-1':
+        query = ''' 
+        select a.chartNo,a.studyID,a.category,a.studyDate,
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        inner join examSeries as b on a.storageID=b.storageID
+        where chartNo=%s and studyDate=%s
+        '''    
+        cursor.execute(query, [PID,ImageSelect_date])
+    elif ImageSelect_date=='-1' and ImageSelect_cat!='-1':
+        query = ''' 
+        select a.chartNo,a.studyID,a.category,a.studyDate,
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        inner join examSeries as b on a.storageID=b.storageID
+        where chartNo=%s and category=%s
+        '''
+        cursor.execute(query, [PID,ImageSelect_cat])
+    elif ImageSelect_date!='-1' and ImageSelect_cat!='-1':
+        query = ''' 
+        select a.chartNo,a.studyID,a.category,a.studyDate,
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        inner join examSeries as b on a.storageID=b.storageID
+        where chartNo=%s and category=%s and studyDate=%s
+        '''
+        cursor.execute(query, [PID,ImageSelect_cat,ImageSelect_date])
     # select *,SUBSTRING(viewplane,1,1) as v1,SUBSTRING(viewplane,2,1) as v2 from (
     # select b.chartNo,a.studyID,a.category,a.eventDate,a.seriesID,a.sliceNo,a.seriesDes
     # ,CONVERT(varchar, a.seriesID) as viewplane from ExamStudySeries_6
     # as a inner join allEvents as b on a.eventID=b.eventID where  b.chartNo=%s ) 
     # as a　order by a.eventDate ASC,v2 ASC,v1 ASC
 
-    cursor = connections['practiceDB'].cursor()
-    cursor.execute(query, [PID])
+    
+    
     res = cursor.fetchall()
     ChartNo = []
     StudyID = []
@@ -1520,6 +1549,9 @@ def PatientImageInfo(request):
             note.append(res[i][6])
             SeriesDes.append(res[i][6])
             viewplane.append(res[i][7])
+    
+    date = pd.unique(ExecDate).tolist()
+    category = pd.unique(StudyDes).tolist()
     return JsonResponse({'ChartNo': ChartNo,
                          'StudyID': StudyID,
                          'StudyDes': StudyDes,
@@ -1528,7 +1560,9 @@ def PatientImageInfo(request):
                          'SliceNo': SliceNo,
                          'note':note,
                          'SeriesDes':SeriesDes,
-                         'viewplane':viewplane
+                         'viewplane':viewplane,
+                         'date':date,
+                         'category':category
                          })
 
 

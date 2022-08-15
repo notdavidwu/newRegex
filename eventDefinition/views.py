@@ -770,7 +770,7 @@ def getExtractedFactorsRecordSeq(request):
     procedureID = request.POST.get('procedureID')
     eventFactorCode = request.POST.get('eventFactorCode')
     cursor = connections['practiceDB'].cursor()
-    print(eventID,procedureID)
+    print(eventID,procedureID,eventFactorCode)
     query='''
         select distinct seq from [extractedFactors2] as a
         inner join eventFactor as b on a.factorID = b.eventFactorID

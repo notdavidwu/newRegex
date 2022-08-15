@@ -1086,9 +1086,6 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-
-                getExtractedFactorsRecordSeq(data_form)
-
                 $(`.formVersion[data-form=${data_form}]`).empty()
                 for(let i=0;i<response.eventFactorCode.length;i++){
                     $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
@@ -1112,6 +1109,7 @@
                         $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
                     }
                 }
+                getExtractedFactorsRecordSeq(data_form)
             },
             complete:function(){
                 let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()

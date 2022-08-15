@@ -429,6 +429,7 @@
     .table-Light{font-weight: bold}
     .container table tr td{font-weight: bold;}
     .container table tr th{font-weight: bold;}
+    .ImageFilter{width:calc(50% - 2px);display:inline}
 </style>
 
 
@@ -1879,6 +1880,96 @@
         });
     }
 
+    function ImageSelect_change(){
+        $('#ImageReport').empty()
+        PatientImageInfo(PID,isLoad=false)
+    }
+
+    function PatientImageInfo(PID,isLoad=true){
+
+        let ImageSelect_cat = $('#ImageSelect_cat').val()
+        let ImageSelect_date = $('#ImageSelect_date').val()
+        if(isLoad==true){
+            ImageSelect_cat=-1
+            ImageSelect_date=-1
+        }
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:PatientImageInfo" %}', // this is the mapping between the url and view
+            data:{
+                'PID':PID,
+                'ImageSelect_date':ImageSelect_date,
+                'ImageSelect_cat':ImageSelect_cat,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                if(isLoad==true){
+                    $('#ImageSelect_cat').append(`<option value="-1">不限</option>`)
+                    $('#ImageSelect_date').append(`<option value="-1">不限</option>`)
+                    
+                    for(let i=0;i<response.date.length;i++){
+                        $('#ImageSelect_date').append(`<option value="${response.date[i]}">${response.date[i]}</option>`)
+                    }
+                    for(let i=0;i<response.category.length;i++){
+                        $('#ImageSelect_cat').append(`<option value="${response.category[i]}">${response.category[i]}</option>`)  
+                    }
+                }
+                
+                for(var i=0;i<response.ExecDate.length;i++){
+                    
+                    if(PID+response.ExecDate[i]+response.StudyID[i]+response.SeriesID[i]==PID+MedExecTime+StudyIDText+SeriesIDText){
+                        check='checked'
+                        $("#frame1").children("label").children('div').children('div').children('.SeriesID').text(response.SeriesID[i])
+                    }else{
+                        check=''
+                    }
+
+                    $('#ImageReport').append(`
+                    <tr>
+                        <td>
+                            <div class="container">
+                            <table class="table table-Light table-striped" >
+                                <tr><th>檢查日期</th><td class="ImageExecDate">${response.ExecDate[i]}</td></tr>
+                                <tr><th>項目</th><td class="ImageStudyDes">${response.StudyDes[i]}</td></tr>
+                                <tr><th>StudyID</th><td class="ImageStudyID">${response.StudyID[i]}</td></tr>
+                                <tr><th>SeriesID</th><td class="ImageSeriesID">${response.SeriesID[i]}</td></tr>
+                                <tr><th>note</th><td class="Imagenote">${response.note[i]}</td></tr>
+                                <tr><th>張數</th><td class="ImageSliceNo">${response.SliceNo[i]}</td></tr>
+                                <tr style="display:none"><th></th><td class="ImageSeriesDes">${response.SeriesDes[i]}</td></tr>
+                                <tr style="display:none"><th></th><td class="ImageViewplane">${response.viewplane[i]}</td></tr>
+                            </table>
+                            <table class="container-control" id="a">
+                                <tr>
+                                    <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" ${check}></div></td>
+                                    <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></td>
+                                    <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></td>
+                                    <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></td>
+                                </tr>
+                            </table>
+                        </div>
+                        </td>
+                    </tr>
+                    `)
+                }
+
+
+                if($('#select').val()==1){
+                    $('input[name="2"]').prop('disabled',true)
+                    $('input[name="3"]').prop('disabled',true)
+                    $('input[name="4"]').prop('disabled',true)
+                }else if($('#select').val()==2){
+                    $('input[name="2"]').prop('disabled',false)
+                    $('input[name="3"]').prop('disabled',true)
+                    $('input[name="4"]').prop('disabled',true)
+                }else if($('#select').val()==4){
+                    $('input[name="2"]').prop('disabled',false)
+                    $('input[name="3"]').prop('disabled',false)
+                    $('input[name="4"]').prop('disabled',false)
+                }
+            }
+        })
+    }
+
     $(document).ready(function (e) {
         getAnnotationFactorGroup()
         if('{{de_identification}}'=='True'){
@@ -1924,105 +2015,7 @@
             complete:function(){
 
                 $('#Disease').val($('#DiseaseText').text()).prop('selected',true)
-                $.ajax({
-                    type: 'post',
-                    url: '{% url "DICOM:PatientImageInfo" %}', // this is the mapping between the url and view
-                    data:{
-                        'PID':PID,
-                        'csrfmiddlewaretoken': window.CSRF_TOKEN
-                    },
-                    success:function (response){
-
-                        for(var i=0;i<response.ExecDate.length;i++){
-                            
-                            if(PID+response.ExecDate[i]+response.StudyID[i]+response.SeriesID[i]==PID+MedExecTime+StudyIDText+SeriesIDText){
-                                check='checked'
-                                $("#frame1").children("label").children('div').children('div').children('.SeriesID').text(response.SeriesID[i])
-                            }else{
-                                check=''
-                            }
-                            //$('#ImageReport').append('' +
-                            //    '<tr>' +
-                            //        '<td>' +
-                            //            '<div class="container">' +
-                            //                '<div class="row row1" style="text-align: center;margin-bottom: -1px;margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
-                            //                    '<div class="col-3">檢查日期</div>'+
-                            //                    '<div class="col">項目</div>'+
-                            //                    '<div class="col">StudyID</div>'+
-                            //                    '<div class="col">SeriesID</div>'+
-                            //                    '<div class="col">note</div>'+
-                            //                    '<div class="col">張數</div>'+
-                            //                '</div>'+
-                            //                
-                            //                '<div class="row row2" style="margin-left: -5px;margin-right: -5px;font-weight: bold;color: whitesmoke;background-color: lightslategray">' +
-                            //                    '<div class="col-3 ImageExecDate">'+response.ExecDate[i]+'</div>'+
-                            //                    '<div class="col ImageStudyDes">'+response.StudyDes[i]+'</div>'+
-                            //                    '<div class="col ImageStudyID">'+response.StudyID[i]+'</div>'+
-                            //                    '<div class="col ImageSeriesID">'+response.SeriesID[i]+'</div>'+
-                            //                    '<div class="col ImageSeriesDes" style="display:none">'+response.SeriesDes[i]+'</div>'+
-                            //                    '<div class="col ImageViewplane" style="display:none">'+response.viewplane[i]+'</div>'+
-                            //                    '<div class="col Imagenote">'+response.note[i]+'</div>'+
-                            //                    '<div class="col ImageSliceNo">'+response.SliceNo[i]+'</div>'+
-                            //                '</div>'+
-                            //                '<div class="row row3" >' +
-                            //                    '<div class="col"><p class="window">window1</p></div>'+
-                            //                    '<div class="col"><p class="window">window2</p></div>'+
-                            //                    '<div class="col"><p class="window">window3</p></div>'+
-                            //                    '<div class="col"><p class="window">window4</p></div>'+
-                            //                '</div>'+
-                            //                '<div class="row row4" >' +
-                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" '+check+'></div></div>'+
-                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></div>'+
-                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></div>'+
-                            //                    '<div class="col"><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></div>'+
-                            //                '</div>'+
-                            //            '</div>'+
-                            //        '</td>'+
-                            //    '</tr>')
-                            $('#ImageReport').append(`
-                            <tr>
-                                <td>
-                                    <div class="container">
-                                    <table class="table table-Light table-striped" >
-                                        <tr><th>檢查日期</th><td class="ImageExecDate">${response.ExecDate[i]}</td></tr>
-                                        <tr><th>項目</th><td class="ImageStudyDes">${response.StudyDes[i]}</td></tr>
-                                        <tr><th>StudyID</th><td class="ImageStudyID">${response.StudyID[i]}</td></tr>
-                                        <tr><th>SeriesID</th><td class="ImageSeriesID">${response.SeriesID[i]}</td></tr>
-                                        <tr><th>note</th><td class="Imagenote">${response.note[i]}</td></tr>
-                                        <tr><th>張數</th><td class="ImageSliceNo">${response.SliceNo[i]}</td></tr>
-                                        <tr style="display:none"><th></th><td class="ImageSeriesDes">${response.SeriesDes[i]}</td></tr>
-                                        <tr style="display:none"><th></th><td class="ImageViewplane">${response.viewplane[i]}</td></tr>
-                                    </table>
-                                    <table class="container-control" id="a">
-                                        <tr>
-                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="1" ${check}></div></td>
-                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="2" ></div></td>
-                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="3" ></div></td>
-                                            <td><div class="form-check form-switch"><input class="form-check-input" onchange="window_load()" style="display: inline;" type="radio" name="4" ></div></td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                </td>
-                            </tr>
-                            `)
-                        }
-
-
-                        if($('#select').val()==1){
-                            $('input[name="2"]').prop('disabled',true)
-                            $('input[name="3"]').prop('disabled',true)
-                            $('input[name="4"]').prop('disabled',true)
-                        }else if($('#select').val()==2){
-                            $('input[name="2"]').prop('disabled',false)
-                            $('input[name="3"]').prop('disabled',true)
-                            $('input[name="4"]').prop('disabled',true)
-                        }else if($('#select').val()==4){
-                            $('input[name="2"]').prop('disabled',false)
-                            $('input[name="3"]').prop('disabled',false)
-                            $('input[name="4"]').prop('disabled',false)
-                        }
-                    }
-                })
+                PatientImageInfo(PID)
                 
                 if(Item=='PET'){
                     loadDICOMurlname="{% url 'DICOM:load_DICOM' %}"
@@ -2781,6 +2774,8 @@
             <input type="checkbox" id="Imagecheckbox">
             <label for="Imagecheckbox" class="Image-label">IMAGE</label>
             <form class="Imageform sc2">
+                <select class='form-control ImageFilter' onchange="ImageSelect_change()" id="ImageSelect_cat"></select>
+                <select class='form-control ImageFilter' onchange="ImageSelect_change()" id="ImageSelect_date"></select>
                 <table id="ImageReport">
                 </table>
 
