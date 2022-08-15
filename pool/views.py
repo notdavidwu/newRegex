@@ -72,7 +72,7 @@ def SQL(cursor,filter,hospital,Disease,username):
             select * from correlationPatientDisease as a
             inner join allEvents as b on a.chartNo=b.chartNo
             inner join examStudy as c on b.eventID=c.eventID
-            where a.diseaseNo = {Disease} {f" and c.hospitalID = {int(hospital)-1}　" if len(hospital)!=0 else '' }
+            where a.diseaseNo = {Disease} {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
             order by a.chartNo
         """
         cursor.execute(query)
@@ -84,7 +84,7 @@ def SQL(cursor,filter,hospital,Disease,username):
                 select a.* from correlationPatientDisease as a
                 inner join allEvents as b on a.chartNo=b.chartNo
                 inner join examStudy as c on b.eventID=c.eventID
-                where a.diseaseNo = {Disease}  {f" and c.hospitalID = {int(hospital)-1}　" if len(hospital)!=0 else '' }
+                where a.diseaseNo = {Disease}  {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
                 ) as a 
             left join (
                 select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo  = {Disease} and username = '{username}'
