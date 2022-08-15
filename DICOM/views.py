@@ -1473,11 +1473,11 @@ def PatientImageInfo(request):
     ImageSelect_cat = request.POST.get('ImageSelect_cat')
     ImageSelect_date = request.POST.get('ImageSelect_date')
     cursor = connections['practiceDB'].cursor()
-
+    print(ImageSelect_date!='-1' and ImageSelect_cat!='-1')
     if ImageSelect_date=='-1' and ImageSelect_cat=='-1':
         query = ''' 
         select a.chartNo,a.studyID,a.category,a.studyDate,
-        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane,a.isReady from examStudy as a
         inner join examSeries as b on a.storageID=b.storageID
         where chartNo=%s
         '''
@@ -1485,7 +1485,7 @@ def PatientImageInfo(request):
     elif ImageSelect_date!='-1' and ImageSelect_cat=='-1':
         query = ''' 
         select a.chartNo,a.studyID,a.category,a.studyDate,
-        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane,a.isReady from examStudy as a
         inner join examSeries as b on a.storageID=b.storageID
         where chartNo=%s and studyDate=%s
         '''    
@@ -1493,7 +1493,7 @@ def PatientImageInfo(request):
     elif ImageSelect_date=='-1' and ImageSelect_cat!='-1':
         query = ''' 
         select a.chartNo,a.studyID,a.category,a.studyDate,
-        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane,a.isReady from examStudy as a
         inner join examSeries as b on a.storageID=b.storageID
         where chartNo=%s and category=%s
         '''
@@ -1501,7 +1501,7 @@ def PatientImageInfo(request):
     elif ImageSelect_date!='-1' and ImageSelect_cat!='-1':
         query = ''' 
         select a.chartNo,a.studyID,a.category,a.studyDate,
-        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane from examStudy as a
+        b.seriesID,b.sliceNo,b.seriesDes,b.note as viewplane,a.isReady from examStudy as a
         inner join examSeries as b on a.storageID=b.storageID
         where chartNo=%s and category=%s and studyDate=%s
         '''
@@ -1526,20 +1526,21 @@ def PatientImageInfo(request):
     viewplane = []
     for i in range(len(res)):
         
-        PID,MedExecTime,StudyIDText,SeriesIDText = res[i][0],res[i][3],res[i][1],res[i][4]
+        # PID,MedExecTime,StudyIDText,SeriesIDText = res[i][0],res[i][3],res[i][1],res[i][4]
         
-        filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
-        if platform.system()!='Windows':
-            fileDir = os.path.join('/home','user','netapp',filePath)
-        else:
-            fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
+        # filePath = searchFilePath(PID,MedExecTime,StudyIDText,SeriesIDText)
+        # if platform.system()!='Windows':
+        #     fileDir = os.path.join('/home','user','netapp',filePath)
+        # else:
+        #     fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
 
-        fileDir = fileDir.replace('-', '')
-        fileDir = fileDir.replace(' ', '')
+        # fileDir = fileDir.replace('-', '')
+        # fileDir = fileDir.replace(' ', '')
 
-        fileExt = "*.h5"
-
-        if len(list(pathlib.Path(fileDir).glob(fileExt))) != 0:
+        # fileExt = "*.h5"
+        
+        # if len(list(pathlib.Path(fileDir).glob(fileExt))) != 0:
+        if res[i][8]==1:
             ChartNo.append(str(res[i][0]))
             StudyID.append(res[i][1])
             StudyDes.append(res[i][2])
@@ -1549,8 +1550,10 @@ def PatientImageInfo(request):
             note.append(res[i][6])
             SeriesDes.append(res[i][6])
             viewplane.append(res[i][7])
-    
-    date = pd.unique(ExecDate).tolist()
+
+    date = np.sort(np.unique(ExecDate)).tolist()
+
+    #date = pd.unique(ExecDate).tolist()
     category = pd.unique(StudyDes).tolist()
     return JsonResponse({'ChartNo': ChartNo,
                          'StudyID': StudyID,
