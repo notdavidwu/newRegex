@@ -1149,10 +1149,18 @@
         }
     }
 
+    function addExtractFactorReport(){
+        let form = $('input[name="extractedFactorPannel"]:checked').attr('data-windowSeq')-1
+        let num = $(`.changeSeq[data-form=${form}] option`).length+1
+        $(`.changeSeq[data-form=${form}]`).append(`<option value="${num}">第${num}份</option>`)
+        $(`.changeSeq[data-form=${form}] option`).eq(num-1).prop('selected',true)
+        changeSeq()    
+    }
+
     function changeSeq(){
-        let data_form = $(event.target).attr('data-form')
+        let data_form = $('input[name="extractedFactorPannel"]:checked').attr('data-windowSeq')-1
         let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
-        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
+        $(`#factorGroupArea${data_form} .formStructure`).remove()
         let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
         let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
         let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
