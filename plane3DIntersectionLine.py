@@ -193,7 +193,31 @@ class rectangle3D:
                 return False 
         else:
             return False 
-            
+
+def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
+    rectangle_source = rectangle3D( source_position, 
+                                    source_orientation, 
+                                    [source_pixelSpacing, source_pixelSpacing], 
+                                    source_shape)
+    rectangle_target = rectangle3D( target_position, 
+                                    target_orientation, 
+                                    [target_pixelSpacing, target_pixelSpacing], 
+                                    target_shape)
+    
+    X1 = -9999
+    Y1 = -9999
+    X2 = -9999
+    Y2 = -9999
+
+    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
+    if isinstance(endPoint, np.ndarray):
+        X1 = round(endPoint[0][0])
+        Y1 = round(endPoint[0][1])
+        X2 = round(endPoint[1][0])
+        Y2 = round(endPoint[1][1])
+
+    return X1, Y1, X2, Y2
+
 def MRI_coordinate_API(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape,x,y):
     rectangle_source = rectangle3D( source_position, 
                                     source_orientation, 
@@ -228,31 +252,7 @@ def MRI_coordinate_API(source_position, source_orientation, target_position, tar
         return round(x),round(y),round(z)
     else:
         return -1,-1,-1
-
-def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
-    rectangle_source = rectangle3D( source_position, 
-                                    source_orientation, 
-                                    [source_pixelSpacing, source_pixelSpacing], 
-                                    source_shape)
-    rectangle_target = rectangle3D( target_position, 
-                                    target_orientation, 
-                                    [target_pixelSpacing, target_pixelSpacing], 
-                                    target_shape)
-    
-    X1 = -9999
-    Y1 = -9999
-    X2 = -9999
-    Y2 = -9999
-
-    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
-    if isinstance(endPoint, np.ndarray):
-        X1 = round(endPoint[0][0])
-        Y1 = round(endPoint[0][1])
-        X2 = round(endPoint[1][0])
-        Y2 = round(endPoint[1][1])
-
-    return X1, Y1, X2, Y2
-
+        
 def main():
     # axialrectangle = rectangle3D(   [-124.0125763,	-114.9357319, 125.4842253], 
     #                                 [0.999463166, 0.029058569, -0.015132052, -0.029663405, 0.998701754, -0.041411211], 
