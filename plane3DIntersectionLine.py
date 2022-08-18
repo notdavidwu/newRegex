@@ -6,6 +6,13 @@ class rectangle3D:
             self.position = position
             self.stepSize = stepSize
             self.stepNum = stepNum
+        
+        def stepNum_is_in_lineSeg_boundery(self, intput_stepNum):
+            if intput_stepNum>=0 and intput_stepNum<self.stepNum:
+                return True
+            else:
+                #print(f"ERROR: intput_stepNum {intput_stepNum} out of boundary [0, {self.stepNum})")
+                return False
 
     def __init__(self, position, orientation, pixelspacing, shape):
         '''
@@ -53,11 +60,11 @@ class rectangle3D:
         delta_x = x_in * self.orientationX * self.pixelspacing[1]
         return self.position + delta_x + delta_y
 
-    def spacePointIsOnRectangle(self, absoluteSpacePoint):
+    def spacePointIsOnPlane(self, absoluteSpacePoint):
         if np.round(sum(absoluteSpacePoint*self.planeCoefficient), 2)==np.round(self.planeContant, 2):
             return True
         else:
-            print("Space point is not on rectangle")
+            print("Space point is not on plane")
             print(sum(absoluteSpacePoint*self.planeCoefficient), self.planeContant)
             return False
 
@@ -67,13 +74,16 @@ class rectangle3D:
         acceptOOB: accept out of boundary i.e. on plane but not in shape range
         '''
         assert len(absoluteSpacePoint)==3
-        if self.spacePointIsOnRectangle(absoluteSpacePoint):
+        if self.spacePointIsOnPlane(absoluteSpacePoint):
             absoluteSpacePoint = np.array(absoluteSpacePoint)
             delta = absoluteSpacePoint - self.position
             orientationSum = self.orientationX + self.orientationY
-            orientationMajor = np.matrix([  np.delete(self.orientationX, np.argmin(orientationSum)), 
-                                            np.delete(self.orientationY, np.argmin(orientationSum))])
-            deltaMajor = np.matrix(np.delete(delta, np.argmin(orientationSum)))
+
+            # Evaluate x and y position by 2 more significant axis
+            non_significant_axis = np.argmin(np.absolute(orientationSum))
+            orientationMajor = np.matrix([  np.delete(self.orientationX, non_significant_axis), 
+                                            np.delete(self.orientationY, non_significant_axis)])
+            deltaMajor = np.matrix(np.delete(delta, non_significant_axis))
             onRectanglePosition = np.array((orientationMajor.T.getI() * deltaMajor.T).T).flatten() / self.pixelspacing
 
             # Check the point is in rectangular(no negative position or out of boundary), flip for self.shape is (y, x) shape
@@ -83,8 +93,10 @@ class rectangle3D:
                 if acceptOOB:
                     return onRectanglePosition
                 else:    
+                    #print(f"WARNING: onRectanglePosition {onRectanglePosition} out of boundary, skip")
                     return False
         else:
+            #print("ERROR: absoluteSpacePoint is not on plane")
             return False
     
     def rectanglePositionofPointProjection(self, absoluteSpacePoint):
@@ -117,6 +129,7 @@ class rectangle3D:
         
         # No intersection
         if len(intersection_points)==0:
+            print("No valid intersection point.")
             return False
 
         # Remove same points
@@ -162,13 +175,16 @@ class rectangle3D:
                     intersection_points_output[i][0] = new_x
                     intersection_points_output[i][1] = new_y
 
-        return np.array(intersection_points_output)
-
-    def lineSegmentandRectangleIntersection(self, lineSeg, rectangle):
+            return np.array(intersection_points_output)
+        
+        else: 
+            print("ERROR: intersection points are more than 2.")
+            return False
+        
+    def lineSegmentandRectangleIntersection(self, lineSeg:lineSegment, rectangle):
         # Formula: sum((lineSeg.position + torectangleSteps * lineSeg.stepSize) * rectangle.planeCoefficient) = rectangle.planeContant
-        torectangleSteps = (rectangle.planeContant - sum(lineSeg.position * rectangle.planeCoefficient)) / \
-                sum(rectangle.planeCoefficient * lineSeg.stepSize)
-        if torectangleSteps>=0 and torectangleSteps<lineSeg.stepNum:
+        torectangleSteps = (rectangle.planeContant - sum(lineSeg.position * rectangle.planeCoefficient)) / sum(rectangle.planeCoefficient * lineSeg.stepSize)
+        if lineSeg.stepNum_is_in_lineSeg_boundery(torectangleSteps):
             intersectionSpacePosition = lineSeg.position + torectangleSteps*lineSeg.stepSize
             onRectanglePosition = rectangle.rectanglePositionOfSpacePoint(intersectionSpacePosition)
             if isinstance(onRectanglePosition, np.ndarray):
@@ -177,31 +193,7 @@ class rectangle3D:
                 return False 
         else:
             return False 
-
-def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
-    rectangle_source = rectangle3D( source_position, 
-                                    source_orientation, 
-                                    [source_pixelSpacing, source_pixelSpacing], 
-                                    source_shape)
-    rectangle_target = rectangle3D( target_position, 
-                                    target_orientation, 
-                                    [target_pixelSpacing, target_pixelSpacing], 
-                                    target_shape)
-    
-    X1 = -9999
-    Y1 = -9999
-    X2 = -9999
-    Y2 = -9999
-
-    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
-    if isinstance(endPoint, np.ndarray):
-        X1 = round(endPoint[0][0])
-        Y1 = round(endPoint[0][1])
-        X2 = round(endPoint[1][0])
-        Y2 = round(endPoint[1][1])
-
-    return X1, Y1, X2, Y2
-
+            
 def MRI_coordinate_API(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape,x,y):
     rectangle_source = rectangle3D( source_position, 
                                     source_orientation, 
@@ -237,39 +229,88 @@ def MRI_coordinate_API(source_position, source_orientation, target_position, tar
     else:
         return -1,-1,-1
 
+def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
+    rectangle_source = rectangle3D( source_position, 
+                                    source_orientation, 
+                                    [source_pixelSpacing, source_pixelSpacing], 
+                                    source_shape)
+    rectangle_target = rectangle3D( target_position, 
+                                    target_orientation, 
+                                    [target_pixelSpacing, target_pixelSpacing], 
+                                    target_shape)
+    
+    X1 = -9999
+    Y1 = -9999
+    X2 = -9999
+    Y2 = -9999
+
+    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
+    if isinstance(endPoint, np.ndarray):
+        X1 = round(endPoint[0][0])
+        Y1 = round(endPoint[0][1])
+        X2 = round(endPoint[1][0])
+        Y2 = round(endPoint[1][1])
+
+    return X1, Y1, X2, Y2
+
 def main():
-    axialrectangle = rectangle3D(   [-124.0125763,	-114.9357319, 125.4842253], 
-                                    [0.999463166, 0.029058569, -0.015132052, -0.029663405, 0.998701754, -0.041411211], 
-                                    [0.4883, 0.4883], 
-                                    [512, 512])
-    # coronalrectangle = rectangle3D( [-126.8027602, -68.36475095, 120.177609], 
+    # axialrectangle = rectangle3D(   [-124.0125763,	-114.9357319, 125.4842253], 
+    #                                 [0.999463166, 0.029058569, -0.015132052, -0.029663405, 0.998701754, -0.041411211], 
+    #                                 [0.4883, 0.4883], 
+    #                                 [512, 512])
+    # # coronalrectangle = rectangle3D( [-126.8027602, -68.36475095, 120.177609], 
+    # #                                 [0.998216933, 0.059690486, -0.000000002515556, -0.003249074, 0.054334929, -0.998517481], 
+    # #                                 [0.4883, 0.4883], 
+    # #                                 [512, 512])
+
+    # coronalrectangle = rectangle3D( [-131.09410340088,3.4003171076326, 124.09671139667], 
     #                                 [0.998216933, 0.059690486, -0.000000002515556, -0.003249074, 0.054334929, -0.998517481], 
     #                                 [0.4883, 0.4883], 
     #                                 [512, 512])
 
-    coronalrectangle = rectangle3D( [-131.09410340088,3.4003171076326, 124.09671139667], 
-                                    [0.998216933, 0.059690486, -0.000000002515556, -0.003249074, 0.054334929, -0.998517481], 
-                                    [0.4883, 0.4883], 
+    # sagittalrectangle = rectangle3D([63.665592891424, -107.97515826229, 122.40478362542], 
+    #                                 [-0.0468447937367, 0.99890218004556, -0.000000016686574, 0.00044797727697, 0.00002099176174, -0.999999899437],
+    #                                 [0.7813, 0.7813], 
+    #                                 [320, 320])
+
+    axialrectangle = rectangle3D(   [-121.93, -142.57, -17.5351], 
+                                    [0.999998, -0, -0.0019837, -0, 1, 0], 
+                                    [0.4688, 0.4688], 
                                     [512, 512])
 
-    sagittalrectangle = rectangle3D([63.665592891424, -107.97515826229, 122.40478362542], 
-                                    [-0.0468447937367, 0.99890218004556, -0.000000016686574, 0.00044797727697, 0.00002099176174, -0.999999899437],
-                                    [0.7813, 0.7813], 
-                                    [320, 320])
+    coronalrectangle = rectangle3D( [-139.217, -6.78465, 101.449], 
+                                    [0.999849, -0.0173956, 0, 0.00189215, 0.10944, -0.993992], 
+                                    [0.5469, 0.5469], 
+                                    [512, 512])
 
+    sagittalrectangle = rectangle3D([6.67324, -157.172, 100.216], 
+                                    [0.0166328, 0.999862, 0, -0, -0, -1],
+                                    [0.5469, 0.5469], 
+                                    [512, 512])
 
+    # print(axialrectangle.computePlaneCoefficient())
+    # print(coronalrectangle.computePlaneCoefficient())
+    # print(axialrectangle.spacePosition([335,207]))
+    # print(axialrectangle.rectanglePositionOfSpacePoint([122.7587588, -53.40314016, 119.4716311]))
 
-    pointA = axialrectangle.spacePosition([350,250])
-    print(pointA)
-    projection, distance = coronalrectangle.rectanglePositionofPointProjection(pointA)
-    #print(coronalrectangle.spacePointIsOnRectangle(pointA))
+    # print(axialrectangle.rectanglesIntersectionPoint(coronalrectangle))
+    # print(sagittalrectangle.rectanglesIntersectionPoint(coronalrectangle))
 
-    pointC = coronalrectangle.spacePosition([357.30, 12.579])
-    print(pointC)
+    # pointA = axialrectangle.spacePosition([350,250])
+    # print(pointA)
+    # projection, distance = coronalrectangle.rectanglePositionofPointProjection(pointA)
+    #print(coronalrectangle.spacePointIsOnPlane(pointA))
+
+    # pointC = coronalrectangle.spacePosition([357.30, 12.579])
+    # print(pointC)
     
-    print("projection:", projection)
-    print("distance:", distance)
-    print(coronalrectangle.rectanglePositionOfSpacePoint(projection))
+    # print("projection:", projection)
+    # print("distance:", distance)
+
+    #print(coronalrectangle.rectanglePositionOfSpacePoint(projection))
+
+    endPoint = axialrectangle.rectanglesIntersectionPoint(sagittalrectangle)
+    print(endPoint)
 
 if __name__ == '__main__':
     main()

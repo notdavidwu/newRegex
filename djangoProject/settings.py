@@ -65,6 +65,8 @@ INSTALLED_APPS = [
     'MEWS.apps.MEWSConfig',
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
     'appeal.apps.appealConfig',
+    'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
+    
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'

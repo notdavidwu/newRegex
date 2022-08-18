@@ -331,6 +331,7 @@
     .buttonAtBottom{position:absolute;height:30px;line-height:15px;width:calc(100% - 20px);margin-left:10px;margin-top:calc(32%)}
     .event_content{height:calc(30% - 50px)}
     input[name='confirmPID']:disabled ~label{pointer-events: none;}
+    .eventChecked{position:absolute;display:none;color:yellow;left:0px;z-index:10}
 </style>
 
 
@@ -631,6 +632,9 @@
                                     $('#time').append(response.objectArray[i])
                                 }
 
+                                if (!response.eventCheckedArray[i] && typeof(response.eventCheckedArray[i])!='undefined' && response.eventCheckedArray[i]!=0){ 
+                                    $('.eventChecked').eq(i).css('display','inline')
+                                }
                                 
                             }
                             searchRecord(i,response.eventID,response.MedType,seqNoOption,response.objectArray.length)
@@ -893,6 +897,7 @@
             }
         })
     }
+
 
     function addPatientStatus(){
         let chartNo = $('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
@@ -1716,7 +1721,7 @@
                     if($(this).attr('data-isDone')=="1"){
                         $(this).next('label').css('color','white')
                     }else{
-                        $(this).next('label').css('color','red')
+                        $(this).next('label').css('color','white')
                     }
                 })
             },
@@ -2226,6 +2231,20 @@
                     medType.push($(`label[for="timePID${ind}"] .medType`).html())
                 }
                 searchRecord(ind,eventID,medType,seqNoOption,total)
+            }
+        })
+    }
+
+    function confirmDone(){
+        let eventIDArray = $('.eventID').map(function(){return $(this).html()})
+        c$.ajax({
+            type: 'post',
+            url: '{% url "warehousing_eventDefinitions:confirmDone" %}', // this is the mapping between the url and view
+            data:{
+                'eventIDArray':eventIDArray,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },success:function (response){
+                $('.eventChecked').css('display','none')
             }
         })
     }

@@ -19,13 +19,9 @@ from warehousing import views
 app_name='warehousing'
 urlpatterns = [
     path('', views.warehousing,name='warehousing'),
-    path('ResearchTopic/', views.warehousing,name='ResearchTopic'),
-    path('SubjectPatientList/', views.SubjectPatientList,name='SubjectPatientList'),
-    path('PatientList/', views.PatientList,name='PatientList'),
-    path('Session/', views.Session,name='Session'),
-    path('Patient_num/', views.Patient_num,name='Patient_num'),
-    path('getPreviousAction/', views.getPreviousAction,name='getPreviousAction'),
-    path('Disease/', views.Disease,name='Disease'),
-    path('downloadCSV/', views.downloadCSV,name='downloadCSV'),
-    
+    path('imageList/', views.imageList,name='imageList'),
+    path('addPatientList/', views.addPatientList,name='addPatientList'),    
+    path('disease/', views.disease,name='disease'),
+    path('session/', views.session,name='session'),
+
 ]

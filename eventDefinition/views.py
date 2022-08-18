@@ -52,11 +52,12 @@ def confirmpat(request):
 
     query = 'EXEC EventDefinition_getPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
- 
+    result = cursor.fetchall()
 
+    print(result[:,1])
     examID=''
     #examID = list(cursor.fetchall())
-    for row in cursor:
+    for row in result:
 
         examID += f'''
         <tr><td>
@@ -110,11 +111,13 @@ def confirmpat2(request):
     objectArray=[]
     MedType=[]
     eventID=[]
+    eventCheckedArray=[]
     con = cursor.fetchall()
     for i in range(len(con)):
         MedType.append(con[i][3])
         eventID.append(con[i][6])
         eventChecked = con[i][7]
+        eventCheckedArray.append(eventChecked)
         note = con[i][8]
         if eventChecked is None:
             eventChecked=True
@@ -133,6 +136,7 @@ def confirmpat2(request):
         <div class="edate">{con[i][2]}</div>
         <div class="medType">{con[i][3]}</div>
         <div class="type2">{con[i][4]}</div>
+        <div class="eventChecked">🔔</div>
         <div class="note"><input type="text" class="form-control eventNote" onchange="updateEventNote()" value="{note}"></div>
         <div class="menu"></div>
         <p class="report2">{con[i][5]}</p>
@@ -153,7 +157,7 @@ def confirmpat2(request):
     for i in range(len(res)):
         eventID_F.append(res[i][0])
 
-    return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray,'eventID_F':eventID_F})
+    return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray,'eventID_F':eventID_F,'eventCheckedArray':eventCheckedArray})
 
 @csrf_exempt
 def getCancerRegistData(request):
