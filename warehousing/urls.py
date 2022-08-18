@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from warehousing import views
-app_name='warehousing'
+app_name='warehousing' 
 urlpatterns = [
     path('', views.warehousing,name='warehousing'),
     path('imageList/', views.imageList,name='imageList'),
