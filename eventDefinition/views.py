@@ -54,7 +54,7 @@ def confirmpat(request):
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
     result = cursor.fetchall()
 
-    print(result[:,1])
+    #print(result[:,1])
     examID=''
     #examID = list(cursor.fetchall())
     for row in result:
