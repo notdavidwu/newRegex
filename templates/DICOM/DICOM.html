@@ -476,11 +476,12 @@
         let x=$('#frame'+window_sno).children('label').children('div').children('div').children('.x').text()
         let y=$('#frame'+window_sno).children('label').children('div').children('div').children('.y').text()
         let z=$("#frame"+window_sno).children('label').children('div').children('div').children('.z').text();
-
+        console.log(plane)
         frameXYZ=checkPlaneXYZ(plane,x,y,count1)
 
         win_num=$('#select').val()
         let imageType = $('#frame'+window_sno).children('label').children('div').children('div').children('.StudyDes').text()
+
         if(imageType!='MRI'){
             var Con=[]
             for(var i =0;i<win_num;i++) {
@@ -521,16 +522,19 @@
             for(var i =0;i<win_num;i++) {
                 if(Con[i]==Con[window_sno-1]){
                     var ind=i+1
+                    console.log(ind,window_sno)
                     if(ind!=window_sno){
+                        console.log($('.viewplane').eq(i).text(),$('.viewplane').eq(window_sno-1).text())
                         if($('.viewplane').eq(i).text()==$('.viewplane').eq(window_sno-1).text()){
-                            $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
+                            
                             
                             let height = Math.floor($('#frame'+ind).children('label').children('.slider').height());
                             let b = $('#frame'+ind).children('label').children('.slider').scrollTop();
                             let num = Math.floor($('#frame'+ind).children('label').children('.slider').children().height()/height)
                             let count=Math.floor(b/height)
+                            
                             $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(count+1+'/'+num)
-                            $('#frame'+ind).children('label').children('div').children('div').children('.z').text(count1)
+                            $('#frame'+ind).children('label').children('div').children('div').children('.z').text(count)
                         }
                     }
                     ajax_connect_view(ind)
