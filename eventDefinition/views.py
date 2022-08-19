@@ -54,7 +54,41 @@ def confirmpat(request):
     cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
     result = cursor.fetchall()
 
-    #print(result[:,1])
+    
+    chartNo=list(map(lambda row:row[1],result))
+    chartNoString = '('
+    chartNoString += "),(".join(map(str, chartNo))
+    chartNoString += ')'
+
+    eventUnChecked_query = f'''
+                            --所有事件
+                            select a.chartNo ,a.count1-isNULL(b.count2,0) as result from(
+                            SELECT a.chartNo,count(b.chartNo) count1
+                                                        FROM (
+                                                        VALUES {chartNoString}
+                                                        ) AS a(chartNo)
+                                                        left join allEvents as b on a.chartNo=b.chartNo
+                                                        group by a.chartNo 
+                            )as a
+                            left join(
+                            SELECT a.chartNo,count(b.chartNo) as count2
+                                                        FROM (
+                                                        VALUES {chartNoString}
+                                                        ) AS a(chartNo)
+                                                        left join allEvents as b on a.chartNo=b.chartNo
+                                                        where eventChecked is not null
+                                                        group by a.chartNo 
+                            ) as b on a.chartNo=b.chartNo order by a.chartNo
+                            
+                            '''
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(eventUnChecked_query,[])
+    eventUnChecked_num = []
+    res = cursor.fetchall()
+    for row in res:
+        eventUnChecked_num.append(row[1])
+
+    i=0
     examID=''
     #examID = list(cursor.fetchall())
     for row in result:
@@ -64,18 +98,19 @@ def confirmpat(request):
         '''
         if filter=='0':
             examID += f'''
-                <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
+                <input type="radio" onclick="GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
             '''
             if row[2] is True:
-                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
             else:
-                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         else:    
             examID += f'''
-                <input type="radio" onclick="GetTime()" name="confirmPID" id={row[0]} data-isDone=1>
+                <input type="radio" onclick="GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
             '''
-            examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])}</p><p class="ID">{row[0]}</p></label>'''
+            examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
+        i+=1
     return JsonResponse({'examID': examID,'scrollTop':scrollTop})
 
 @csrf_exempt
@@ -144,7 +179,6 @@ def confirmpat2(request):
 
         object += f'''</label></tr></td>'''
         objectArray.append(object)
-
     query= '''
 	select distinct eventID_F
 	from allEvents as a
@@ -199,10 +233,9 @@ def addInducedEvent(request):
         select distinct 
         *
         from(
-            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,c.descriptionType,c.reportText,a.eventID,a.note,a.eventID_F
+            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,'' as descriptionType,'' as reportText,a.eventID,a.note,a.eventID_F
             from allEvents as a
             inner join medTypeSet as b on a.medType=b.medType
-            left join eventDetails as c on a.eventID=c.eventID
             where a.eventID_F in ({eventID_str})
             and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
         ) as result order by result.eventDate
@@ -297,6 +330,13 @@ def updatePhase(request):
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
             cursor.execute(query,[procedureID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({'sno':[EDID],'originSeqNo':[originSeqNo],'PDID':PDID})
 @csrf_exempt
 def updateInterval(request):
@@ -329,6 +369,13 @@ def updateInterval(request):
         else: #update
             query = 'UPDATE eventDefinitions SET PDID=%s WHERE EDID=%s'
             cursor.execute(query,[PDID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({'sno':[EDID],'seqNo':[seqNo],'PDID':PDID,'procedureID':procedureID})
 
 @csrf_exempt
@@ -424,7 +471,7 @@ def searchRecord(request):
         else:
             query += f',{eventID}'
     query += f')'
-
+    print(query)
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo,username])
     res = cursor.fetchall()
@@ -465,6 +512,13 @@ def updateCancerRegist(request):
     query = 'UPDATE eventDefinitions SET eventID=%s WHERE EDID=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[eventID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({})
 
 @csrf_exempt
@@ -474,6 +528,13 @@ def updateInducedEvent(request):
     query = 'update allEvents set eventID_F=%s where eventID=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[eventID_F,eventID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({})
 
 @csrf_exempt
@@ -774,7 +835,7 @@ def getExtractedFactorsRecordSeq(request):
     procedureID = request.POST.get('procedureID')
     eventFactorCode = request.POST.get('eventFactorCode')
     cursor = connections['practiceDB'].cursor()
-    print(eventID,procedureID,eventFactorCode)
+
     query='''
         select distinct seq from [extractedFactors2] as a
         inner join eventFactor as b on a.factorID = b.eventFactorID
@@ -785,7 +846,7 @@ def getExtractedFactorsRecordSeq(request):
     seq=[]
     for row in result :
         seq.append(row[0])
-    print(seq)
+
     return JsonResponse({'seq':seq})
 
 @csrf_exempt
@@ -1113,4 +1174,18 @@ def batchDefinite(request):
 
     query = 'EXEC %s @seqNo=%s , @pid=%s , @startTherapy=%s , @endTherapy=%s '
     cursor.execute(query,[therapy,seqNo,chartNo,startTherapy,endTherapy])
+    return JsonResponse({})
+
+@csrf_exempt
+def confirmDone(request):
+    eventIDArray = request.POST.getlist('eventIDArray[]')
+    query = '''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor = connections['practiceDB'].cursor()
+    for eventID in eventIDArray:
+        cursor.execute(query,[eventID])
     return JsonResponse({})

@@ -61,5 +61,5 @@ urlpatterns = [
     path('addTTP/', views.addTTP, name='addTTP'),
     path('batchDefinite/', views.batchDefinite, name='batchDefinite'),
     path('getExtractedFactorsRecordSeq/', views.getExtractedFactorsRecordSeq, name='getExtractedFactorsRecordSeq'),
-    
+    path('confirmDone/', views.confirmDone, name='confirmDone'),
 ]

@@ -83,8 +83,7 @@
         .menu{width: 20%;right:0;position:absolute;padding-top:5px}
         .add{width:calc(95%);height:20px;line-height:14px;padding:0;margin-left:0px;border-style:dashed;border-width:2px;border-radius:0}
         
-        .phase{float: left;margin: 0;width: 65%;height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;top:0;width: 30%;padding-top: 0}
+
         .report2{display: none}
         .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
         #text{font-size:12pt;outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 50% - 124px);position: absolute;left:199px ;font-size: 12pt;padding:20px}/*Report 放的框框*/
@@ -140,8 +139,9 @@
         .menu{width: 25%;right:0;position:absolute;padding-top:5px}
         .add{width:92%;height:20px;line-height:14px;padding:0;margin-left:10px;border-style:dashed;border-width:2px;border-radius:0}
         
-        .phase{float: left;margin: 0;width: calc(65%);height: auto;padding-top: 0}
-        .IntervalNo{float:left;margin: 0;top:0;margin-left: 5px;width: calc(30%);padding-top: 0}
+        .menublock{width:100%}
+        .phase{margin: 0;width: calc(65%);height: auto;padding-top: 0;display:inline-block;min-width:0px;padding-left:2px;padding-right:10px}
+        .IntervalNo{margin: 0;top:0;width: calc(30%);padding-top: 0;display:inline-block;min-width:0px;padding-right:2px}
         .report2{display: none}
         .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
         #text{background:url("{% static 'image/texture.png' %}");padding-left:5px;top:135px;height: calc(100% - 135px);width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 201px) ;font-size: 12pt}/*Report 放的框框*/
@@ -343,6 +343,7 @@
     #dateFilter{position:absolute;width: calc(45.5% - 200px);margin-left: 0px;left:calc(54.5% + 201px);top:55px;height:50px}
     #confirmDone{position:absolute;width: calc(45.5% - 200px);margin-left: 0px;left:calc(54.5% + 201px);top:105px;height:30px;line-height:15px;border-radius:0px}
     .eventChecked{position:absolute;display:none;color:yellow;left:0px;z-index:10}
+    
 </style>
 
 <style>
@@ -350,33 +351,34 @@
 </style>
 
 <script >
-    function setdisplay(i){
+    function setdisplay(i,zoom=0){
         
-        //if($('#timePID'+i).next('label').height()> $('#timePID'+i).next('label').children('.note').height()&& $('#timePID'+i).next('label').height()>$('#timePID'+i).next('label').children('.type2').height()){
-        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').height()+22)
-        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').height()+22)
-        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-        //    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.type2').height()+5)
-        //    console.log(1)
-        //}else if($('#timePID'+i).next('label').children('.note').height()>$('#timePID'+i).next('label').children('.type2').height()){
-        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
-        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.note').height()+22)
-        //    $('#timePID'+i).next('label').children('.Ignore').css('height',$('#timePID'+i).next('label').children('.note').height()+5)
-        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-        //    console.log(2)
-        //}else if($('#timePID'+i).next('label').children('.note').height()<$('#timePID'+i).next('label').children('.menu').height()){
-        //    $('#timePID'+i).next('label').prev().parents('td').css('height',$('#timePID'+i).next('label').children('.menu').height()+22)
-        //    $('#timePID'+i).next('label').css('height',$('#timePID'+i).next('label').children('.menu').height())
-        //    $('#timePID'+i).next('label').children('.note').css('margin-top',($('#timePID'+i).parents().height()-$('#timePID'+i).next('label').children('.note').height())/2)
-        //    console.log(3)
-        //}
-
-        $(`#${i}`).next('label').css('height',$(`#${i}`).next('label').children('.menu').height()+10)
-        $(`#${i}`).next('label').css('height',$(`#${i}`).next('label').children('.menu').height()+10)
-        $(`#${i}`).next('label').children('.accordion').css('height',$(`#${i}`).next('label').height())    
-
+        let type2_height = $(`#${i}`).next('label').children('.type2').height()
+        let label_height = $(`#${i}`).next('label').height()
+        let note_height = $(`#${i}`).next('label').children('.note').height()
+        let menu_height = $(`#${i}`).next('label').children('.menu').height()
+        let date_height = $(`#${i}`).next('label').children('.edate').height()
+        var numArray = [type2_height, label_height, note_height, menu_height,date_height];
+        let now_maxHeight = Math.max.apply(null, numArray)
+        let index = parseInt(i.split('timePID')[1])
+        let oriHeight = [type2_height_array[index], label_height_array[index], note_height_array[index], menu_height_array[index],date_height_array[index]];
+        console.log(oriHeight)
+        console.log(numArray)
+        let ori_maxHeight = Math.max.apply(null, oriHeight)
+        let maxHeight = 0
+        if(zoom==1){
+            maxHeight = Math.min.apply(null, [now_maxHeight,ori_maxHeight])+10
+        }else{
+            maxHeight = Math.max.apply(null, [now_maxHeight,ori_maxHeight])+10
+        }
+        console.log(maxHeight)
+        $(`#${i}`).next('label').css('height',0)
+        $(`#${i}`).next('label').children('.accordion').css('height',0)    
+        $(`#${i}`).next('label').css('height',maxHeight)
+        $(`#${i}`).next('label').children('.accordion').css('height',maxHeight)    
     }
     function addPhaseAndSeq(pannel,medType,selection,seqNoOption,appendOrPrepend){
+        let num = 0 
         let addObject = '<div class=menublock id="sno_-1_0_-1_0">'+
             '<select onchange="UpdateInterval()" class="IntervalNo  form-select form-select-sm" aria-label=".form-select-sm example">'+seqNoOption+'</select>'+
             '<select onchange="UpdatePhase()" class="phase form-select form-select-sm" aria-label=".form-select-sm example">'+selection+'</select>'+
@@ -386,9 +388,10 @@
         }else{
             $('#'+pannel).next('label').children('.menu').children('.addButton').before(addObject)
         }
-        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').children(`:not([data-medtype=${medType}])`).remove()
-        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').prepend('<option value=0>請確認階段</option>')
-        $('#'+pannel).next('label').children('.menu').children('.menublock').children('.phase').children('option').eq(0).prop('selected',true)
+        num = $(`label[for="${pannel}"] .menu .menublock`).length-1
+        $('#'+pannel).next('label').children('.menu').children('.menublock').eq(num).children('.phase').children(`:not([data-medtype=${medType}])`).remove()
+        $('#'+pannel).next('label').children('.menu').children('.menublock').eq(num).children('.phase').prepend('<option value=0>請確認階段</option>')
+        $('#'+pannel).next('label').children('.menu').children('.menublock').eq(num).children('.phase').children('option').eq(0).prop('selected',true)
     }
 
     function getClinicalProcedures(){
@@ -413,7 +416,7 @@
         addPhaseAndSeq(id,medType,selection,seqNoOption,'prepend')
         let target = $(`#${id}`).next('label').children('.menu').children('div')
 
-        if("{{warehousing_eventDefinitions_edit}}"=='False' ){
+        if("{{eventDefinition_edit}}"=='False' ){
             target.eq(target.length-2).children('.phase').prop('disabled',true)
             target.eq(target.length-2).children('.IntervalNo').prop('disabled',true)
         }else{
@@ -422,6 +425,18 @@
         }
 
         setdisplay(id)
+        let type2_height = $(`#${id}`).next('label').children('.type2').height()-10
+        let label_height = $(`#${id}`).next('label').height()-10
+        let note_height = $(`#${id}`).next('label').children('.note').height()-10
+        let menu_height = $(`#${id}`).next('label').children('.menu').height()-10
+        let date_height = $(`#${id}`).next('label').children('.edate').height()-10
+
+        type2_height_array[IND]=type2_height
+        label_height_array[IND]=label_height
+        note_height_array[IND]=note_height
+        menu_height_array[IND]=menu_height
+        date_height_array[IND]=date_height
+
     }
 
     function searchNote(IND,eventID){
@@ -536,7 +551,16 @@
                         addPhaseAndSeq(id,medType[i],selection,seqNoOption,'append')
                     }
                     //檢查是不是癌登尚未確認的資料
-
+                    let type2_height = $(`#timePID${i}`).next('label').children('.type2').height()
+                    let label_height = $(`#timePID${i}`).next('label').height()
+                    let note_height = $(`#timePID${i}`).next('label').children('.note').height()
+                    let menu_height = $(`#timePID${i}`).next('label').children('.menu').height()
+                    let date_height = $(`#timePID${i}`).next('label').children('.edate').height()
+                    type2_height_array.push(type2_height)
+                    label_height_array.push(label_height)
+                    note_height_array.push(note_height)
+                    menu_height_array.push(menu_height)
+                    date_height_array.push(date_height)
                     $(`#${id}`).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
                     setdisplay(id)
                 }
@@ -608,7 +632,6 @@
                                         $('#time').append(response.objectArray[i])
                                         $('#timePID'+i).parents('td').css('background-color', '#33333a')
                                         $('#timePID'+i).next('label').css('color', 'red')
-                                        setdisplay(`timePID${i}`)
                                     }else if(response.MedType[i]==1218401){
                                         $('#time').append(response.objectArray[i])
                                         $('#timePID'+i).parents('td').css('background-color', '#aef2f1')
@@ -716,6 +739,7 @@
         }
         
     }
+    
     function UpdatePhase(){
         target=$(event.target)
         let IND = target.parents('label').prevAll('input').attr('id').split('timePID')[1]
@@ -736,7 +760,7 @@
         }
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updatePhase" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updatePhase" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'PDID':pdID,
@@ -751,6 +775,14 @@
             success:function (response){
                 target.prevAll('.IntervalNo').val(response.originSeqNo)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.originSeqNo}`)
+                let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
+                if(timePID.attr('display')=='none'){
+                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                    let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
+                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                }
+                timePID.attr('display','none')
             }
         })
     }
@@ -775,7 +807,7 @@
         }
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateInterval" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateInterval" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'PDID':pdID,
@@ -790,6 +822,14 @@
             success:function (response){
                 target.next('.phase').val(response.procedureID)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.seqNo}`)
+                let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
+                if(timePID.attr('display')=='none'){
+                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                    let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
+                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                }
+                timePID.attr('display','none')
             }
         })
     }
@@ -1085,7 +1125,7 @@
 
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateCancerRegist" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateCancerRegist" %}', // this is the mapping between the url and view
             data:{
                 'EDID':EDID,
                 'eventID':eventID,
@@ -1093,6 +1133,14 @@
             },
             success:function(){
                 $('#timetable #'+$('input[name="test"]').eq(i).attr('id')).next('label').children()
+                let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
+                if(timePID.attr('display')=='none'){
+                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                    let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
+                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                }
+                timePID.attr('display','none')
                 cancerRegistCheckClose()
             }
         })
@@ -1115,6 +1163,7 @@
         }
     }
 
+    
     function ascriptionSubmit(){
         let eventID_F = $('#inductionEventID2').text()
         let eventID = $('#inductionEventID1').text()
@@ -1122,7 +1171,7 @@
         if(eventID_F!=''){ //沒歸屬偵測
             $.ajax({
                 type: 'post',
-                url: '{% url "warehousing_eventDefinitions:updateInducedEvent" %}', // this is the mapping between the url and view
+                url: '{% url "eventDefinition:updateInducedEvent" %}', // this is the mapping between the url and view
                 data:{
                     'eventID_F':eventID_F,
                     'eventID':eventID,
@@ -1158,6 +1207,14 @@
                     addInducedEvent([num],[eventID_F],[targetID])
                 },
                 complete:function(){
+                    let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
+                    if(timePID.attr('display')=='none'){
+                        let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                        let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
+                        $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
+                        $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                    }
+                    timePID.attr('display','none')
                     ascriptionClose()
                 }
             })
@@ -2012,6 +2069,25 @@
         let startDate = ($('input[name="daterange"]').data('daterangepicker').startDate.format('YYYY-MM-DD'))
         let endDate = ($('input[name="daterange"]').data('daterangepicker').endDate.format('YYYY-MM-DD'))
         getImageList(startDate,endDate)
+        $( window ).resize(function() {
+            let timePID = $('input[name="timePID"]').map(function(){return $(this).attr('id')}).get()
+            let zoom = 0
+            if($( window ).width()>size){
+                zoom = 1
+            }else{
+                zoom = 0
+            }
+            for(let i=0;i<timePID.length;i++){
+                setdisplay(timePID[i],zoom)
+            }
+            size = $( window ).width()
+        });
+        type2_height_array=[]
+        label_height_array=[]
+        note_height_array=[]
+        menu_height_array=[]
+        date_height_array=[]
+        size = $( window ).width()
     })
 
 //-------------------------------定位功能------------------------------------

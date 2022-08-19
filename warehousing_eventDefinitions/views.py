@@ -69,13 +69,24 @@ def confirmpat(request):
         chartNoString = '('
         chartNoString += "),(".join(map(str, uniqueChartNoArray.tolist()))
         chartNoString += ')'
-        eventUnChecked_query = f'''SELECT a.chartNo,count(b.chartNo) 
-                                FROM (
-                                VALUES {chartNoString}
-                                ) AS a(chartNo)
-                                left join allEvents as b on a.chartNo=b.chartNo
-                                where eventChecked is null
-                                group by (a.chartNo) order by a.chartNo'''
+        eventUnChecked_query = f'''                            --所有事件
+                            select a.chartNo ,a.count1-isNULL(b.count2,0) as result from(
+                            SELECT a.chartNo,count(b.chartNo) count1
+                                                        FROM (
+                                                        VALUES {chartNoString}
+                                                        ) AS a(chartNo)
+                                                        left join allEvents as b on a.chartNo=b.chartNo
+                                                        group by a.chartNo 
+                            )as a
+                            left join(
+                            SELECT a.chartNo,count(b.chartNo) as count2
+                                                        FROM (
+                                                        VALUES {chartNoString}
+                                                        ) AS a(chartNo)
+                                                        left join allEvents as b on a.chartNo=b.chartNo
+                                                        where eventChecked is not null
+                                                        group by a.chartNo 
+                            ) as b on a.chartNo=b.chartNo order by a.chartNo'''
         cursor = connections['practiceDB'].cursor()
         print(eventUnChecked_query)
         cursor.execute(eventUnChecked_query,[])
@@ -329,6 +340,13 @@ def updatePhase(request):
         else: #update
             query = 'UPDATE eventDefinitions SET procedureID=%s WHERE EDID=%s'
             cursor.execute(query,[procedureID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])   
     return JsonResponse({'sno':[EDID],'originSeqNo':[originSeqNo],'PDID':PDID})
 @csrf_exempt
 def updateInterval(request):
@@ -361,6 +379,13 @@ def updateInterval(request):
         else: #update
             query = 'UPDATE eventDefinitions SET PDID=%s WHERE EDID=%s'
             cursor.execute(query,[PDID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({'sno':[EDID],'seqNo':[seqNo],'PDID':PDID,'procedureID':procedureID})
 
 @csrf_exempt
@@ -497,6 +522,13 @@ def updateCancerRegist(request):
     query = 'UPDATE eventDefinitions SET eventID=%s WHERE EDID=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[eventID,EDID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({})
 
 @csrf_exempt
@@ -506,6 +538,13 @@ def updateInducedEvent(request):
     query = 'update allEvents set eventID_F=%s where eventID=%s'
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[eventID_F,eventID])
+    updateAllevent_query='''
+        declare @eventID int
+        set @eventID=%s
+        update allEvents set eventChecked=1 where eventID = @eventID
+        update allEvents set eventChecked=1 where eventID_F = @eventID
+    '''
+    cursor.execute(updateAllevent_query,[eventID])
     return JsonResponse({})
 
 @csrf_exempt
@@ -1150,7 +1189,7 @@ def batchDefinite(request):
 @csrf_exempt
 def confirmDone(request):
     eventIDArray = request.POST.getlist('eventIDArray[]')
-    query = 'update allevents set eventChecked=0 where eventID=%s'
+    query = 'update allevents set eventChecked=1 where eventID=%s'
     cursor = connections['practiceDB'].cursor()
     for eventID in eventIDArray:
         cursor.execute(query,[eventID])
