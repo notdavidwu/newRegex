@@ -507,8 +507,9 @@
             },
             success:function (response){
                 var eventID_search = response.eventID_F
-                var eventID_table = $('.eventID').map(function(){return parseInt($(this).html())}).get()
+                var eventID_table = $('#accordionExample .eventID').map(function(){return parseInt($(this).html())}).get()
                 var id_table = $('#accordionExample .eventID').map(function(){return $(this).parents('label').attr('for')}).get()
+                console.log(eventID_table.length)
                 for(let i =0 ;i<eventID_table.length;i++){
                     let searchIndex = indexOfAll(eventID_search,eventID_table[i])
                     console.log(id_table[i])
