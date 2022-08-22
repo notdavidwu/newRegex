@@ -512,6 +512,7 @@
                 var id_table = $('.eventID').map(function(){return $(this).parents('label').attr('for')}).get()
                 for(let i =0 ;i<eventID_table.length;i++){
                     let searchIndex = indexOfAll(eventID_search,eventID_table[i])
+                    console.log(id_table[i])
                     var id = id_table[i]
                     if(searchIndex.length != 0){
                         for(let j=0 ; j<searchIndex.length;j++){
@@ -565,47 +566,10 @@
                     date_height_array.push(date_height)
                     setdisplay(id)
                 }
-                //for(var i =0 ;i<response.Record;i++){
-                //    let id = 'timePID'+IND.toString()
-                //    $(`#timePID${IND}`).next('label').children('.menu').children('div').remove()
-                //    addPhaseAndSeq(id,medType,seqNoOption,'append')
-                //    let RecordedID=`sno_${response.EDID[i]}_${response.eventID_F[i]}_${response.PDID[i]}_${response.caSeqNo[i]}`
-                //    
-                //    $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).attr('id',RecordedID)
-                //    $(`#${RecordedID}`).children('.phase').children('option[value='+response.procedureID[i]+']').attr('selected','selected')
-                //    $(`#${RecordedID}`).children('.IntervalNo').children('option[value='+response.caSeqNo[i]+']').attr('selected','selected') 
-                //    //console.log(response.editor[i],'{{user.username}}')
-//
-                //    //檢查是不是癌登尚未確認的資料
-                //    if(response.eventID[i]==null){
-                //        $(`#timePID${IND}`).attr('class','sno_'+response.EDID[i])
-                //        $(`#timePID${IND}`).parent().css('background-color','#4D5139')
-                //        $(`#timePID${IND}`).parent().css('color','#FFFFFF')
-                //    }
-                //    
-                //    if("{{eventDefinition_edit}}"=='False'){
-                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
-                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
-                //    }else if('{{user.is_superuser}}'=='True' ){
-                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
-                //        $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
-                //    }else{
-                //        if(response.editor[i]!=username){
-                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',true)
-                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',true)
-                //        }
-                //        if(response.editor[i]=='NoRecord'){
-                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.phase').prop('disabled',false)
-                //            $(`#timePID${IND}`).next('label').children('.menu').children('div').eq(i).children('.IntervalNo').prop('disabled',false)
-                //        }
-                //    }
-                //}
-                //$('#timePID'+IND.toString()).next('label').children('.menu').append('<div class="addButton"><button type="button" onclick="addMenu()" class="add btn btn-outline-primary">+</button></div>')
-
-                //if(IND==(total-1)){
-                    $('#timetable').css('visibility','visible')
-                    $('.loader2').css('display','none')
-                //}
+                
+                $('#timetable').css('visibility','visible')
+                $('.loader2').css('display','none')
+                
             }
         })
         
