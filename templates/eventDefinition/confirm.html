@@ -507,7 +507,7 @@
             },
             success:function (response){
                 var eventID_search = response.eventID_F
-                var eventID_table = $('#accordionExample .eventID').map(function(){return parseInt($(this).html())}).get()
+                var eventID_table = $('#accordionExample .eventID').map(function(){return parseInt($(this).parents('label').children('.eventID').html())}).get()
                 var id_table = $('#accordionExample .eventID').map(function(){return $(this).parents('label').attr('for')}).get()
                 console.log(eventID_table.length)
                 console.log(id_table.length)
