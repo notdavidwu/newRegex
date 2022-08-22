@@ -346,7 +346,7 @@
         let date_height = $(`#${i}`).next('label').children('.edate').height()
         var numArray = [type2_height, label_height, note_height, menu_height,date_height];
         let now_maxHeight = Math.max.apply(null, numArray)
-        
+        console.log(i)
         let index = parseInt(i.split('timePID')[1])
         let oriHeight = [type2_height_array[index], label_height_array[index], note_height_array[index], menu_height_array[index],date_height_array[index]];
 
