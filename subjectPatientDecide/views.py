@@ -453,7 +453,7 @@ def uploadCandicate(request):
 
 @csrf_exempt
 def fileConversion(request):
-    candicate = request.session.getlist('candicate[]')
+    candicate = request.POST.getlist('candicate[]')
     chartNoString = '('
     chartNoString += "),(".join(map(str, candicate))
     chartNoString += ')'
