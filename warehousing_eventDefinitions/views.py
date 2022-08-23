@@ -108,13 +108,13 @@ def confirmpat(request):
             
             if result > 0:
                 examID += f'''<tr><td>'''
-                examID += f'''<input type="radio" onclick="GetTime()" name="confirmPID" id={i} data-eventID="{eventID}">'''
-                examID += f'''<label for={i}><p class="PatientListID exclude">{chartNo}</p><p class="ID">{chartNo}<span class="newImageNum">({num[i]})</span><span class="eventUnCheckedNum">({eventUnChecked_num[i]})</span></p></label>'''
+                examID += f'''<input type="radio" data-chartNo="{chartNo}" onclick="releaseDisabled();GetTime()" name="confirmPID" id={i} data-eventID="{eventID}">'''
+                examID += f'''<label for={i}><p class="PatientListID exclude">{chartNo}</p><p class="ID">{chartNo}</p><span class="newImageNum">({num[i]})</span><span class="eventUnCheckedNum">({eventUnChecked_num[i]})</span></label>'''
                 examID += f'''</td></tr>'''   
             else:
                 uncheckPatient += f'''<tr><td>'''
-                uncheckPatient += f'''<input type="radio" onclick="GetTime()" name="confirmPID" id={i} data-eventID="{eventID}">'''
-                uncheckPatient += f'''<label for={i}><p class="PatientListID exclude">{chartNo}</p><p class="ID">{chartNo}<span class="newImageNum">({num[i]})</span><span class="eventUnCheckedNum">({eventUnChecked_num[i]})</span></p></label>'''
+                uncheckPatient += f'''<input type="radio" data-chartNo="{chartNo}" onclick="releaseDisabled();GetTime()" name="confirmPID" id={i} data-eventID="{eventID}">'''
+                uncheckPatient += f'''<label for={i}><p class="PatientListID exclude">{chartNo}</p><p class="ID">{chartNo}</p><span class="newImageNum">({num[i]})</span><span class="eventUnCheckedNum">({eventUnChecked_num[i]})</span></label>'''
                 uncheckPatient += f'''</td></tr>'''  
             i += 1
     return JsonResponse({'examID': examID,'uncheckPatient':uncheckPatient,'scrollTop':scrollTop})
@@ -473,7 +473,7 @@ def searchRecord(request):
         where b.chartNo=@chartNo and f.eventDate is not null
         and  (DATEDIFF(DAY, c.caregExecDate, f.eventDate) between -15 and 15 or  c.caregExecDate is null)  
         and ((c.eventID is null and f.eventID is not null) or (c.eventID is not null and c.eventID=f.eventID))
-        ) as res  where  (res.username is null or res.username=@username) and res.eventID_F in ( 
+        ) as res  where  (res.username is null or res.username=@username) and res.eventID in ( 
     '''
     for i,eventID in enumerate(eventID_list):
         if i == 0:

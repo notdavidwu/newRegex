@@ -24,6 +24,7 @@
     <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
     <script src="{% static 'css_js/jquery.tableToExcel.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    
     <title>CSMU_AIC</title>
     </head>
 
@@ -59,7 +60,9 @@
     #header{margin:0px}
     .condition{border-bottom:2px solid #AAA;padding-bottom:10px;margin-bottom:10px}
     .block{border-bottom:2px solid #AAA;padding-bottom:10px;margin-bottom:10px}
-    #candicateDownload{position:absolute;z-index:2;right:5px;top:6px;height:30px;line-height:15px}
+    #candicateDownload{display:inline-block;z-index:2;top:6px;height:30px;line-height:15px;width:50%}
+    #fileConversion{display:inline-block;z-index:2;top:6px;height:30px;line-height:15px;width:50%;}
+    #pannel{display:flex}
 </style>
 
 
@@ -422,6 +425,26 @@
         })
     }
 
+    function fileConversion(){
+        let candicate = $('#tbody table tbody tr').map(function(){return $(this).children('td').html()}).get()
+        $.ajax({
+            type: 'post',
+            url: '{% url "subjectPatientDecide:fileConversion" %}', // this is the mapping between the url and view
+            data:{
+                'candicate':candicate,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },success:function(response){
+                Swal.fire({
+                    title: '',
+                    html: `轉檔中，共有${response.num}份影像，預估${response.num}分鐘後完成轉檔`,
+                    icon: 'success',
+                    showConfirmButton: true,
+                    timerProgressBar: true,
+                })
+            }
+        })
+    }
+
     function imageEventDate(){
         for(let i =1;i<=180;i++){
             $('#imageEventDate .diffDate').eq(0).append(`<option value=${i}>${i}天</option>`)
@@ -543,7 +566,10 @@
 
     </div>
     <div id="patient">
-        <button type="button" class="btn btn-primary" id="candicateDownload" onclick="candicateDownload()">下載</button>
+        <div id="pannel">
+            <button type="button" class="btn btn-warning" id="fileConversion" onclick="fileConversion()">影像轉檔</button>
+            <button type="button" class="btn btn-primary" id="candicateDownload" onclick="candicateDownload()">下載</button>
+        </div>
         <table class="table table-hover" id='header'>
             <thead><th>ChartNo</th><th id="n_chartNo">???人</th></thead>
         </table>

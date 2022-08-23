@@ -1,4 +1,5 @@
 
+from unittest import result
 from cv2 import resize
 from django.shortcuts import render,HttpResponse,redirect
 from django.http import JsonResponse
@@ -425,6 +426,8 @@ def deleteCorrelationPatientDisease(cursor,topicNo):
     query = 'delete from correlationPatientDisease where diseaseNo = %s'
     cursor.execute(query,[topicNo])
 
+from ssh_main import call_api
+
 @csrf_exempt
 def downloadCSV(request):
     candicate = request.session.get('candicate')
@@ -437,6 +440,9 @@ def downloadCSV(request):
     writer.writerow(['chartNo'])
     for chartNo in candicate:
         writer.writerow([chartNo])
+
+
+
     return response
 
 @csrf_exempt
@@ -446,8 +452,23 @@ def uploadCandicate(request):
     return JsonResponse({})
 
 @csrf_exempt
-def medType(request):
-    query= "select topicNo from researchTopic where topicName=%s"
-    cursor.execute(query_searchTopicNo,[topicName])
+def fileConversion(request):
+    candicate = request.session.getlist('candicate[]')
+    chartNoString = '('
+    chartNoString += "),(".join(map(str, candicate))
+    chartNoString += ')'
+    query = f'''                            --所有事件
+            SELECT storageID FROM examStudy AS a 
+            INNER JOIN(SELECT chartNo FROM (VALUES {chartNoString}) AS a(chartNo)) AS b ON a.chartNo = b.chartNo 
+            WHERE isReady = 0
+            '''
+    cursor = connections['practiceDB'].cursor()        
+    cursor.execute(query,[])
     result = cursor.fetchall()
-    return JsonResponse({})
+    storageIDArray = []
+    for row in result:
+        storageIDArray.append(row[0])
+
+    call_api(storageIDArray)   
+    num = len(storageIDArray) 
+    return JsonResponse({'num':num})

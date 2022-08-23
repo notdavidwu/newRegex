@@ -176,8 +176,6 @@
                         <td>${response.studyID[i]}</td>
                         <td class='storageID' style="display:none">${response.storageID[i]}</td>
                         <td class='eventID' style="display:none">${response.eventID[i]}</td>
-                        <td><button class="readReport" value="${response.report[i]}" onclick="readReport()">👁</button></td>
-                        <td><button class="btn btn-primary"" onclick="link()">加入
                         </button></td>
                     </tr>
                     `)
@@ -186,29 +184,9 @@
         })
     }
     
-    function readReport(){
-        $('#text').html($(event.target).val())
-    }
-
     function changeColor(){
         $(event.target).parents('tr').addClass('selected').siblings().removeClass("selected");
         
-    }
-
-    function link(){
-        let chartNo = $('.chartNo').map(function(){return $(this).html()}).get()
-        let eventID = $('.eventID').map(function(){return $(this).html()}).get()
-        $.ajax({
-            type: 'post',
-            url: '{% url "warehousing:session" %}', // this is the mapping between the url and view
-            data:{
-                'chartNo':chartNo,
-                'eventID':eventID,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },success:function (response){
-                window.location.href={% url 'warehousing_eventDefinitions:eventDefinitions' %}
-             }
-        })
     }
 
     $(document).ready(function (e) {
@@ -252,8 +230,6 @@
                     <td>檢查日期</td>
                     <td>影像類型</td>
                     <td>StudyID</td>
-                    <td>報告</td>
-                    <td>確認</td>
                 </tr>
             </thead>
             <tbody></tbody>

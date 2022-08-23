@@ -31,6 +31,7 @@ urlpatterns = [
     path('uploadCandicate/', views.uploadCandicate,name='uploadCandicate'),
     path('getPatientWithProcedure/', views.getPatientWithProcedure,name='getPatientWithProcedure'),
     path('getPatientWithMedTypeAndProcedure/', views.getPatientWithMedTypeAndProcedure,name='getPatientWithMedTypeAndProcedure'),
-    
     path('getPatientWithAdvanceCondition/', views.getPatientWithAdvanceCondition,name='getPatientWithAdvanceCondition'),
+    path('fileConversion/', views.fileConversion,name='fileConversion'),
+    
 ]

@@ -68,10 +68,9 @@
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
-        #timetable{position: absolute;top:105px;width:calc(1200px - 200px );left:200px;height:calc(50% + 18px);overflow-y: scroll;overflow-x: hidden}
+        
         #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
-        #title{margin-top:55px;height:50px;width: calc(1200px - 200px);left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
-        #title table{width: calc(100% - 100px)}
+        
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{font-size:12pt;float: left;width: 15%;padding-left: 20px;height: auto}
         .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
@@ -119,9 +118,9 @@
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
-        #timetable{position: absolute;top:105px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 90px);overflow-y: scroll;overflow-x: hidden}
+        #timetable{position: absolute;top:125px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 110px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
-        #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title{margin-top:55px;height:70px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
@@ -352,9 +351,9 @@
         let ori_maxHeight = Math.max.apply(null, oriHeight)
         let maxHeight = 0
         if(zoom==1){
-            maxHeight = Math.min.apply(null, [now_maxHeight,ori_maxHeight])+10
+            maxHeight = Math.min.apply(null, [now_maxHeight,ori_maxHeight])+5
         }else{
-            maxHeight = Math.max.apply(null, [now_maxHeight,ori_maxHeight])+10
+            maxHeight = Math.max.apply(null, [now_maxHeight,ori_maxHeight])+5
         }
         
         $(`#${i}`).next('label').css('height',0)
@@ -510,8 +509,6 @@
                 var eventID_table = $('#accordionExample .eventID').map(function(){return parseInt($(this).parents('label').children('.eventID').html())}).get()
                 eventID_table = eventID_table.filter(function (value) {return !Number.isNaN(value);});
                 var id_table = $('#accordionExample .eventID').map(function(){return $(this).parents('label').attr('for')}).get()
-                console.log(eventID_table)
-                console.log(id_table)
                 for(let i =0 ;i<eventID_table.length;i++){
                     let searchIndex = indexOfAll(eventID_search,eventID_table[i])
                     
@@ -580,7 +577,7 @@
 
     function GetTime(){
         var id = $('input[type="radio"][name="confirmPID"]:checked').attr('id')
-        
+
         $('input[type="radio"][name="confirmPID"]').prop('disabled',true)
         $('input[type="radio"][name="confirmPID"]').next('label').prop('disabled',true)
         $('#timetable').css('visibility','hidden')
@@ -597,7 +594,11 @@
         seqNoOption='<option value=0>?</option>'
         let scrollTop = $('#patient').scrollTop()
         let excludeFilter = $('#excludeFilter').is(':checked')
-
+        let data_medtype = $('.medtypeFilter').map(function(){
+            if($(this).is(':checked')==false){
+                return $(this).attr('data-medtype')    
+            }
+        }).get()
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:getSeqNoOption" %}', // this is the mapping between the url and view
@@ -616,6 +617,7 @@
                         'ID':text,
                         'scrollTop':scrollTop,
                         'excludeFilter':excludeFilter,
+                        'medtype':data_medtype,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
                     success:function (response){
@@ -670,7 +672,6 @@
                         $(`input[type="radio"][name="confirmPID"][id=${id}]`).prop('checked',true)
                         $('input[type="radio"][name="confirmPID"]').prop('disabled',false)
                         $('input[type="radio"][name="confirmPID"]').next('label').prop('disabled',false)
-                        $('[data-eventCheck="False"]').parents('td').css('background-color','#D9CD90')
 
                     }
                 })
@@ -718,6 +719,7 @@
         $('#text').html($('input[name=timePID]:checked').next('label').children('.report2').text())
     }
     function GetReport() {
+
         reporttext=$('input[name=timePID]:checked').next('label').children('.report2').text()
         if($('input[name=timePID]:checked').attr('id')!=$('input[name=timePID][data-extractFactor=1]').attr('id')){
             $('input[name=timePID]').attr('data-extractFactor',0)
@@ -775,13 +777,13 @@
                 target.prevAll('.IntervalNo').val(response.originSeqNo)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.originSeqNo}`)
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
                     let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
                     $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
                     $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
                 }
-                timePID.attr('display','none')
             }
         })
     }
@@ -822,13 +824,13 @@
                 target.next('.phase').val(response.procedureID)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.seqNo}`)
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
-                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
+                    let num = $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').text().split(' ')[1].split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
                     $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
                     $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
                 }
-                timePID.attr('display','none')
             }
         })
     }
@@ -1450,13 +1452,13 @@
             success:function(){
                 $('#timetable #'+$('input[name="test"]').eq(i).attr('id')).next('label').children()
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
                     let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
                     $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
                     $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
                 }
-                timePID.attr('display','none')
                 cancerRegistCheckClose()
             }
         })
@@ -1523,13 +1525,13 @@
                 },
                 complete:function(){
                     let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                    if(timePID.attr('display')=='none'){
+                    if(timePID.css('display')!='none'){
+                        timePID.css('display','none')
                         let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
                         let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
                         $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
                         $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
                     }
-                    timePID.attr('display','none')
                     ascriptionClose()
                 }
             })
@@ -1779,6 +1781,11 @@
         
     }
     function excludeFilter(){
+        if($('#excludeFilter').is(':checked')==true){
+            $('.medtypeFilter').prop('disabled',true)
+        }else{
+            $('.medtypeFilter').prop('disabled',false)
+        }
         GetTime()
     }
     function disableEvent(){
@@ -1805,6 +1812,7 @@
         })
     }
     function searchForm(){
+        
         let code = $('input[name="formFilter"]').map(function(){return $(this).val().split('(')[0]}).get()
         if(code.includes('')==false){
             $('#designArea tbody').empty()
@@ -1815,7 +1823,7 @@
                 data:{
                     'groupNo':code[0],
                     'diseaseID':code[1],
-                    'procedureID':code[2],
+                    'procedureID':code[2].split(',')[0],
                     'version':code[3],
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
@@ -2008,6 +2016,7 @@
     }
 
     function getCurrentEventProcedure(){
+
         let optionName = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').html()}).get()
         let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
         $('.procedureOfForm').empty()
@@ -2292,8 +2301,18 @@
         })
     }
 
-
-
+    function filter(){
+        let data_medtype = $('.medtypeFilter').map(function(){
+            if($(this).is(':checked')==false){
+                return $(this).attr('data-medtype')    
+            }
+        }).get()
+        GetTime()
+    }
+    function releaseDisabled(){
+        $('#excludeFilter').prop('disabled',false)
+        $('.medtypeFilter').prop('disabled',false)
+    }
     $(document).ready(function (e) {
         selection = getClinicalProcedures()
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -2392,6 +2411,24 @@
         menu_height_array=[]
         date_height_array=[]
         size = $( window ).width()
+
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(let i=0;i<response.medtype.length;i++){
+                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
+                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
+                        ${response.typename[i]}</label></th>`)
+                }
+                $('.medtypeFilter').prop('disabled',true)
+                $('#excludeFilter').prop('disabled',true)
+            }
+        })
+
     })
 
 //-------------------------------定位功能------------------------------------
@@ -2436,15 +2473,25 @@
     </div>
     <div id='defaultMenuBlock2'>  
         <div id="title">
-        <table  class="thead-dark">
-            <thead>
-            <th class="header" id ="header_date"><label style="font-size:5pt;position:absolute;left:0px;top:20px"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label>日期</th>
-            <th class="header" id ="header_exam">檢查項目</th>
-            <th class="header" id ="header_note">註記</th>
-            <th class="header" id ="header_confirm">確認階段</th>
-            </thead>
-            
-        </table>
+            <table  class="thead-dark">
+                <thead>
+                    <tr>
+                        <th class="header" id ="header_date">日期</th>
+                        <th class="header" id ="header_exam">檢查項目</th>
+                        <th class="header" id ="header_note">註記</th>
+                        <th class="header" id ="header_confirm">確認階段</th>
+                    </tr>
+                </thead>
+
+            </table>
+            <table  class="thead-dark">
+
+                <thead>
+                    <tr id = "medtypeFilter">
+                        <th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>
+                    </tr>
+                </thead>
+            </table>
         </div>
 
         <div class="loader loader2">
@@ -2551,7 +2598,7 @@
 
         <div id="menu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
-            <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
+            <!--<p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>-->
             <p class="btn btn-secondary resetbtn" id="extract" role="button" onclick="extractedFactorOpen()">報告萃取</p>
             <p class="btn btn-secondary resetbtn" id="disableEvent" role="button" data-eventCheck=1 onclick="disableEvent()">disabled</p>
             <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="formDesign()">表單設計</p>

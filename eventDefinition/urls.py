@@ -62,4 +62,6 @@ urlpatterns = [
     path('batchDefinite/', views.batchDefinite, name='batchDefinite'),
     path('getExtractedFactorsRecordSeq/', views.getExtractedFactorsRecordSeq, name='getExtractedFactorsRecordSeq'),
     path('confirmDone/', views.confirmDone, name='confirmDone'),
+    path('getMedtype/', views.getMedtype, name='getMedtype'),
+    
 ]

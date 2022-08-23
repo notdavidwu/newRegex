@@ -3,6 +3,8 @@
     <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-bs-toggle="dropdown" aria-haspopup="true"
         aria-expanded="false">管理員專區</a>
     <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+        <a class="dropdown-item"  href="{% url 'warehousing:warehousing' %}">入庫清單</a>
+        <a class="dropdown-item"  href="{% url 'warehousing_eventDefinitions:eventDefinitions' %}">入庫影像連結&事件定義</a>
         <a class="dropdown-item"  href="{% url 'administrator:auth_control' %}">權限控管</a>
         <a class="dropdown-item"  href="{% url 'subjectPatientDecide:subjectPatientDecide' %}">研究主題</a>
     </div>

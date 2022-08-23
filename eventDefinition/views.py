@@ -98,7 +98,7 @@ def confirmpat(request):
         '''
         if filter=='0':
             examID += f'''
-                <input type="radio" onclick="GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
+                <input type="radio" onclick="releaseDisabled();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
             '''
             if row[2] is True:
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
@@ -106,7 +106,7 @@ def confirmpat(request):
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         else:    
             examID += f'''
-                <input type="radio" onclick="GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
+                <input type="radio" onclick="releaseDisabled();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
             '''
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
@@ -139,10 +139,16 @@ def confirmpat2(request):
     PID=request.POST.get('ID')
     excludeFilter = request.POST.get('excludeFilter')
     scrollTop = request.POST.get('scrollTop')
+    medtype= request.POST.getlist('medtype[]')
+    if len(medtype)==0:
+        medtype=''
+    else:
+        medtype = ','.join(map(str, medtype))
     request.session['eventDefinition_scrollTop']=scrollTop
-    query = '''EXEC EventDefinition_getPatientEvent @chartNo = %s, @filter = %s'''
+    query = '''EXEC EventDefinition_getPatientEvent_2 @chartNo = %s, @filter = %s, @medtype=%s'''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[PID,excludeFilter])
+    print(PID,excludeFilter,len(medtype))
+    cursor.execute(query,[PID,excludeFilter,medtype])
     objectArray=[]
     MedType=[]
     eventID=[]
@@ -461,9 +467,9 @@ def searchRecord(request):
             left outer join allEvents as f on b.chartNo=f.chartNo and e.medType=f.medType
             left outer join eventDetails as g on f.eventID=g.eventID
         where b.chartNo=@chartNo and f.eventDate is not null
-        and  (DATEDIFF(DAY, c.caregExecDate, f.eventDate) between -15 and 15 or  c.caregExecDate is null)  
+        and  c.caregExecDate is null 
         and ((c.eventID is null and f.eventID is not null) or (c.eventID is not null and c.eventID=f.eventID))
-        ) as res  where  (res.username is null or res.username=@username) and res.eventID_F in ( 
+        ) as res  where  (res.username is null or res.username=@username) and res.eventID in ( 
     '''
     for i,eventID in enumerate(eventID_list):
         if i == 0:
@@ -1189,3 +1195,15 @@ def confirmDone(request):
     for eventID in eventIDArray:
         cursor.execute(query,[eventID])
     return JsonResponse({})
+
+@csrf_exempt
+def getMedtype(request):
+    query = '''
+        select medType ,typeName from medTypeSet  where  (medType>1000000 and medType<1100000) or medType = 30003 or medType=35001 
+    '''
+    cursor = connections['practiceDB'].cursor()
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    medtype = list(map(lambda row:row[0],result))
+    typename = list(map(lambda row:row[1].replace(' ',''),result))
+    return JsonResponse({'medtype':medtype,'typename':typename})

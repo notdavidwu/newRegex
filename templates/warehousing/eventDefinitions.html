@@ -127,9 +127,9 @@
         input[name='timePID']{display: none}/*radio  消失*/
         input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
-        #timetable{position: absolute;top:105px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 90px);overflow-y: scroll;overflow-x: hidden}
+        #timetable{position: absolute;top:125px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 110px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
-        #title{margin-top:55px;height:50px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title{margin-top:55px;height:70px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
@@ -362,14 +362,12 @@
         let now_maxHeight = Math.max.apply(null, numArray)
         let index = parseInt(i.split('timePID')[1])
         let oriHeight = [type2_height_array[index], label_height_array[index], note_height_array[index], menu_height_array[index],date_height_array[index]];
-        console.log(oriHeight)
-        console.log(numArray)
         let ori_maxHeight = Math.max.apply(null, oriHeight)
         let maxHeight = 0
         if(zoom==1){
-            maxHeight = Math.min.apply(null, [now_maxHeight,ori_maxHeight])+10
+            maxHeight = Math.min.apply(null, [now_maxHeight,ori_maxHeight])+5
         }else{
-            maxHeight = Math.max.apply(null, [now_maxHeight,ori_maxHeight])+10
+            maxHeight = Math.max.apply(null, [now_maxHeight,ori_maxHeight])+5
         }
         console.log(maxHeight)
         $(`#${i}`).next('label').css('height',0)
@@ -440,7 +438,7 @@
     }
 
     function searchNote(IND,eventID){
-        let chartNo= $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo')) 
         $.ajax({
             type: 'post',
             url: '{% url "warehousing_eventDefinitions:searchNote" %}', // this is the mapping between the url and view
@@ -498,7 +496,7 @@
 
     }
     function searchRecord(IND,eventID,medType,seqNoOption,total){
-        let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         let username = '{{user.username}}'
         $.ajax({
             type: 'post',
@@ -589,7 +587,7 @@
         patientStatusCheckClose()
 
         batchDefiniteClose()
-        text=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        text=parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         seqNoOption='<option value=0>?</option>'
         let scrollTop = $('#patient').scrollTop()
         let excludeFilter = $('#excludeFilter').is(':checked')
@@ -776,13 +774,12 @@
                 target.prevAll('.IntervalNo').val(response.originSeqNo)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.originSeqNo}`)
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
-                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
+                    let eventUnCheckedNum = $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html().split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
-                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
-                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html(`(${eventUnCheckedNum})`)
                 }
-                timePID.attr('display','none')
             }
         })
     }
@@ -823,13 +820,12 @@
                 target.next('.phase').val(response.procedureID)
                 target.parents('.menublock').attr('id',`sno_${response.sno}_${eventID}_${response.PDID}_${response.seqNo}`)
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
-                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
+                    let eventUnCheckedNum = $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html().split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
-                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
-                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html(`(${eventUnCheckedNum})`)
                 }
-                timePID.attr('display','none')
             }
         })
     }
@@ -874,7 +870,7 @@
     function statusOpen(){
         let seq = ''
         for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
-        let chartNo=$('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         let diseaseId = $('#ChangeDisease').val()
         $("#patientStatusCheck").css('display', 'inline');
         $("#statusMenu").css('display', 'none');
@@ -923,7 +919,7 @@
 
 
     function addPatientStatus(){
-        let chartNo = $('input[name=confirmPID]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         let seq = ''
         for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
         $.ajax({
@@ -1134,13 +1130,12 @@
             success:function(){
                 $('#timetable #'+$('input[name="test"]').eq(i).attr('id')).next('label').children()
                 let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                if(timePID.attr('display')=='none'){
-                    let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                if(timePID.css('display')!='none'){
+                    timePID.css('display','none')
+                    let eventUnCheckedNum = $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html().split('(')[1].split(')')[0]-1
                     let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
-                    $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
-                    $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                    $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html(`(${eventUnCheckedNum})`)
                 }
-                timePID.attr('display','none')
                 cancerRegistCheckClose()
             }
         })
@@ -1208,13 +1203,12 @@
                 },
                 complete:function(){
                     let timePID = $('input[name="timePID"]:checked').next('label').children('.eventChecked')
-                    if(timePID.attr('display')=='none'){
-                        let num = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text().split(' ')[1].split('(')[1].split(')')[0]-1
+                    if(timePID.css('display')!='none'){
+                        timePID.css('display','none')
+                        let eventUnCheckedNum = $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html().split('(')[1].split(')')[0]-1
                         let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
-                        $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text(`${chartNo} (${num})`)
-                        $('input[name="confirmPID"]:checked').next('label').children('.ID').text(`${chartNo} (${num})`)
+                        $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html(`(${eventUnCheckedNum})`)
                     }
-                    timePID.attr('display','none')
                     ascriptionClose()
                 }
             })
@@ -1670,7 +1664,7 @@
     }
 
     function isDone(){
-        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         let isDone = $('input[name="confirmPID"]:checked').attr('data-isDone')
         if(isDone=="1"){
             $('input[name="confirmPID"]:checked').attr('data-isDone','0')
@@ -1723,7 +1717,7 @@
         })
     }
     function addTopicFormRecord(){
-        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         $.ajax({
             type: 'post',
             url: '{% url "warehousing_eventDefinitions:getTopicRecord" %}', // this is the mapping between the url and view
@@ -1747,7 +1741,7 @@
     }
 
     function addTopicFormSubmit(){
-        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text()
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
 
         let topicNo = $(`input[name="topic"]`).map(function(){
             return $(this).attr('data-topicNo')
@@ -1898,7 +1892,7 @@
         let endTherapy = $('#event_end .event_content .batchDefiniteEventID').html()
         let seqNo =  $('#event_setting .seq').val()
         let therapy = $('#event_setting .therapy').val()
-        let chartNo = $('input[name="confirmPID"]:checked').next('label').children('.PatientListID').text() 
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo')) 
         let startTherapyIND = $('#event_start .event_content .batchDefiniteIND').html()
         let endTherapyIND = $('#event_end .event_content .batchDefiniteIND').html()
         $.ajax({
@@ -1964,8 +1958,23 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },success:function (response){
                 $('.eventChecked').css('display','none')
+                let eventUnCheckedNum = 0
+                let chartNo = $('input[name="confirmPID"]:checked').attr('data-chartNo')
+                $('input[name="confirmPID"]:checked').next('label').children('.eventUnCheckedNum').html(`(${eventUnCheckedNum})`)
             }
         })
+    }
+    function filter(){
+        let data_medtype = $('.medtypeFilter').map(function(){
+            if($(this).is(':checked')==false){
+                return $(this).attr('data-medtype')    
+            }
+        }).get()
+        GetTime()
+    }
+    function releaseDisabled(){
+        $('#excludeFilter').prop('disabled',false)
+        $('.medtypeFilter').prop('disabled',false)
     }
     $(document).ready(function (e) {
         selection = getClinicalProcedures()
@@ -2088,6 +2097,22 @@
         menu_height_array=[]
         date_height_array=[]
         size = $( window ).width()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                for(let i=0;i<response.medtype.length;i++){
+                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
+                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
+                        ${response.typename[i]}</label></th>`)
+                }
+                $('.medtypeFilter').prop('disabled',true)
+                $('#excludeFilter').prop('disabled',true)
+            }
+        })
     })
 
 //-------------------------------定位功能------------------------------------
@@ -2114,17 +2139,30 @@
 
     </div>
     <div id='defaultMenuBlock2'>  
+        
         <div id="title">
-        <table  class="thead-dark">
-            <thead>
-            <th class="header" id ="header_date"><label style="font-size:5pt;position:absolute;left:0px;top:20px"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label>日期</th>
-            <th class="header" id ="header_exam">檢查項目</th>
-            <th class="header" id ="header_note">註記</th>
-            <th class="header" id ="header_confirm">確認階段</th>
-            </thead>
-            
-        </table>
+            <table  class="thead-dark">
+                <thead>
+                    <tr>
+                        <th class="header" id ="header_date">日期</th>
+                        <th class="header" id ="header_exam">檢查項目</th>
+                        <th class="header" id ="header_note">註記</th>
+                        <th class="header" id ="header_confirm">確認階段</th>
+                    </tr>
+                </thead>
+
+            </table>
+            <table  class="thead-dark">
+
+                <thead>
+                    <tr id = "medtypeFilter">
+                        <th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>
+                    </tr>
+                </thead>
+            </table>
         </div>
+
+        
 
         <div class="loader loader2">
             <div class="loader-inner ball-grid-pulse">
@@ -2230,7 +2268,7 @@
 
         <div id="menu" class="customMenu">
             <p class="btn btn-secondary resetbtn" id="belong" role="button" onclick="belong()">歸屬</p>
-            <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p>
+            <!-- <p class="btn btn-secondary resetbtn" id="CR_check" role="button" onclick="cancerRegistCheck()">癌登確認</p> !-->
             <p class="btn btn-secondary resetbtn" id="extract" role="button" onclick="extractedFactorOpen()">報告萃取</p>
             <p class="btn btn-secondary resetbtn" id="disableEvent" role="button" data-eventCheck=1 onclick="disableEvent()">disabled</p>
             <p class="btn btn-secondary resetbtn" id="formDesign" role="button"  onclick="formDesign()">表單設計</p>
