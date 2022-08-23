@@ -120,8 +120,9 @@
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
         #timetable{position: absolute;top:125px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 110px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
-        #title{margin-top:55px;height:70px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title{top:55px;height:40px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
+        #medtypeFilterTable{padding-top:2px;top:95px;height:30px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;overflow-y:auto}
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
         .type2{position:flex;width: 25%;padding-left: 20px;padding-top:5px;height: auto}
@@ -2313,6 +2314,28 @@
         $('#excludeFilter').prop('disabled',false)
         $('.medtypeFilter').prop('disabled',false)
     }
+
+    function getMedtype(){
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
+        $('#medtypeFilter').empty()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>`)
+                for(let i=0;i<response.medtype.length;i++){
+                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
+                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
+                        ${response.typename[i]}</label></th>`)
+                }
+            }
+        })
+    }
+
     $(document).ready(function (e) {
         selection = getClinicalProcedures()
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -2412,22 +2435,6 @@
         date_height_array=[]
         size = $( window ).width()
 
-        $.ajax({
-            type: 'post',
-            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
-            data:{
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                for(let i=0;i<response.medtype.length;i++){
-                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
-                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
-                        ${response.typename[i]}</label></th>`)
-                }
-                $('.medtypeFilter').prop('disabled',true)
-                $('#excludeFilter').prop('disabled',true)
-            }
-        })
 
     })
 
@@ -2484,11 +2491,12 @@
                 </thead>
 
             </table>
-            <table  class="thead-dark">
-
+        </div>
+        <div id="medtypeFilterTable">
+            <table id="" class="thead-dark">
                 <thead>
                     <tr id = "medtypeFilter">
-                        <th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>
+                        
                     </tr>
                 </thead>
             </table>

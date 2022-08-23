@@ -98,7 +98,7 @@ def confirmpat(request):
         '''
         if filter=='0':
             examID += f'''
-                <input type="radio" onclick="releaseDisabled();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
+                <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
             '''
             if row[2] is True:
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
@@ -1198,11 +1198,14 @@ def confirmDone(request):
 
 @csrf_exempt
 def getMedtype(request):
+    chartNo = request.POST.get('chartNo')
     query = '''
-        select medType ,typeName from medTypeSet  where  (medType>1000000 and medType<1100000) or medType = 30003 or medType=35001 
+        select distinct b.medType,b.typeName from allEvents as a
+        inner join medTypeSet as b on a.medType=b.medType
+        where chartNo=%s and eventSource<2
     '''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[])
+    cursor.execute(query,[chartNo])
     result = cursor.fetchall()
     medtype = list(map(lambda row:row[0],result))
     typename = list(map(lambda row:row[1].replace(' ',''),result))
