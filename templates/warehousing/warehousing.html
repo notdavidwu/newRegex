@@ -42,7 +42,7 @@
     #imageList table thead td{}
     #imageList table tbody{background:url("{% static 'image/texture.png' %}");border: solid 1px #1D6A96;border-left: solid 5px #1D6A96;border-right: solid 5px #1D6A96;text-align: center;margin: 0;padding: 0 }
     #imageList table tbody td{height: 50px}
-    #text{position:absolute;background:url("{% static 'image/texture.png' %}");padding-left:5px;top:55px;height: 100%;width: 50% ;position: absolute;margin-left: 0px;left:50% ;font-size: 12pt}/*Report 放的框框*/
+    #dashboard{position:absolute;background:url("{% static 'image/texture.png' %}");padding-left:5px;top:55px;height: calc(100% - 56px);width: 50% ;position: absolute;margin-left: 0px;left:50% ;font-size: 12pt}/*Report 放的框框*/
     p{display:none}
     .readReport{border:0px;background:none}
     #patientStatusCheck{width:700px}
@@ -180,6 +180,7 @@
                     </tr>
                     `)
                }
+               $('#dashboard').attr('src',response.image)
             }
         })
     }
@@ -235,7 +236,7 @@
             <tbody></tbody>
         </table>
     </div>
-    <textarea id='text'></textarea>
+    <img id='dashboard'></img>
 
     <span id="chartNo"></span>
 </body>
