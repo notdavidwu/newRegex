@@ -1,4 +1,5 @@
 import numpy as np
+from math import isclose
 
 class rectangle3D:
     class lineSegment:
@@ -61,11 +62,12 @@ class rectangle3D:
         return self.position + delta_x + delta_y
 
     def spacePointIsOnPlane(self, absoluteSpacePoint):
-        if np.round(sum(absoluteSpacePoint*self.planeCoefficient), 2)==np.round(self.planeContant, 2):
+        if isclose(sum(absoluteSpacePoint*self.planeCoefficient), self.planeContant, abs_tol=0.01):
             return True
         else:
             print("Space point is not on plane")
             print(sum(absoluteSpacePoint*self.planeCoefficient), self.planeContant)
+            print()
             return False
 
     def rectanglePositionOfSpacePoint(self, absoluteSpacePoint, acceptOOB=False):
@@ -193,31 +195,6 @@ class rectangle3D:
                 return False 
         else:
             return False 
-
-def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
-    rectangle_source = rectangle3D( source_position, 
-                                    source_orientation, 
-                                    [source_pixelSpacing, source_pixelSpacing], 
-                                    source_shape)
-    rectangle_target = rectangle3D( target_position, 
-                                    target_orientation, 
-                                    [target_pixelSpacing, target_pixelSpacing], 
-                                    target_shape)
-    
-    X1 = -9999
-    Y1 = -9999
-    X2 = -9999
-    Y2 = -9999
-
-    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
-    if isinstance(endPoint, np.ndarray):
-        X1 = round(endPoint[0][0])
-        Y1 = round(endPoint[0][1])
-        X2 = round(endPoint[1][0])
-        Y2 = round(endPoint[1][1])
-
-    return X1, Y1, X2, Y2
-
 def MRI_coordinate_API(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape,x,y):
     rectangle_source = rectangle3D( source_position, 
                                     source_orientation, 
@@ -252,7 +229,31 @@ def MRI_coordinate_API(source_position, source_orientation, target_position, tar
         return round(x),round(y),round(z)
     else:
         return -1,-1,-1
-        
+
+def customAPI(source_position, source_orientation, target_position, target_orientation, source_pixelSpacing, target_pixelSpacing, source_shape, target_shape):
+    rectangle_source = rectangle3D( source_position, 
+                                    source_orientation, 
+                                    [source_pixelSpacing, source_pixelSpacing], 
+                                    source_shape)
+    rectangle_target = rectangle3D( target_position, 
+                                    target_orientation, 
+                                    [target_pixelSpacing, target_pixelSpacing], 
+                                    target_shape)
+    
+    X1 = -9999
+    Y1 = -9999
+    X2 = -9999
+    Y2 = -9999
+
+    endPoint = rectangle_target.rectanglesIntersectionPoint(rectangle_source)
+    if isinstance(endPoint, np.ndarray):
+        X1 = round(endPoint[0][0])
+        Y1 = round(endPoint[0][1])
+        X2 = round(endPoint[1][0])
+        Y2 = round(endPoint[1][1])
+
+    return X1, Y1, X2, Y2
+
 def main():
     # axialrectangle = rectangle3D(   [-124.0125763,	-114.9357319, 125.4842253], 
     #                                 [0.999463166, 0.029058569, -0.015132052, -0.029663405, 0.998701754, -0.041411211], 
@@ -273,19 +274,19 @@ def main():
     #                                 [0.7813, 0.7813], 
     #                                 [320, 320])
 
-    axialrectangle = rectangle3D(   [-121.93, -142.57, -17.5351], 
-                                    [0.999998, -0, -0.0019837, -0, 1, 0], 
-                                    [0.4688, 0.4688], 
+    axialrectangle = rectangle3D(   [-104.795, -145.162, 0.21479], 
+                                    [1, -0, 0, -0, 1, 0], 
+                                    [0.4102, 0.4102], 
                                     [512, 512])
 
-    coronalrectangle = rectangle3D( [-139.217, -6.78465, 101.449], 
-                                    [0.999849, -0.0173956, 0, 0.00189215, 0.10944, -0.993992], 
+    coronalrectangle = rectangle3D( [-140.223, -57.2873, 120.798], 
+                                    [0.999748, -0.0224614, -0.000518795, 0.00335709, 0.171303, -0.985213], 
                                     [0.5469, 0.5469], 
                                     [512, 512])
 
-    sagittalrectangle = rectangle3D([6.67324, -157.172, 100.216], 
-                                    [0.0166328, 0.999862, 0, -0, -0, -1],
-                                    [0.5469, 0.5469], 
+    sagittalrectangle = rectangle3D([8.4191, -157.573, 121.47], 
+                                    [-0.00238044, 0.999906, 0.0135197, 0.00952163, 0.01355, -0.999863],
+                                    [0.5078, 0.5078], 
                                     [512, 512])
 
     # print(axialrectangle.computePlaneCoefficient())

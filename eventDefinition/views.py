@@ -106,7 +106,7 @@ def confirmpat(request):
                 examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         else:    
             examID += f'''
-                <input type="radio" onclick="releaseDisabled();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
+                <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
             '''
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    

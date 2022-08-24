@@ -74,8 +74,7 @@
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
         #timetable{position: absolute;top:105px;width:calc(1200px - 200px );left:200px;height:calc(50% + 18px);overflow-y: scroll;overflow-x: hidden}
         #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
-        #title{margin-top:55px;height:50px;width: calc(1200px - 200px);left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
-        #title table{width: calc(100% - 100px)}
+
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{font-size:12pt;float: left;width: 15%;padding-left: 20px;height: auto}
         .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
@@ -129,8 +128,10 @@
         input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
         #timetable{position: absolute;top:125px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 110px);overflow-y: scroll;overflow-x: hidden}
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
-        #title{margin-top:55px;height:70px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+        #title{top:55px;height:40px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
+        #medtypeFilterTable{padding-top:2px;top:95px;height:30px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;overflow-y:auto}
+        
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
         .type2{position:flex;width: 25%;padding-left: 20px;padding-top:5px;height: auto}
@@ -395,7 +396,7 @@
     function getClinicalProcedures(){
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getClinicalProcedures" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getClinicalProcedures" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -441,7 +442,7 @@
         let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo')) 
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:searchNote" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchNote" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'IND':IND,
@@ -457,7 +458,7 @@
     function searchPhaseAndInterval(i,sno){
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:searchPhaseAndInterval" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchPhaseAndInterval" %}', // this is the mapping between the url and view
             data:{
                 'sno':sno,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -469,7 +470,7 @@
                 if(eventNo!=0){
                     $.ajax({
                         type: 'post',
-                        url: '{% url "warehousing_eventDefinitions:Phase" %}', // this is the mapping between the url and view
+                        url: '{% url "eventDefinition:Phase" %}', // this is the mapping between the url and view
                         data:{
                             'eventNo':eventNo,
                             'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -500,7 +501,7 @@
         let username = '{{user.username}}'
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:searchRecord" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:searchRecord" %}', // this is the mapping between the url and view
             data:{
                 'IND':IND,
                 'chartNo':chartNo,
@@ -591,10 +592,14 @@
         seqNoOption='<option value=0>?</option>'
         let scrollTop = $('#patient').scrollTop()
         let excludeFilter = $('#excludeFilter').is(':checked')
-        
+        let data_medtype = $('.medtypeFilter').map(function(){
+            if($(this).is(':checked')==false){
+                return $(this).attr('data-medtype')    
+            }
+        }).get()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getSeqNoOption" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getSeqNoOption" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':text,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -610,6 +615,7 @@
                         'ID':text,
                         'scrollTop':scrollTop,
                         'excludeFilter':excludeFilter,
+                        'medtype':data_medtype,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
                     success:function (response){
@@ -680,7 +686,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getCancerRegistData" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getCancerRegistData" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':text,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -698,7 +704,7 @@
     function addInducedEvent(i,eventID,index){
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:addInducedEvent" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:addInducedEvent" %}', // this is the mapping between the url and view
             data:{
                 'ind':i,
                 'eventID':eventID,
@@ -876,7 +882,7 @@
         $("#statusMenu").css('display', 'none');
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getPatientStatus" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getPatientStatus" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'diseaseId':diseaseId,
@@ -924,7 +930,7 @@
         for(let i=0;i<=10;i++){seq+=`<option value=${i}>${i}</option>`}
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:addPatientDiease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:addPatientDiease" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -952,7 +958,7 @@
         let caSeqNo = $(event.target).parents('tr').children('td').eq(1).children('select').val()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateDiseaseAndSeq" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateDiseaseAndSeq" %}', // this is the mapping between the url and view
             data:{
                 'PDID':PDID,
                 'diseaseID':diseaseID,
@@ -1005,7 +1011,7 @@
         let PDID = $('input[name="deletePatientDisease"]:checked').parents('tr').attr('id')
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:deletelePatientDisease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:deletelePatientDisease" %}', // this is the mapping between the url and view
             data:{
                 'PDID':PDID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1053,7 +1059,7 @@
         
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updatePatientStatus" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updatePatientStatus" %}', // this is the mapping between the url and view
             data:{
                 'PD':PD,
                 'diagChecked':diagChecked,
@@ -1219,7 +1225,7 @@
         let eventID = $(event.target).prevAll('.eventID').html()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:deleteEvent_F" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:deleteEvent_F" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1239,7 +1245,7 @@
         let pdConfirmed=Number($('#statusFilterPannel .pdConfirmed').prop('checked'))
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getNum" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getNum" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
                 'diagChecked':diagChecked,
@@ -1467,7 +1473,7 @@
         let disable = $(event.target).attr('data-eventCheck')
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateEventConfirm" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateEventConfirm" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'disable':disable,
@@ -1492,7 +1498,7 @@
             $('#preview').empty()
             $.ajax({
                 type: 'post',
-                url: '{% url "warehousing_eventDefinitions:searchEventFactorCode" %}', // this is the mapping between the url and view
+                url: '{% url "eventDefinition:searchEventFactorCode" %}', // this is the mapping between the url and view
                 data:{
                     'groupNo':code[0],
                     'diseaseID':code[1],
@@ -1515,7 +1521,7 @@
     function getFromStructure(eventFactorCode){
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getFromStructure" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getFromStructure" %}', // this is the mapping between the url and view
             data:{
                 'eventFactorCode':eventFactorCode,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1563,7 +1569,7 @@
         let isLeaf = $('#designArea .isLeaf').map(function(){return $(this).val()}).get()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateFromStructure" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateFromStructure" %}', // this is the mapping between the url and view
             data:{
                 'code':code,
                 'eventFactorID':eventFactorID,
@@ -1587,7 +1593,7 @@
         let target = $(event.target)
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getNewEventFactorID" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getNewEventFactorID" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1612,7 +1618,7 @@
     function formDesign(){
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getEventFactorCode" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getEventFactorCode" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -1646,7 +1652,7 @@
         let note = $(event.target).val()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:updateEventNote" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:updateEventNote" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'note':note,
@@ -1676,7 +1682,7 @@
         isDone = $('input[name="confirmPID"]:checked').attr('data-isDone')
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:isDone" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:isDone" %}', // this is the mapping between the url and view
             data:{
                 'isDone':isDone,
                 'chartNo':chartNo,
@@ -1695,7 +1701,7 @@
         $('#statusMenu').css('display','none')
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getTopic" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getTopic" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1720,7 +1726,7 @@
         let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getTopicRecord" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getTopicRecord" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1757,7 +1763,7 @@
         }).get()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:processCorrelationPatientListAndAnnotation" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:processCorrelationPatientListAndAnnotation" %}', // this is the mapping between the url and view
             data:{
                 'chartNo':chartNo,
                 'topicNo':topicNo,
@@ -1784,7 +1790,7 @@
         let disease = $('#ChangeDisease').val()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:getTopicPatientNum" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:getTopicPatientNum" %}', // this is the mapping between the url and view
             data:{
                 'disease':disease,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1839,7 +1845,7 @@
         let diseaseID = $('#ChangeDisease').val()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:addTTP" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:addTTP" %}', // this is the mapping between the url and view
             data:{
                 'eventID':eventID,
                 'diseaseID':diseaseID,
@@ -1897,7 +1903,7 @@
         let endTherapyIND = $('#event_end .event_content .batchDefiniteIND').html()
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:batchDefinite" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:batchDefinite" %}', // this is the mapping between the url and view
             data:{
                 'startTherapy':startTherapy,
                 'endTherapy':endTherapy,
@@ -1976,6 +1982,28 @@
         $('#excludeFilter').prop('disabled',false)
         $('.medtypeFilter').prop('disabled',false)
     }
+    function getMedtype(){
+        let chartNo = parseInt($('input[name="confirmPID"]:checked').attr('data-chartNo'))
+
+        $('#medtypeFilter').empty()
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
+            data:{
+                'chartNo':chartNo,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>`)
+                for(let i=0;i<response.medtype.length;i++){
+                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
+                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
+                        ${response.typename[i]}</label></th>`)
+                }
+            }
+        })
+    }
+
     $(document).ready(function (e) {
         selection = getClinicalProcedures()
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -2002,7 +2030,7 @@
         $('.loader1').css('display','inline')
         $.ajax({
             type: 'post',
-            url: '{% url "warehousing_eventDefinitions:Disease" %}', // this is the mapping between the url and view
+            url: '{% url "eventDefinition:Disease" %}', // this is the mapping between the url and view
             data:{
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
@@ -2097,22 +2125,7 @@
         menu_height_array=[]
         date_height_array=[]
         size = $( window ).width()
-        $.ajax({
-            type: 'post',
-            url: '{% url "eventDefinition:getMedtype" %}', // this is the mapping between the url and view
-            data:{
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                for(let i=0;i<response.medtype.length;i++){
-                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
-                        onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
-                        ${response.typename[i]}</label></th>`)
-                }
-                $('.medtypeFilter').prop('disabled',true)
-                $('#excludeFilter').prop('disabled',true)
-            }
-        })
+       
     })
 
 //-------------------------------定位功能------------------------------------
@@ -2152,11 +2165,12 @@
                 </thead>
 
             </table>
-            <table  class="thead-dark">
-
+        </div>
+        <div id="medtypeFilterTable">
+            <table id="" class="thead-dark">
                 <thead>
                     <tr id = "medtypeFilter">
-                        <th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>
+                        
                     </tr>
                 </thead>
             </table>
