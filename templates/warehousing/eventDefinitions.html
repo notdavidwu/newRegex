@@ -1950,7 +1950,7 @@
 
     function confirmDone(){
         let eventIDArray = $('.eventID').map(function(){return $(this).html()})
-        c$.ajax({
+        $.ajax({
             type: 'post',
             url: '{% url "warehousing_eventDefinitions:confirmDone" %}', // this is the mapping between the url and view
             data:{
