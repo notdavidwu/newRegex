@@ -274,8 +274,7 @@ def load_DICOM(request):
         request.session['CT_W_' + WindowNo] = f['CT_vol'].shape[2]
 
         headers = f['PET_header']
-        request.session['PET_pixelspacing_' + WindowNo] = float(
-            pydicom.dataset.Dataset.from_json(headers[0]).PixelSpacing[0])
+        request.session['PET_pixelspacing_' + WindowNo] = float(pydicom.dataset.Dataset.from_json(headers[0]).PixelSpacing[0])
         request.session['PET_slicethickness_' + WindowNo] = float(pydicom.dataset.Dataset.from_json(headers[1]).SliceThickness)
         request.session['PET_dlta_Z_' + WindowNo] = round(abs(float(pydicom.dataset.Dataset.from_json(headers[1]).ImagePositionPatient[2])-float(pydicom.dataset.Dataset.from_json(headers[2]).ImagePositionPatient[2])),3)
         request.session['PET_D_' + WindowNo] = f['PET_vol'].shape[0]
@@ -1165,7 +1164,7 @@ def selectAnnotation(request):
     studyDate = request.POST.getlist('Study_Date[]')
     username = str(request.POST.get('username'))
     cursor = connections['AIC'].cursor()
-    
+    print(PID, Disease, string[0], string[1], string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3])
     if all_annotations==True:
         query = '''
         select * from (select　*,(CAST(studyID as VARCHAR(50)) + '_' + 
@@ -1417,10 +1416,9 @@ def string2date(str):
 @csrf_exempt
 def cancer(request):
     query = '''
-            select DiseaseNo ,Disease
-            from Disease 
+            select * from practiceDB.dbo.diseasetList
             '''
-    cursor = connections['AIC'].cursor()
+    cursor = connections['practiceDB'].cursor()
     cursor.execute(query)
     DiseaseNo = []
     Disease = []

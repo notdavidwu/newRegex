@@ -246,6 +246,7 @@ def addInducedEvent(request):
             and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
         ) as result order by result.eventDate
     '''
+    print(query)
     cursor.execute(query,[])
     result = cursor.fetchall()
 
