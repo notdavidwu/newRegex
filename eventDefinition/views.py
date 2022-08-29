@@ -796,16 +796,16 @@ def insertExtractedFactors(request):
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
 
     queryDelete='''DELETE 
-    FROM [practiceDB].[dbo].[extractedFactors2] where factorID in 
+    FROM [practiceDB].[dbo].[extractedFactors] where factorID in 
     (select eventFactorID from eventFactor where eventFactorCode=%s)
     and eventID=%s and seq=%s and procedureID=%s'''
     cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq,procedure])
 
-    query = '''select * from extractedFactors2 where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
+    query = '''select * from extractedFactors where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
     for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
         cursor.execute(query,[eventID,factorID,procedure,insertSeq])
         if len(cursor.fetchall())==0: # =0, insert this data
-            queryInsert='''insert into extractedFactors2 (eventID,factorID,factorValue,procedureID,seq) VALUES(%s,%s,%s,%s,%s)'''
+            queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,procedureID,seq) VALUES(%s,%s,%s,%s,%s)'''
             cursor.execute(queryInsert,[eventID,factorID,factorValue,procedure,insertSeq])
 
     return JsonResponse({})
@@ -818,7 +818,7 @@ def searchExtractedFactorsRecord(request):
     seq = request.POST.get('seq')
     idArray = request.POST.getlist('idArray[]')
     classArray = request.POST.getlist('classArray[]')
-    query='''select factorValue from extractedFactors2 where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
+    query='''select factorValue from extractedFactors where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
     factorIdRecorded = []
     factorValueRecorded = []
     seqRecorded = []
@@ -844,7 +844,7 @@ def getExtractedFactorsRecordSeq(request):
     cursor = connections['practiceDB'].cursor()
 
     query='''
-        select distinct seq from [extractedFactors2] as a
+        select distinct seq from [extractedFactors] as a
         inner join eventFactor as b on a.factorID = b.eventFactorID
         where eventID = %s and procedureID = %s and eventFactorCode=%s
     '''
