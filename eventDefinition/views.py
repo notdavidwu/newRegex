@@ -651,7 +651,7 @@ def searchExtractedEventFactorCode(request):
             left outer join (
             select * from extractedFactors where eventID=%s
             ) as d on c.eventFactorID=d.factorID 
-            where medType=%s and diseaseID=%s and procedureID=%s 
+            where medType=%s and diseaseID=%s and a.procedureID=%s 
         ) as result
         group by eventFactorCode,version
         '''
