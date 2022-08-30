@@ -1817,8 +1817,8 @@ def getAnnotationFactor(request):
         f_id.append(row[0])
         factor.append(row[1])
         detail.append(row[2])
-
-    query='''select doctor_confirm from annotation where id=%s'''
+    print(a_id)
+    query='''select doctor_confirm from annotation_new where id=%s'''
     cursor.execute(query,[a_id])
     dr_confirm = cursor.fetchall()[0][0]
     return JsonResponse({'f_id':f_id,'factor':factor,'detail':detail,'dr_confirm':dr_confirm}, status=200) 
@@ -1827,7 +1827,7 @@ def getAnnotationFactor(request):
 def updateDrConfirm(request):
     id = request.POST.get('id')
     doctor_confirm = request.POST.get('doctor_confirm')
-    query='''update annotation set doctor_confirm=%s where id=%s'''
+    query='''update annotation_new set doctor_confirm=%s where id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[doctor_confirm,id])
     return JsonResponse({}, status=200) 

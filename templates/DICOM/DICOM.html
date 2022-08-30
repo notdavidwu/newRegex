@@ -2201,8 +2201,9 @@
                                             },
                                             success: function(response) {
                                                 for (var i = 0; i < response.DiseaseNo.length; i++) {
-                                                    $('#cancer').append('<option data-id='+response.DiseaseNo[i]+'>'+response.Disease[i]+'</option>>')
+                                                    $('#cancer').append(`<option data-id=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
                                                 }
+                                                $('#cancer').append('<option data-id=9999>Other</option>>')
                                             },
                                             complete:function(){
                                                 selection()
