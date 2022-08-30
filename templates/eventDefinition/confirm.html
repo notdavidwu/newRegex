@@ -333,14 +333,14 @@
     .eventChecked{position:absolute;display:none;color:yellow;left:0px;z-index:10}
 
     #title{z-index:12}
-    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px; --formwidth: 54.5%; --form-mob-width: 500px; }
+    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px;  --form-mob-width: 500px; }
     #medtypeFilterCheckbox { position: absolute; left: -9999px; }
     #medtypeFilterForm { position: fixed;top:calc(95px - 100px);height:30px;width: 100%;left:200px;}
     #medtypeFilter-label { position: fixed; top:95px;height:30px;width: 54.5%;left:200px;}
     #medtypeFilter-label { transform-origin: top right;  z-index: 11; }
     #medtypeFilterForm {height:100px;background:url("{% static 'image/texture.png' %}");
                         border:solid 2px #44444a; 
-                        width: var(--formwidth); 
+                        width: 54.5%; 
                         max-height: 85vh;
                         padding: 0px; 
                         overflow: auto; 

@@ -147,7 +147,6 @@ def confirmpat2(request):
     request.session['eventDefinition_scrollTop']=scrollTop
     query = '''EXEC EventDefinition_getPatientEvent_2 @chartNo = %s, @filter = %s, @medtype=%s'''
     cursor = connections['practiceDB'].cursor()
-    print(PID,excludeFilter,len(medtype))
     cursor.execute(query,[PID,excludeFilter,medtype])
     objectArray=[]
     MedType=[]
@@ -246,7 +245,6 @@ def addInducedEvent(request):
             and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
         ) as result order by result.eventDate
     '''
-    print(query)
     cursor.execute(query,[])
     result = cursor.fetchall()
 
@@ -478,7 +476,6 @@ def searchRecord(request):
         else:
             query += f',{eventID}'
     query += f')'
-    print(query)
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo,username])
     res = cursor.fetchall()
