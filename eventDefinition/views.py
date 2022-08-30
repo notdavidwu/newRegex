@@ -815,22 +815,27 @@ def searchExtractedFactorsRecord(request):
     seq = request.POST.get('seq')
     idArray = request.POST.getlist('idArray[]')
     classArray = request.POST.getlist('classArray[]')
-    query='''select factorValue from extractedFactors where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
+
+    factorIdString=''
+    factorIdString += ",".join(map(str, idArray))
+
+    query='''select factorID,factorValue from extractedFactors where eventID=%s and factorID in (%s) and procedureID=%s and seq=%s'''%(eventID,factorIdString,procedure,seq)
+
     factorIdRecorded = []
     factorValueRecorded = []
     seqRecorded = []
     classRecorded = []
-
-    for factorId,className in zip(idArray,classArray):
-        cursor.execute(query,[eventID,factorId,procedure,seq])
-        result = cursor.fetchall()
-
-        if len(result)!=0:
-            seqRecorded.append(seq)
-            classRecorded.append(className)
-            factorIdRecorded.append(factorId)
-            factorValueRecorded.append(result[0][0])
-
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    classArray = np.array(classArray)
+    idArray = np.array(idArray)
+    for row in result:
+        className = classArray[np.where(idArray==str(row[0]))][0]
+        seqRecorded.append(seq)
+        classRecorded.append(className)
+        factorIdRecorded.append(row[0])
+        factorValueRecorded.append(row[1])
+    
     return JsonResponse({'seqRecorded':seqRecorded,'classRecorded':classRecorded,'factorIdRecorded':factorIdRecorded,'factorValueRecorded':factorValueRecorded})
 
 @csrf_exempt
