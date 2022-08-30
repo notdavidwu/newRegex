@@ -122,8 +122,7 @@
         #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
         #title{top:55px;height:40px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
         #title table{width: 100%}
-        #medtypeFilterTable{padding-top:2px;top:95px;height:30px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;overflow-y:auto}
-        #medtypeFilter td{vertical-align:text-top;}
+        
         .header{font-size: 16pt;color: white;padding: 0;text-align: center}
         .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
         .type2{position:flex;width: 25%;padding-left: 20px;padding-top:5px;height: auto}
@@ -333,6 +332,30 @@
     input[name='confirmPID']:disabled ~label{pointer-events: none;}
     .eventChecked{position:absolute;display:none;color:yellow;left:0px;z-index:10}
 
+    #title{z-index:12}
+    :root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px; --formwidth: 54.5%; --form-mob-width: 500px; }
+    #medtypeFilterCheckbox { position: absolute; left: -9999px; }
+    #medtypeFilterForm { position: fixed;top:calc(95px - 100px);height:30px;width: 100%;left:200px;}
+    #medtypeFilter-label { position: fixed; top:95px;height:30px;width: 54.5%;left:200px;}
+    #medtypeFilter-label { transform-origin: top right;  z-index: 11; }
+    #medtypeFilterForm {height:100px;background:url("{% static 'image/texture.png' %}");
+                        border:solid 2px #44444a; 
+                        width: var(--formwidth); 
+                        max-height: 85vh;
+                        padding: 0px; 
+                        overflow: auto; 
+                        background-color: var(--form); 
+                        z-index: 11;
+                        background-color:#000
+                    }
+    #medtypeFilter-label { padding: 5px 10px; border-radius: 0 0 var(--border-radius)  var(--border-radius) }
+    #medtypeFilter-label { text-align: center;background: brown; color: white; }
+    #medtypeFilter-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    #medtypeFilterCheckbox:checked + #medtypeFilter-label { background: #e78632; transform:  translate(0,100px)}
+    #medtypeFilterCheckbox:checked ~ #medtypeFilterForm { transform: translate(0%, 100px);z-index: 11;}
+    #medtypeFilter-label, #medtypeFilterForm { transition: all 0.35s ease-in-out; }
+    #medtypeFilterForm{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+    
 </style>
 
 
@@ -1782,7 +1805,8 @@
         })
         
     }
-    function excludeFilter(){
+
+    function excludeFilterFuncrion(){
         if($('#excludeFilter').is(':checked')==true){
             $('.medtypeFilter').prop('disabled',true)
         }else{
@@ -1790,6 +1814,7 @@
         }
         GetTime()
     }
+
     function disableEvent(){
         let eventID = $('input[name=timePID]:checked').next('label').children('.eventID').html()
         let disable = $(event.target).attr('data-eventCheck')
@@ -2327,11 +2352,11 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" id="excludeFilter" onclick="excludeFilter()">全部</label></th>`)
+                $('#medtypeFilter').append(`<label style="color:white;margin-right:10px"><input type="checkbox" id="excludeFilter" onclick="excludeFilterFuncrion()">全部</label>`)
                 for(let i=0;i<response.medtype.length;i++){
-                    $('#medtypeFilter').append(`<th><label style="color:white"><input type="checkbox" 
+                    $('#medtypeFilter').append(`<label style="color:white;margin-right:10px"><input type="checkbox" 
                         onclick="filter()" class="medtypeFilter" data-medtype="${response.medtype[i]}" checked>
-                        ${response.typename[i]}</label></th>`)
+                        ${response.typename[i]}</label>`)
                 }
             }
         })
@@ -2493,14 +2518,16 @@
 
             </table>
         </div>
+
+
         <div id="medtypeFilterTable">
-            <table id="" class="thead-dark">
-                <thead>
-                    <tr id = "medtypeFilter">
-                        
-                    </tr>
-                </thead>
-            </table>
+            <input type="checkbox" id="medtypeFilterCheckbox">
+            <label for="medtypeFilterCheckbox" id="medtypeFilter-label">設定</label>
+            <form class="" id="medtypeFilterForm">
+                <div id = "medtypeFilter">
+                
+                </div>
+            </form>
         </div>
 
         <div class="loader loader2">
