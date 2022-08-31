@@ -72,7 +72,7 @@ def SQL(cursor,filter,hospital,Disease,username):
             select * from correlationPatientDisease as a
             inner join allEvents as b on a.chartNo=b.chartNo
             inner join examStudy as c on b.eventID=c.eventID
-            where a.diseaseNo = {Disease} {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
+            where a.topicNo = {Disease} {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
             order by a.chartNo
         """
         cursor.execute(query)
@@ -84,7 +84,7 @@ def SQL(cursor,filter,hospital,Disease,username):
                 select a.* from correlationPatientDisease as a
                 inner join allEvents as b on a.chartNo=b.chartNo
                 inner join examStudy as c on b.eventID=c.eventID
-                where a.diseaseNo = {Disease}  {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
+                where a.topicNo = {Disease}  {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
                 ) as a 
             left join (
                 select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo  = {Disease} and username = '{username}'
@@ -97,7 +97,7 @@ def SQL(cursor,filter,hospital,Disease,username):
         query = '''
         select b.sno,a.chartNo,a.topicNo from AIC.dbo.annotation_new as a
         inner join correlationPatientDisease as b on a.chartNo=b.chartNo
-        where a.topicNo=%s and a.username=%s and b.diseaseNo=%s
+        where a.topicNo=%s and a.username=%s and b.topicNo=%s
         order by b.sno
         '''
         cursor.execute(query,[Disease,username,Disease])
@@ -146,13 +146,13 @@ def Patient_num(request):
         from correlationPatientDisease as a 
             inner join allEvents as f on a.chartNo=f.chartNo
             inner join examStudy as g on f.eventID=g.eventID
-            where a.diseaseNo=%s and hospitalID like '0'
+            where a.topicNo=%s and hospitalID like '0'
         UNION
         select count(chartNo) ,'2' AS seq from (
             select *,ISNULL(annotation_chartNo,0) as checked from (
                 select distinct　c.chartNo from(
                     select distinct　b.chartNo from examStudy as a inner join allEvents as b on a.eventID=b.eventID where hospitalID like '0'
-                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.diseaseNo=%s
+                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.topicNo=%s
                 ) as all_list
                 left outer join (
                     select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo=%s and username=%s

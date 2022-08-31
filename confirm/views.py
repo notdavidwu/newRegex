@@ -14,7 +14,7 @@ def confirm(request):
 def confirmpat(request):
     Disease = request.POST.get('Disease')
     print(Disease)
-    query = '''select distinct chartNo from correlationPatientDisease where diseaseNo = %s order by chartNo asc'''
+    query = '''select distinct chartNo from correlationPatientDisease where topicNo = %s order by chartNo asc'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[Disease])
     examID=''

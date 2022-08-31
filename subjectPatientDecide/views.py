@@ -40,6 +40,27 @@ def getDisease(request):
         disease.append(row[1])
     return JsonResponse({'diseaseID':diseaseID,'disease':disease})
 
+@csrf_exempt
+def getTopic(request):
+    cursor = connections['practiceDB'].cursor()
+    query = '''
+        select * from diseasetList as a
+        inner join researchTopic as b on a.diseaseID=b.diseaseID
+        order by a.diseaseID,topicNo
+    '''
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    disease = []
+    topicNo = []
+    topicName = []
+    for row in result:
+        disease.append(row[1])
+        topicNo.append(row[2])
+        topicName.append(row[3])
+    disease_unique = np.unique(np.array(disease)).tolist()
+
+    return JsonResponse({'disease_unique':disease_unique,'disease':disease,'topicNo':topicNo,'topicName':topicName})
+
 def patientSQL(request):
     diseaseID = request.POST.getlist('diseaseID[]')
     caSeqNo = request.POST.getlist('caSeqNo[]')
@@ -379,7 +400,7 @@ def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     query_insertAnnotation='''
     select a.chartNo,%s as diseaseNo from (select %s as 'chartNo') as a
     left outer join (
-        select * from correlationPatientDisease where diseaseNo=%s
+        select * from correlationPatientDisease where topicNo=%s
     ) as b on a.chartNo=b.chartNo
     where b.chartNo is null
     '''
@@ -390,12 +411,7 @@ def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
 @csrf_exempt
 def addCorrelationPatientListAndAnnotation(request):
     diseaseID = request.POST.get('diseaseID')
-    caSeqNo = request.POST.get('caSeqNo')
-    diagChecked = request.POST.get('diagChecked')
-    treatChecked = request.POST.get('treatChecked')
-    fuChecked = request.POST.get('fuChecked')
-    ambiguousChecked = request.POST.get('ambiguousChecked')
-    pdConfirmed = request.POST.get('pdConfirmed')
+    chartNo = request.POST.get('chartNo')
     topicName = request.POST.get('topicName')
     cursor = connections['practiceDB'].cursor()
     topicNo = insertTopic(cursor,topicName,diseaseID)
@@ -423,7 +439,7 @@ def deleteAnnotation(cursor,topicNo):
     cursor.execute(query,[topicNo])
 
 def deleteCorrelationPatientDisease(cursor,topicNo):
-    query = 'delete from correlationPatientDisease where diseaseNo = %s'
+    query = 'delete from correlationPatientDisease where topicNo = %s'
     cursor.execute(query,[topicNo])
 
 from ssh_main import call_api
@@ -472,3 +488,22 @@ def fileConversion(request):
     call_api(storageIDArray)   
     num = len(storageIDArray) 
     return JsonResponse({'num':num})
+
+@csrf_exempt
+def getTopicPatient(request):
+    cursor = connections['practiceDB'].cursor()
+    query = '''
+    select * from correlationPatientDisease
+    '''
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    disease = []
+    topicNo = []
+    topicName = []
+    for row in result:
+        disease.append(row[1])
+        topicNo.append(row[2])
+        topicName.append(row[3])
+    disease_unique = np.unique(np.array(disease)).tolist()
+
+    return JsonResponse({'disease_unique':disease_unique,'disease':disease,'topicNo':topicNo,'topicName':topicName})

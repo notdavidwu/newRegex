@@ -33,5 +33,7 @@ urlpatterns = [
     path('getPatientWithMedTypeAndProcedure/', views.getPatientWithMedTypeAndProcedure,name='getPatientWithMedTypeAndProcedure'),
     path('getPatientWithAdvanceCondition/', views.getPatientWithAdvanceCondition,name='getPatientWithAdvanceCondition'),
     path('fileConversion/', views.fileConversion,name='fileConversion'),
+    path('getTopic/', views.getTopic,name='getTopic'),
+    path('getTopicPatient/', views.getTopicPatient,name='getTopicPatient'),
     
 ]

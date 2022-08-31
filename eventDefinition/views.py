@@ -1066,7 +1066,7 @@ def getTopicRecord(request):
     chartNo = request.POST.get('chartNo')
     cursor = connections['practiceDB'].cursor()
     query = '''select a.* FROM researchTopic as a 
-                inner join correlationPatientDisease as b on a.topicNo=b.diseaseNo
+                inner join correlationPatientDisease as b on a.topicNo=b.topicNo
                 where b.chartNo=%s
             '''
     cursor.execute(query,[chartNo])
@@ -1082,7 +1082,7 @@ def getTopicPatientNum(request):
     query = '''
         SELECT topicNo,topicName,COUNT(chartNo) FROM(
         SELECT distinct topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
-        left join correlationPatientDisease as b on a.topicNo=b.diseaseNo 
+        left join correlationPatientDisease as b on a.topicNo=b.topicNo 
         left join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
         where a.diseaseID=%s
         ) as num
@@ -1117,10 +1117,10 @@ def insertAnnotation(cursor,topicNo,diseaseID,chartNo):
 
 def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     query_insertAnnotation='''
-    insert into correlationPatientDisease(chartNo,diseaseNo)
-    select a.chartNo,%s as diseaseNo from (select %s as 'chartNo') as a
+    insert into correlationPatientDisease(chartNo,topicNo)
+    select a.chartNo,%s as topicNo from (select %s as 'chartNo') as a
     left outer join (
-        select * from correlationPatientDisease where diseaseNo=%s
+        select * from correlationPatientDisease where topicNo=%s
     ) as b on a.chartNo=b.chartNo
     where b.chartNo is null
     '''
@@ -1131,7 +1131,7 @@ def deleteAnnotation(cursor,topicNo,chartNo):
     cursor.execute(query,[topicNo,chartNo])
 
 def deleteCorrelationPatientDisease(cursor,topicNo,chartNo):
-    query = 'delete from correlationPatientDisease where diseaseNo = %s and chartNo=%s'
+    query = 'delete from correlationPatientDisease where topicNo = %s and chartNo=%s'
     cursor.execute(query,[topicNo,chartNo])
 
 @csrf_exempt
