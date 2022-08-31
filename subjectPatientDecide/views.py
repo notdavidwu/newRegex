@@ -491,19 +491,14 @@ def fileConversion(request):
 
 @csrf_exempt
 def getTopicPatient(request):
+    topicNo = request.POST.get('topicNo')
     cursor = connections['practiceDB'].cursor()
     query = '''
-    select * from correlationPatientDisease
+    select chartNo from correlationPatientDisease where topicNo=%s
     '''
-    cursor.execute(query,[])
+    cursor.execute(query,[topicNo])
     result = cursor.fetchall()
-    disease = []
-    topicNo = []
-    topicName = []
+    chartNo = []
     for row in result:
-        disease.append(row[1])
-        topicNo.append(row[2])
-        topicName.append(row[3])
-    disease_unique = np.unique(np.array(disease)).tolist()
-
-    return JsonResponse({'disease_unique':disease_unique,'disease':disease,'topicNo':topicNo,'topicName':topicName})
+        chartNo.append(row[0])
+    return JsonResponse({'chartNo':chartNo})

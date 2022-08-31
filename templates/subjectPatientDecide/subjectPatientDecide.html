@@ -200,23 +200,29 @@
         })
     }
     function getTopicPatient(){
-        let topicNo = $('#topicNo').val()
-        $.ajax({
-            type: 'post',
-            url: url, // this is the mapping between the url and view
-            data:{
-                'topicNo':topicNo,
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
-            },
-            success:function (response){
-                $('#patient tbody').empty()
-                $('#n_chartNo').html(`${response.chartNo.length}人`)
-                for(let i=0;i<response.chartNo.length;i++){
-                    $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
+        let topicNo = $('#topic').val()
+        if(topicNo!=-9999){
+            let url = '{% url "subjectPatientDecide:getTopicPatient" %}'
+            $.ajax({
+                type: 'post',
+                url: url, // this is the mapping between the url and view
+                data:{
+                    'topicNo':topicNo,
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    $('#patient tbody').empty()
+                    $('#n_chartNo').html(`${response.chartNo.length}人`)
+                    for(let i=0;i<response.chartNo.length;i++){
+                        $('#patient tbody').append(`<tr><td colspan=2>${response.chartNo[i]}</td></tr>`)
+                    }
                 }
-            }
-        })
-    })
+            })            
+        }else{
+            $('#patient tbody').empty()
+            $('#n_chartNo').html(`???人`)
+        }
+    }
     function getPatient(getPatientMethod){
         let diseaseID = $('.disease').map(function(){return $(this).val()}).get()
         let caSeqNo = $('.caSeqNo').map(function(){return $(this).val()}).get()
@@ -509,7 +515,7 @@
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                objectArray=''
+                objectArray='<option value=-9999>請選擇研究主題</option>'
                 for(let i=0;i<response.disease_unique.length;i++){
                     objectArray += `<optgroup label="${response.disease_unique[i]}">`
                     indexes = indexOfAll(response.disease,response.disease_unique[i])
@@ -519,6 +525,7 @@
                     objectArray += `</optgroup>`
                 }
                 $('#topic').append(objectArray)
+                
             }
         })
     }
@@ -649,7 +656,7 @@
         </div>
         <div class="row g-3 condition">
             <div class="col-md-12">
-              <select class="form-control topic" id="topic">
+              <select class="form-control topic" onchange="getTopicPatient()" id="topic">
 
               </select>
             </div>
