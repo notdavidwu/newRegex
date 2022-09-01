@@ -14,7 +14,11 @@ from tqdm import tqdm, trange
 
 def searchFilePath(chartNo,eventDate,studyID,seriesID):
     cursor = connect.cursor(as_dict=True)
-    searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%(chartNo)s and [eventDate]=%(eventDate)s and [studyID]=%(studyID)s and [seriesID]=%(seriesID)s'''
+    searchQuery='''
+    select filePath from practiceDB.dbo.examStudy as a
+    inner join practiceDB.dbo.examSeries as b on a.storageID=b.storageID
+    where chartNo=%(chartNo)s and  studyDate=%(eventDate)s and studyID=%(studyID)s and seriesID=%(seriesID)s
+    '''
     cursor.execute(searchQuery,{'chartNo': chartNo,'eventDate':eventDate,'studyID':studyID,'seriesID':seriesID})
     filePath = cursor.fetchall()
     return filePath
@@ -38,14 +42,19 @@ root=r'\\172.31.6.6\share1\NFS\image'
 First, searching PatientID 
 '''
 list_file_dir = input('請輸入清單位置:')
-user='export'
-topicNo = input('請輸入研究主題編號:')
 saveFilePath = list_file_dir
-tumorType = input('請輸出病灶類型(Primary tumor or Lymph node,不指定輸出兩者):')+'%'
+user='export'
+
 list_file = list(pathlib.Path(list_file_dir).glob("*.csv"))[0]
 list_data = pd.read_csv(list_file)
 PatientListID = list_data.iloc[:,0].values.tolist()
 columns = list_data.columns[0]
+
+if columns=='chartNo':
+    topicNo = input('請輸入研究主題編號:')
+    tumorType = input('請輸出病灶類型(Primary tumor or Lymph node,不指定輸出兩者):')+'%'
+
+
 
 cursor = connect.cursor(as_dict=True)
 for i in tqdm(range(len(PatientListID))):
@@ -180,11 +189,11 @@ for i in tqdm(range(len(PatientListID))):
         res = cursor.fetchall()
         for row in res:
             chartNo,studyID,seriesID,studyDate,SUV,x,y,z,labelName = row['chartNo'],row['studyID'],row['seriesID'],row['studyDate'],row['SUV'],row['x'],row['y'],row['z'],row['labelName']
-            studyDate = studyDate.replace('-','')
-            xml_filename = f'{chartNo}_{studyDate}_{studyID}_{seriesID}.xml'
-            xml_filepath = os.path.join(saveFilePath,str(chartNo),str(studyDate),str(studyID),str(seriesID),xml_filename)
-            saveFiledir = os.path.join(saveFilePath,'image',str(chartNo),str(studyDate),str(studyID),str(seriesID))
-            if os.path.isfile(os.path.join(saveFilePath,str(chartNo),str(studyDate),str(studyID),str(seriesID),xml_filename)):
+            studyDateFormat = studyDate.replace('-','')
+            xml_filename = f'{chartNo}_{studyDateFormat}_{studyID}_{seriesID}.xml'
+            xml_filepath = os.path.join(saveFilePath,str(chartNo),str(studyDateFormat),str(studyID),str(seriesID),xml_filename)
+            saveFiledir = os.path.join(saveFilePath,'image',str(chartNo),str(studyDateFormat),str(studyID),str(seriesID))
+            if os.path.isfile(os.path.join(saveFilePath,str(chartNo),str(studyDateFormat),str(studyID),str(seriesID),xml_filename)):
                 tree=ET.parse(xml_filepath)
                 root=tree.getroot()
                 paragraphs = root.findall('Tumor_Area')
@@ -205,17 +214,17 @@ for i in tqdm(range(len(PatientListID))):
                 Tumor_Center.text = str(SUV)
                 trees = ET.ElementTree(Main)
                 root.append(Tumor_Area)
-                filename = f'{chartNo}_{studyDate}_{seriesID}_SOPT_log.xml' 
+                filename = f'{chartNo}_{studyDateFormat}_{seriesID}_SOPT_log.xml' 
                 trees.write(os.path.join(saveFiledir,filename))
             else:
                 path = searchFilePath(chartNo,studyDate,studyID,seriesID)
-                print(path)
+                
                 fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image_v2',path[0]['filePath'])
                 fileDir = fileDir.replace('-','')
                 fileDir = fileDir.replace(' ', '')
                 pathlib.Path(saveFiledir).mkdir(parents=True, exist_ok=True)
                 tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
-                print(tempPath)
+
                 paths = sorted([os.path.join(filename) for filename in tempPath])[0]
                 with h5py.File(paths, "r") as f:
                     a_group_key = list(f.keys())

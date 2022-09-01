@@ -1081,7 +1081,7 @@ def getTopicPatientNum(request):
     cursor = connections['practiceDB'].cursor()
     query = '''
         SELECT topicNo,topicName,COUNT(chartNo) FROM(
-        SELECT distinct topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
+        SELECT distinct a.topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
         left join correlationPatientDisease as b on a.topicNo=b.topicNo 
         left join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
         where a.diseaseID=%s
