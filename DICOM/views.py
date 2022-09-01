@@ -1831,3 +1831,34 @@ def updateDrConfirm(request):
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[doctor_confirm,id])
     return JsonResponse({}, status=200) 
+
+@csrf_exempt
+def getAnnotationLabel(request):
+    query = '''
+    select disease,LabelGroup,LabelName from practiceDB.dbo.diseasetList as a
+    inner join aic.dbo.SubjectLabelGroup as b on a.diseaseID=b.SubjectID
+    inner join aic.dbo.SubjectLabelContent as c on b.LabelGroupID=c.LabelGroupID
+    '''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query,[])
+    result = cursor.fetchall()
+    disease = []
+    labelGroup = []
+    labelName = []
+    for row in result:
+        disease.append(row[0].replace('  ',''))
+        labelGroup.append(row[1].replace('  ',''))
+        labelName.append(row[2].replace('  ',''))
+    disease_unique = np.unique(np.array(disease)).tolist()
+    return JsonResponse({'disease_unique':disease_unique,'disease':disease,'labelGroup':labelGroup,'labelName':labelName})
+
+@csrf_exempt
+def updateAnnotationLabel(request):
+    id = request.POST.get('id')
+    labelName = request.POST.get('labelName')
+    labelGroup = request.POST.get('labelGroup')
+    labelGroup = labelGroup.lstrip()
+    query='''update annotation_new set labelGroup=%s , labelName=%s where id=%s'''
+    cursor = connections['AIC'].cursor()
+    cursor.execute(query,[labelGroup,labelName,id])
+    return JsonResponse({})

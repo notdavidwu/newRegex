@@ -1820,7 +1820,48 @@
             },
         });
     }
-    
+    function indexOfAll(array, searchItem) {
+        var i = array.indexOf(searchItem),
+            indexes = [];
+        while (i !== -1) {
+          indexes.push(i);
+          i = array.indexOf(searchItem, ++i);
+        }
+        return indexes;
+    }
+    function getAnnotationLabel(){
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:getAnnotationLabel" %}', // this is the mapping between the url and view
+            data: {
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function(response){
+                AnnotationLabelObjectArray='<select id="annotationLabel">'
+                for(let i=0;i<response.disease_unique.length;i++){
+                    AnnotationLabelObjectArray += `<optgroup label="${response.disease_unique[i]}">`
+                    let indexes = indexOfAll(response.disease,response.disease_unique[i])
+
+                    let cancerLabelGroup = response.labelGroup.filter((el,i)=>indexes.some(j=>i===j)) //取出與癌症相對應的labelGroup
+                    let cancerLabelName = response.labelName.filter((el,i)=>indexes.some(j=>i===j)) //取出與癌症相對應的labelName
+                    let unique_labelGroup = cancerLabelGroup.filter((item, index) => cancerLabelGroup.indexOf(item) === index)
+                    
+                    for(let k=0;k<unique_labelGroup.length;k++){
+                        let labelGroup_indexes = indexOfAll(cancerLabelGroup,unique_labelGroup[k])
+                        AnnotationLabelObjectArray += `<optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;${unique_labelGroup[k]}">`
+                        for(let p=0;p<labelGroup_indexes.length;p++){
+                            AnnotationLabelObjectArray += `<option value="${cancerLabelName[labelGroup_indexes[p]]}">&nbsp;&nbsp;&nbsp;&nbsp;${cancerLabelName[labelGroup_indexes[p]]}</option>`
+                        }
+                        AnnotationLabelObjectArray += `</optgroup>`
+                    }
+                    
+                    AnnotationLabelObjectArray += `</optgroup>`
+                }
+                AnnotationLabelObjectArray += '</select>'
+            }
+        });
+    }
+
     function editAnnotation(){
         $('#location_menu').css('display','none')
         $('#editAnnotation').css('display','flex')
@@ -1839,12 +1880,13 @@
             success:function(response){
                 
                 let object_str = ''
-                for(var j=0; j<target_object.children('.data1').length-1; j++){
+                for(var j=0; j<target_object.children('.data1').length-3; j++){
                     object_str += '<div >'+target_object.children('.data1').eq(j).text()+'</div>'
                 }
                 object_str += '<div > SUV:'+target_object.children('.data').text()+'</div>'
-                
                 $('#annotation_basic_info').append(object_str)
+                $('#annotation_basic_info').append(`<div style="display:inline-block">Tumor Info: ${AnnotationLabelObjectArray}</div>`)
+                $('#annotationLabel').val(target_object.children('.data1').eq(3).text())
                 for(var i=0; i<response.f_id.length; i++){
                     addMenuCustom($('#annotation_factor_pannel').children('.addButton'),response.f_id[i])
                     $('#annotation_detail_f_id_'+response.f_id[i]).children('.factor').val(response.factor[i])
@@ -1866,9 +1908,27 @@
         let doctor_confirm = Number($('#DrConfirm').is(':checked'))
         updateDrConfirm(a_id,doctor_confirm)
         insertAnnotationFactor(a_id)
+        updateAnnotationLabel(a_id)
         selectLocation()
+        
     }
-
+    function updateAnnotationLabel(id){
+        let labelGroup = $('#annotationLabel option:selected').parent().attr('label').replace(/^\s*|\s*$/g,"")
+        let labelName = $('#annotationLabel').val()
+        let target_object = $('input[name="location"]:checked').next('label')
+        target_object.children('.data1').eq(2).text(labelGroup)
+        target_object.children('.data1').eq(3).text(labelName)
+        $.ajax({
+            type: 'post',
+            url: '{% url "DICOM:updateAnnotationLabel" %}', // this is the mapping between the url and view
+            data: {
+                'id':id,
+                'labelGroup':labelGroup,
+                'labelName':labelName,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+        });
+    }
     function updateDrConfirm(id,doctor_confirm){
         $.ajax({
             type: 'post',
@@ -1975,6 +2035,7 @@
     }
 
     $(document).ready(function (e) {
+        getAnnotationLabel()
         getAnnotationFactorGroup()
         if('{{de_identification}}'=='True'){
             $('.PID').css('display','none')
