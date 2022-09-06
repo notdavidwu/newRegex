@@ -195,7 +195,7 @@ def confirmpat2(request):
     res = cursor.fetchall()
     for i in range(len(res)):
         eventID_F.append(res[i][0])
-
+    cursor.close()
     return JsonResponse({'eventID':eventID,'MedType':MedType ,'objectArray':objectArray,'eventID_F':eventID_F,'eventCheckedArray':eventCheckedArray})
 
 @csrf_exempt
@@ -229,23 +229,14 @@ def addInducedEvent(request):
     objectList = []
     cursor = connections['practiceDB'].cursor()
     eventID_str=''
-    for i,eventID in enumerate(eventID_list):
-        if i == 0:
-            eventID_str += f'{eventID}'
-        else:
-            eventID_str += f',{eventID}'
-    query= f'''
-        select distinct 
-        *
-        from(
-            select a.chartNo,a.orderNo,cast(a.eventDate as smalldatetime) as 'eventDate',a.medType,b.typeName,'' as descriptionType,'' as reportText,a.eventID,a.note,a.eventID_F
-            from allEvents as a
-            inner join medTypeSet as b on a.medType=b.medType
-            where a.eventID_F in ({eventID_str})
-            and eventID_F is not null and (a.eventChecked <>0 or a.eventChecked is null) 
-        ) as result order by result.eventDate
+    if len(eventID_list)==0:
+        eventID_str=''
+    else:
+        eventID_str = ','.join(map(str, eventID_list))
+    query= '''
+    EXEC EventDefinition_getInducedEvent2 @eventID_F=%s
     '''
-    cursor.execute(query,[])
+    cursor.execute(query,[eventID_str])
     result = cursor.fetchall()
 
     
@@ -278,6 +269,7 @@ def addInducedEvent(request):
         </div></button></td></tr>
         '''
         objectList.append(object)
+    cursor.close()
     return JsonResponse({'objectList':objectList,'index_result':index_result})
 
 @csrf_exempt

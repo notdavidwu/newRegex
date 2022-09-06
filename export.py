@@ -45,14 +45,29 @@ list_file_dir = input('請輸入清單位置:')
 saveFilePath = list_file_dir
 user='export'
 
-list_file = list(pathlib.Path(list_file_dir).glob("*.csv"))[0]
-list_data = pd.read_csv(list_file)
+list_file_csv = list(pathlib.Path(list_file_dir).glob("*.csv"))
+list_file_xlsx = list(pathlib.Path(list_file_dir).glob("*.xlsx"))
+if len(list_file_csv)!=0:
+    list_data = pd.read_csv(list_file_csv[0])
+elif len(list_file_xlsx)!=0:
+    list_data = pd.read_excel(list_file_xlsx[0])
+print(list_data)
 PatientListID = list_data.iloc[:,0].values.tolist()
+if list_data.shape[1]>1:
+    list_date = list_data.iloc[:,1].tolist()
+    list_date = list(map(lambda x:str(x).split(' ')[0],list_date))
+    print(list_date)
 columns = list_data.columns[0]
+
 
 if columns=='chartNo':
     topicNo = input('請輸入研究主題編號:')
-    tumorType = input('請輸出病灶類型(Primary tumor or Lymph node,不指定輸出兩者):')+'%'
+    tumorType = input('請輸出病灶類型([Primary tumor] or [Lymph node],不指定輸出兩者):')+'%'
+
+if len(topicNo)==0:
+    diseaseID = input('請輸入癌症編號:')
+
+chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array=[],[],[],[],[],[],[],[],[]
 
 
 
@@ -60,37 +75,72 @@ cursor = connect.cursor(as_dict=True)
 for i in tqdm(range(len(PatientListID))):
     if columns=='chartNo':
         #取得標記資料
-        query = '''
-        select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[labelName],[studyID],[seriesID] 
-        from annotation_new where [chartNo]=%(PatientListID)s and topicNo=%(topicNo)s 
-        and labelGroup like %(tumorType)s
-        '''
-        cursor.execute(query, {'PatientListID': PatientListID[i],'topicNo':topicNo,'tumorType':tumorType})
-
+        if len(topicNo)!=0:
+            query = '''
+            select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[labelName],[studyID],[seriesID] 
+            from annotation_new where [chartNo]=%(PatientListID)s and topicNo=%(topicNo)s 
+            and labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+            '''
+            cursor.execute(query, {'PatientListID': PatientListID[i],'studyDate':str(list_date[i]),'topicNo':topicNo,'tumorType':tumorType})
+        elif len(diseaseID)!=0:
+            query = '''
+            select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[labelName],[studyID],[seriesID] 
+            from annotation_new as a
+            inner join practiceDB.dbo.researchTopic as b on a.topicNo=b.topicNo
+            where chartNo=%(PatientListID)s and diseaseID=%(diseaseID)s 
+            and labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+            '''
+            cursor.execute(query, {'PatientListID': PatientListID[i],'studyDate':str(list_date[i]),'diseaseID':diseaseID,'tumorType':tumorType})
+        else:
+            query = '''
+            select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[labelName],[studyID],[seriesID] 
+            from annotation_new where [chartNo]=%(PatientListID)s 
+            and labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+            '''
+            cursor.execute(query, {'PatientListID': PatientListID[i],'tumorType':tumorType,'studyDate':str(list_date[i])})
         studyID = []
         for row in cursor:
             studyID.append(row['studyID'])
 
         if len(studyID)!=0:#代表有標記資料
-            query = '''
-                select distinct [chartNo],[studyDate],[studyID],[seriesID] 
-                from annotation_new where [chartNo]=%(var1)s and topicNo=%(var2)s 
-                labelGroup='Primary tumor'
-            ''' #取得影像位置資料
-            cursor.execute(query, {'var1': PatientListID[i],'var2':topicNo})
+            if len(topicNo)!=0:
+                query = '''
+                    select distinct [chartNo],[studyDate],[studyID],[seriesID] 
+                    from annotation_new where [chartNo]=%(var1)s and topicNo=%(var2)s and 
+                    labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+                ''' #取得影像位置資料
+                cursor.execute(query, {'var1': PatientListID[i],'var2':topicNo,'tumorType':tumorType,'studyDate':str(list_date[i])})
+            elif len(diseaseID)!=0:
+                query = '''
+                select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[studyID],[seriesID] 
+                from annotation_new as a
+                inner join practiceDB.dbo.researchTopic as b on a.topicNo=b.topicNo
+                where chartNo=%(PatientListID)s and diseaseID=%(diseaseID)s 
+                and labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+                '''
+                cursor.execute(query, {'PatientListID': PatientListID[i],'studyDate':str(list_date[i]),'diseaseID':diseaseID,'tumorType':tumorType})
+            else:
+                query = '''
+                select distinct [chartNo],[studyDate],[x],[y],[z],[labelGroup],[studyID],[seriesID] 
+                from annotation_new where [chartNo]=%(PatientListID)s 
+                and labelGroup like %(tumorType)s and studyDate = %(studyDate)s
+                '''
+                cursor.execute(query, {'PatientListID': PatientListID[i],'tumorType':tumorType,'studyDate':str(list_date[i])})
             res = cursor.fetchall()
 
             for j in range(len(res)):
-                PID = str(res[j]['chartNo'])
+                chartNo = str(res[j]['chartNo'])
+                
                 MedExecTime = str(res[j]['studyDate'].replace('-',''))
+                studyDate = str(res[j]['studyDate'])
                 studyID = str(res[j]['studyID'])
                 seriesID = str(res[j]['seriesID'])
-                path = searchFilePath(PID,MedExecTime,studyID,seriesID)
+                path = searchFilePath(chartNo,MedExecTime,studyID,seriesID)
 
                 fileDir = os.path.join(r'\\172.31.6.6\share1\NFS\image_v2',path[0]['filePath'])
                 fileDir = fileDir.replace('-','')
                 fileDir = fileDir.replace(' ', '')
-                saveFiledir = os.path.join(saveFilePath,'image',PID,MedExecTime,studyID,seriesID)
+                saveFiledir = os.path.join(saveFilePath,'image',chartNo,MedExecTime,studyID,seriesID)
                 pathlib.Path(saveFiledir).mkdir(parents=True, exist_ok=True)
                 tempPath = list(pathlib.Path(fileDir).glob('*PETCT.h5'))
                 paths = sorted([os.path.join(filename) for filename in tempPath])[0]
@@ -107,32 +157,73 @@ for i in tqdm(range(len(PatientListID))):
                     PET = np.array(f['PET_vol'])
 
 
+
                 tempPath = list(pathlib.Path(fileDir).glob('*PETCTmod_Axial.h5'))
                 paths = sorted([os.path.join(filename) for filename in tempPath])[0]
                 with h5py.File(paths, "r") as f:
                     CT_view = np.array(f['PETCT_vol'])[:, 1, :, :] #0是PET 1是CT_mod
 
 
-                query = '''
-                select distinct
-                [chartNo]
-                ,[studyDate]
-                ,[x]
-                ,[y]
-                ,[z]
-                ,[SUV]
-                ,[labelGroup]
-                ,[labelName]
-                ,[topicNo]
-                ,[studyID]
-                ,[seriesID] 
-                from annotation_new 
-                where chartNo=%(var1)s 
-                and topicNo=%(var2)s and studyID=%(var3)s and seriesID=%(var4)s and labelGroup='Primary tumor'
-                '''
-                cursor.execute(query, {'var1': PID,'var2':topicNo,'var3':studyID,'var4':seriesID})
+
+                if len(topicNo)!=0:
+                    query = '''
+                        select distinct
+                        [chartNo]
+                        ,[studyDate]
+                        ,[x]
+                        ,[y]
+                        ,[z]
+                        ,[SUV]
+                        ,[labelGroup]
+                        ,[labelName]
+                        ,[studyID]
+                        ,[seriesID] 
+                        from annotation_new where [chartNo]=%(var1)s and topicNo=%(var2)s and 
+                        labelGroup like %(tumorType)s and studyID=%(studyID)s and seriesID=%(seriesID)s and studyDate = %(studyDate)s
+                    ''' #取得影像位置資料
+                    cursor.execute(query, {'var1': chartNo,'var2':topicNo,'tumorType':tumorType,'studyID':studyID,'seriesID':seriesID,'studyDate':studyDate})
+                elif len(diseaseID)!=0:
+                    query = '''
+                    select distinct
+                    [chartNo]
+                    ,[studyDate]
+                    ,[x]
+                    ,[y]
+                    ,[z]
+                    ,[SUV]
+                    ,[labelGroup]
+                    ,[labelName]
+                    ,[studyID]
+                    ,[seriesID] 
+                    from annotation_new as a
+                    inner join practiceDB.dbo.researchTopic as b on a.topicNo=b.topicNo
+                    where chartNo=%(PatientListID)s and diseaseID=%(diseaseID)s 
+                    and labelGroup like %(tumorType)s and studyID=%(studyID)s and seriesID=%(seriesID)s and studyDate = %(studyDate)s
+                    '''
+                    cursor.execute(query, {'PatientListID': chartNo,'diseaseID':diseaseID,'tumorType':tumorType,'studyID':studyID,'seriesID':seriesID,'studyDate':studyDate})
+                else:
+                    query = '''
+                    select distinct
+                    [chartNo]
+                    ,[studyDate]
+                    ,[x]
+                    ,[y]
+                    ,[z]
+                    ,[SUV]
+                    ,[labelGroup]
+                    ,[labelName]
+                    ,[studyID]
+                    ,[seriesID] 
+                    from annotation_new where [chartNo]=%(PatientListID)s 
+                    and labelGroup like %(tumorType)s and studyID=%(studyID)s and seriesID=%(seriesID)s and studyDate = %(studyDate)s
+                    '''
+                    cursor.execute(query, {'PatientListID': chartNo,'tumorType':tumorType,'studyID':studyID,'seriesID':seriesID,'studyDate':studyDate})
+                
                 data = cursor.fetchall()
                 
+                SliceThickness = PET_tag[0].SliceThickness
+                PET_PixelSpacing = PET_tag[0].PixelSpacing[0]
+                CT_PixelSpacing = CT_tag[0].PixelSpacing[0]
                 Main = ET.Element('Main')
                 Image_Info = ET.SubElement(Main, 'Image_Info')
                 PatientID = ET.SubElement(Image_Info, 'PatientID')
@@ -154,20 +245,32 @@ for i in tqdm(range(len(PatientListID))):
                 CT_Pixel_Spacing = ET.SubElement(Image_Info, 'CT_Pixel_Spacing')
                 CT_Pixel_Spacing.text =str(CT_tag[0].PixelSpacing[0])
                 for ind, row in enumerate(data):
+                    x,y,z,SUV,labelName = row['x'],row['y'],row['z'],row['SUV'],row['labelName']
                     Tumor_Area = ET.SubElement(Main, 'Tumor_Area')
-                    Tumor_Area.set('X', str(row['x']))
-                    Tumor_Area.set('Y', str(row['y']))
-                    Tumor_Area.set('Z', str(row['z']))
+                    Tumor_Area.set('X', str(x))
+                    Tumor_Area.set('Y', str(y))
+                    Tumor_Area.set('Z', str(z))
                     Tumor_Area.set('Area_size', '7cm')
                     Tumor_Area.set('UserName', str(user))
                     Tumor_Center = ET.SubElement(Tumor_Area, 'Tumor_Center')
                     Tumor_Center.set('C_Type', 'LocalMax')
                     Tumor_Center.set('UserName', str(user))
-                    Tumor_Center.set('memo', str(row['labelName'][0:5]).replace(' ','_')+'_'+str(ind))
+                    Tumor_Center.set('memo', str(labelName[0:5]).replace(' ','_')+'_'+str(ind))
                     Tumor_Center.set('X', str(math.floor(float(row['x']))))
                     Tumor_Center.set('Y', str(math.floor(float(row['y']))))
                     Tumor_Center.set('Z', str(math.floor(float(row['z']))))
                     Tumor_Center.text = str(row['SUV'])
+
+                    chartNo_array.append(chartNo)
+                    studyDate_array.append(MedExecTime)
+                    studyID_array.append(studyID)
+                    seriesID_array.append(seriesID)
+                    SUV_array.append(SUV)
+                    x_array.append(math.floor(float(x)))
+                    y_array.append(math.floor(float(y)))
+                    z_array.append(math.floor(float(z)))
+                    tumorType_array.append(labelName)
+
                 trees = ET.ElementTree(Main)
                 filename = f'{chartNo}_{studyDate}_{seriesID}_SOPT_log.xml' 
                 trees.write(os.path.join(saveFiledir,filename))
@@ -175,14 +278,15 @@ for i in tqdm(range(len(PatientListID))):
                 filename = f'{chartNo}_{studyDate}_{seriesID}_CT_Body.mat'   
                 newCT = CT_view.copy()
                 newCT = newCT.transpose(1,2,0)
-                CT_mat={'Data':np.float64(newCT)}
+                CT_mat={'Data':np.float64(newCT),'Info':{'pixelSpacing':CT_PixelSpacing,'SliceThickness':SliceThickness}}
                 savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
 
                 filename = f'{chartNo}_{studyDate}_{seriesID}_PET_Body.mat'
                 newPET=PET.copy()
                 newPET = newPET.transpose(1,2,0)
-                PET_mat={'Data':np.float64(newPET)}
+                PET_mat={'Data':np.float64(newPET),'Info':{'pixelSpacing':PET_PixelSpacing,'SliceThickness':SliceThickness}}
                 savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
+
     else:
         query = '''select * from annotation_new where id=%(PatientListID)s'''
         cursor.execute(query, {'PatientListID': PatientListID[i]})
@@ -244,6 +348,10 @@ for i in tqdm(range(len(PatientListID))):
                 with h5py.File(paths, "r") as f:
                     CT_view = np.array(f['PETCT_vol'])[:, 1, :, :] #0是PET 1是CT_mod
 
+                SliceThickness = PET_tag[0].SliceThickness
+                PET_PixelSpacing = PET_tag[0].PixelSpacing[0]
+                CT_PixelSpacing = CT_tag[0].PixelSpacing[0]
+
                 Main = ET.Element('Main')
                 Image_Info = ET.SubElement(Main, 'Image_Info')
                 PatientID = ET.SubElement(Image_Info, 'PatientID')
@@ -259,11 +367,11 @@ for i in tqdm(range(len(PatientListID))):
                 SeriesTime = ET.SubElement(Image_Info, 'SeriesTime')
                 SeriesTime.text =str(PET_tag[0].SeriesTime)
                 SliceThickness = ET.SubElement(Image_Info, 'SliceThickness')
-                SliceThickness.text =str(PET_tag[0].SliceThickness)
+                SliceThickness.text =str(SliceThickness)
                 Pixel_Spacing = ET.SubElement(Image_Info, 'Pixel_Spacing')
-                Pixel_Spacing.text =str(PET_tag[0].PixelSpacing[0])
+                Pixel_Spacing.text =str(PET_PixelSpacing)
                 CT_Pixel_Spacing = ET.SubElement(Image_Info, 'CT_Pixel_Spacing')
-                CT_Pixel_Spacing.text =str(CT_tag[0].PixelSpacing[0])
+                CT_Pixel_Spacing.text =str(CT_PixelSpacing)
 
                 
                 Tumor_Area = ET.SubElement(Main, 'Tumor_Area')
@@ -288,11 +396,27 @@ for i in tqdm(range(len(PatientListID))):
                 filename = f'{chartNo}_{studyDate}_{seriesID}_CT_Body.mat'   
                 newCT = CT_view.copy()
                 newCT = newCT.transpose(1,2,0)
-                CT_mat={'Data':np.float64(newCT)}
+                CT_mat={'Data':np.float64(newCT),'Info':{'pixelSpacing':CT_PixelSpacing,'SliceThickness':SliceThickness}}
+
                 savemat(os.path.join(saveFiledir,filename),CT_mat,do_compression=True)
 
                 filename = f'{chartNo}_{studyDate}_{seriesID}_PET_Body.mat'
                 newPET=PET.copy()
                 newPET = newPET.transpose(1,2,0)
-                PET_mat={'Data':np.float64(newPET)}
+                PET_mat={'Data':np.float64(newPET),'Info':{'pixelSpacing':PET_PixelSpacing,'SliceThickness':SliceThickness}}
                 savemat(os.path.join(saveFiledir,filename),PET_mat,do_compression=True)
+
+                chartNo_array.append(chartNo)
+                studyDate_array.append(MedExecTime)
+                studyID_array.append(studyID)
+                seriesID_array.append(seriesID)
+                SUV_array.append(SUV)
+                x_array.append(math.floor(float(x)))
+                y_array.append(math.floor(float(y)))
+                z_array.append(math.floor(float(z)))
+                tumorType_array.append(labelName)
+final_result=pd.DataFrame(
+    np.vstack([chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array]).T
+    ,columns=['chartNo','studyDate','studyID','seriesID','SUV','x','y','z','tumorType']
+    )
+final_result.to_csv(f'{saveFilePath}\\annotation.csv')
