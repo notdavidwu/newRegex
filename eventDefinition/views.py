@@ -444,32 +444,15 @@ def searchRecord(request):
     chartNo = request.POST.get('chartNo')
     eventID_list = request.POST.getlist('eventID[]')
     username = request.POST.get('username')
-    query = '''
-        declare @chartNo int, @username varchar(50)
-        set @chartNo = %s
-        set @username = %s
+    query = 'EXEC [EventDefinition_searchRecord_2] @chartNo=%s, @eventID=%s,@username=%s'
+    eventID_str=''
+    if len(eventID_list)==0:
+        eventID_str=''
+    else:
+        eventID_str = ','.join(map(str, eventID_list))
 
-        select distinct * from (
-        select b.caSeqNo,c.EDID,c.eventID,c.procedureID,f.eventID as 'eventID_F',b.PD,c.caregExecDate,f.eventDate,b.diseaseID,c.username
-        from diseasetList as a inner join PatientDisease as b on a.diseaseID=b.diseaseID
-            inner join eventDefinitions as c on b.PD=c.PDID
-            inner join ProcedureEvent as d on c.procedureID=d.procedureID
-            inner join medTypeSet as e on d.groupNo=e.groupNo
-            left outer join allEvents as f on b.chartNo=f.chartNo and e.medType=f.medType
-            left outer join eventDetails as g on f.eventID=g.eventID
-        where b.chartNo=@chartNo and f.eventDate is not null
-        and  c.caregExecDate is null 
-        and ((c.eventID is null and f.eventID is not null) or (c.eventID is not null and c.eventID=f.eventID))
-        ) as res  where  (res.username is null or res.username=@username) and res.eventID in ( 
-    '''
-    for i,eventID in enumerate(eventID_list):
-        if i == 0:
-            query += f'{eventID}'
-        else:
-            query += f',{eventID}'
-    query += f')'
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[chartNo,username])
+    cursor.execute(query,[chartNo,eventID_str,username])
     res = cursor.fetchall()
 
     caSeqNo = []
