@@ -56,33 +56,16 @@ def confirmpat(request):
 
     
     chartNo=list(map(lambda row:row[1],result))
-    chartNoString = '('
-    chartNoString += "),(".join(map(str, chartNo))
-    chartNoString += ')'
-
-    eventUnChecked_query = f'''
-                            --所有事件
-                            select a.chartNo ,a.count1-isNULL(b.count2,0) as result from(
-                            SELECT a.chartNo,count(b.chartNo) count1
-                                                        FROM (
-                                                        VALUES {chartNoString}
-                                                        ) AS a(chartNo)
-                                                        left join allEvents as b on a.chartNo=b.chartNo
-                                                        group by a.chartNo 
-                            )as a
-                            left join(
-                            SELECT a.chartNo,count(b.chartNo) as count2
-                                                        FROM (
-                                                        VALUES {chartNoString}
-                                                        ) AS a(chartNo)
-                                                        left join allEvents as b on a.chartNo=b.chartNo
-                                                        where eventChecked is not null
-                                                        group by a.chartNo 
-                            ) as b on a.chartNo=b.chartNo order by a.chartNo
-                            
-                            '''
+    chartNoString=''
+    if len(chartNo)==0:
+        chartNoString=''
+    else:
+        chartNoString = ','.join(map(str, chartNo))
+    eventUnChecked_query = '''
+        EXEC [EventDefinition_eventUnChecked] @chartNo=%s
+    '''
     cursor = connections['practiceDB'].cursor()
-    cursor.execute(eventUnChecked_query,[])
+    cursor.execute(eventUnChecked_query,[chartNoString])
     eventUnChecked_num = []
     res = cursor.fetchall()
     for row in res:
@@ -111,6 +94,7 @@ def confirmpat(request):
             examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
         examID += f'''</td></tr>'''    
         i+=1
+    cursor.close()
     return JsonResponse({'examID': examID,'scrollTop':scrollTop})
 
 @csrf_exempt
@@ -1055,14 +1039,7 @@ def getTopicPatientNum(request):
     disease = request.POST.get('disease')
     cursor = connections['practiceDB'].cursor()
     query = '''
-        SELECT topicNo,topicName,COUNT(chartNo) FROM(
-        SELECT distinct a.topicNo,topicName,c.chartNo FROM [practiceDB].[dbo].[researchTopic] as a
-        left join correlationPatientDisease as b on a.topicNo=b.topicNo 
-        left join PatientDisease as c on b.chartNo=c.chartNo and a.diseaseID=c.diseaseID
-        where a.diseaseID=%s
-        ) as num
-        GROUP BY topicNo,topicName
-        order by topicNo
+        EXEC [EventDefinition_getTopicPatientNum] @diseaseID=%s
             '''
     cursor.execute(query,[disease])
     result = cursor.fetchall()
@@ -1102,7 +1079,7 @@ def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     cursor.execute(query_insertAnnotation,[topicNo,chartNo,topicNo])
 
 def deleteAnnotation(cursor,topicNo,chartNo):
-    query = 'delete from annotation where topicNo=%s and chartNo=%s'
+    query = 'delete from aic.dbo.annotation where topicNo=%s and chartNo=%s'
     cursor.execute(query,[topicNo,chartNo])
 
 def deleteCorrelationPatientDisease(cursor,topicNo,chartNo):

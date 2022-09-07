@@ -173,6 +173,14 @@
         let medType1 = $('.medType1').map(function(){return $(this).val()}).get()
         let medType2 = $('.medType2').map(function(){return $(this).val()}).get()
         let diffDay = $('.diffDate').map(function(){return $(this).val()}).get()
+
+        $('#setting').attr('data-diseaseID',diseaseID)
+        $('#setting').attr('data-caSeqNo',caSeqNo)
+        $('#setting').attr('data-diagChecked',diagChecked)
+        $('#setting').attr('data-treatChecked',treatChecked)
+        $('#setting').attr('data-fuChecked',fuChecked)
+        $('#setting').attr('data-ambiguousChecked',ambiguousChecked)
+        $('#setting').attr('data-pdConfirmed',pdConfirmed)
         let url = '{% url "subjectPatientDecide:getPatientWithAdvanceCondition" %}'
         $.ajax({
             type: 'post',
@@ -233,6 +241,15 @@
         let pdConfirmed = $('#cancerFilter .pdConfirmed').map(function(){return Number($(this).prop('checked'))}).get()
         let medType = $('input[name="medType"]:checked').map(function(){return parseInt($(this).attr('data-medType'))}).get()
         let procedure = $('input[name="procedure"]:checked').map(function(){return parseInt($(this).attr('data-procedure'))}).get()
+        
+        $('#setting').attr('data-diseaseID',diseaseID)
+        $('#setting').attr('data-caSeqNo',caSeqNo)
+        $('#setting').attr('data-diagChecked',diagChecked)
+        $('#setting').attr('data-treatChecked',treatChecked)
+        $('#setting').attr('data-fuChecked',fuChecked)
+        $('#setting').attr('data-ambiguousChecked',ambiguousChecked)
+        $('#setting').attr('data-pdConfirmed',pdConfirmed)
+
         let url = ''
         if(getPatientMethod=='getPatient'){
             url = '{% url "subjectPatientDecide:getPatient" %}'
@@ -293,7 +310,8 @@
         let ambiguousChecked = $('#setting').attr('data-ambiguousChecked')
         let pdConfirmed = $('#setting').attr('data-pdConfirmed')
         let topicName = $('#setting #registTopic').val()
-        let chartNo = $('#tbody table tbody').map(function(){return $(this).children('td').html()})
+        let chartNo = $('#tbody table tbody tr').map(function(){return $(this).children('td').html()}).get()
+        console.log(chartNo)
         if(topicName!=''){
             $.ajax({
                 type: 'post',
@@ -319,6 +337,7 @@
                         showConfirmButton: false,
                         timerProgressBar: true,
                     })
+                    getTopic()
                     getRegistTopicList()
                 },
                 error:function(){
@@ -524,6 +543,7 @@
                     }
                     objectArray += `</optgroup>`
                 }
+                $('#topic').empty()
                 $('#topic').append(objectArray)
                 
             }
@@ -599,7 +619,7 @@
                 <button type="button" onclick="addMenu()" class="form-control btn btn-outline-primary">+</button> 
             </div>
             <div class="col-md-6">
-                <button class="form-control btn btn-primary" onclick="getPatient('getPatient')">Submit</button>
+                <button class="form-control btn btn-primary" onclick="getPatient('getPatient')">搜尋</button>
             </div>
         </div>
         <div class="row g-3" id='medTypePannel'>
@@ -618,7 +638,7 @@
         
         <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasExampleLabel">進階搜尋</h5>
+            <h5 class="offcanvas-title" id="offcanvasExampleLabel">進階搜尋功能</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body" id="imageEventDate">
@@ -688,11 +708,12 @@
                 <datalist id="registTopicList" ></datalist>
             </div>
             <div class="col-md-6">
-                <button class="form-control btn btn-danger btn-sm" onclick="deleteCorrelationPatientListAndAnnotation()">Delete</button>
+                <button class="form-control btn btn-danger btn-sm" onclick="deleteCorrelationPatientListAndAnnotation()">刪除</button>
             </div>
             <div class="col-md-6">
-                <button class="form-control btn btn-primary btn-sm" onclick="addCorrelationPatientListAndAnnotation()">Submit</button>
+                <button class="form-control btn btn-primary btn-sm" onclick="addCorrelationPatientListAndAnnotation()">新增</button>
             </div>
+            
         </div>
     </div>
 </body>

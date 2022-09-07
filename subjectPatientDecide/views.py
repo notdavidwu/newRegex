@@ -383,35 +383,43 @@ def insertTopic(cursor,topicName,diseaseID):
 
 def insertAnnotation(cursor,topicNo,diseaseID,chartNo):
     query_insertAnnotation='''
-    insert into annotation(chartNo,studyDate,imageType,date,SUV,x,y,z,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
+    declare @topicNo int ,@diseaseID int ,@chartNo int
+    set @topicNo = %s
+    set @diseaseID = %s
+    set @chartNo = %s
+    insert into AIC.dbo.annotation_new(chartNo,studyDate,imageType,updateTime,SUV,x,y,z,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
     select a.* from(
-    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,SUV,x,y,z,labelGroup,labelName,'' as 'labelRecord',%s as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
-    from annotation where topicNo in (select topicNo from researchTopic where diseaseID=%s ) and chartNo=%s
+    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,SUV,x,y,z,labelGroup,labelName,'' as 'labelRecord',@topicNo as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
+    from AIC.dbo.annotation_new where topicNo in (select topicNo from researchTopic where diseaseID=@diseaseID ) and chartNo=@chartNo
     ) as a
     left outer join(
-            select * from annotation where topicNo =%s
+            select * from AIC.dbo.annotation_new where topicNo =@topicNo
     ) as b on a.chartNo=b.chartNo and a.studyDate=b.studyDate and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.studyID=b.studyID and a.seriesID=b.seriesID
     where b.chartNo is null
     '''
     for pid in chartNo:
-        cursor.execute(query_insertAnnotation,[topicNo,diseaseID,pid,topicNo])
+        cursor.execute(query_insertAnnotation,[topicNo,diseaseID,pid])
 
 def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     query_insertAnnotation='''
-    select a.chartNo,%s as diseaseNo from (select %s as 'chartNo') as a
+    declare @topicNo int ,@diseaseID int ,@chartNo int
+    set @topicNo = %s
+    set @chartNo = %s
+    insert into correlationPatientDisease(chartNo,topicNo)
+    select a.chartNo,@topicNo as topicNo from (select @chartNo as 'chartNo') as a
     left outer join (
-        select * from correlationPatientDisease where topicNo=%s
+        select * from correlationPatientDisease where topicNo=@topicNo
     ) as b on a.chartNo=b.chartNo
     where b.chartNo is null
     '''
     for pid in chartNo:
-        cursor.execute(query_insertAnnotation,[topicNo,pid,topicNo])
+        cursor.execute(query_insertAnnotation,[topicNo,pid])
     
 
 @csrf_exempt
 def addCorrelationPatientListAndAnnotation(request):
     diseaseID = request.POST.get('diseaseID')
-    chartNo = request.POST.get('chartNo')
+    chartNo = request.POST.getlist('chartNo[]')
     topicName = request.POST.get('topicName')
     cursor = connections['practiceDB'].cursor()
     topicNo = insertTopic(cursor,topicName,diseaseID)
@@ -435,7 +443,7 @@ def deleteTopic(cursor,topicName):
     return topicNo
 
 def deleteAnnotation(cursor,topicNo):
-    query = 'delete from annotation where topicNo=%s'
+    query = 'delete from aic.dbo.annotation_new where topicNo=%s'
     cursor.execute(query,[topicNo])
 
 def deleteCorrelationPatientDisease(cursor,topicNo):

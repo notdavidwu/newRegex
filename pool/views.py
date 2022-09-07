@@ -65,14 +65,14 @@ def getPreviousAction(request):
     Filter = request.session.get('filter',0)
     return JsonResponse({'diseaseCode':diseaseCode,'ScrollTop':ScrollTop,'Filter':Filter})
 
-def SQL(cursor,filter,hospital,Disease,username):
+def SQL(cursor,filter,hospital,topicNo,username):
 
     if filter=='0':
         query = f"""
             select * from correlationPatientDisease as a
             inner join allEvents as b on a.chartNo=b.chartNo
             inner join examStudy as c on b.eventID=c.eventID
-            where a.topicNo = {Disease} {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
+            where a.topicNo = {topicNo} {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
             order by a.chartNo
         """
         cursor.execute(query)
@@ -84,10 +84,10 @@ def SQL(cursor,filter,hospital,Disease,username):
                 select a.* from correlationPatientDisease as a
                 inner join allEvents as b on a.chartNo=b.chartNo
                 inner join examStudy as c on b.eventID=c.eventID
-                where a.topicNo = {Disease}  {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
+                where a.topicNo = {topicNo}  {f" and c.hospitalID = {int(hospital)}　" if len(hospital)!=0 else '' }
                 ) as a 
             left join (
-                select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo  = {Disease} and username = '{username}'
+                select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo  = {topicNo} and username = '{username}'
             ) as b on a.chartNo=b.annotation_chartNo
         ) as c where checked=0 order by chartNo
         """
@@ -132,6 +132,7 @@ def SubjectPatientList(request):
                 </label>
             </td></tr>
         """
+    cursor.close()
     return JsonResponse({'PatientListID': PatientListID,'object':object,'PID_previous_select':PID_previous_select})
 
 @csrf_exempt
@@ -142,32 +143,36 @@ def Patient_num(request):
     cursor = connections['practiceDB'].cursor()
     print(topicNo,username)
     query = """
+        declare @topicNo int,@username nvarchar(max)
+        set @topicNo=%s
+        set @username=%s
         select count(distinct a.chartNo),'1' AS seq
         from correlationPatientDisease as a 
             inner join allEvents as f on a.chartNo=f.chartNo
             inner join examStudy as g on f.eventID=g.eventID
-            where a.topicNo=%s and hospitalID like '0'
+            where a.topicNo=@topicNo and hospitalID like '0'
         UNION
         select count(chartNo) ,'2' AS seq from (
             select *,ISNULL(annotation_chartNo,0) as checked from (
                 select distinct　c.chartNo from(
                     select distinct　b.chartNo from examStudy as a inner join allEvents as b on a.eventID=b.eventID where hospitalID like '0'
-                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.topicNo=%s
+                        ) as c inner join correlationPatientDisease as d on c.chartNo=d.chartNo　where d.topicNo=@topicNo
                 ) as all_list
                 left outer join (
-                    select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo=%s and username=%s
+                    select distinct chartNo as annotation_chartNo from AIC.dbo.annotation_new where topicNo=@topicNo --and username=@username
                 ) as located on all_list.chartNo=located.annotation_chartNo 
             ) as list
         where checked=0
         UNION
-        select count(distinct chartNo) ,'3' AS seq from AIC.dbo.annotation_new where topicNo=%s and username=%s
+        select count(distinct chartNo) ,'3' AS seq from AIC.dbo.annotation_new where topicNo=@topicNo --and username=@username
         ORDER BY seq ASC
     """
-    cursor.execute(query,[topicNo,topicNo,topicNo,username,topicNo,username])
+    cursor.execute(query,[topicNo,username])
     res = cursor.fetchall()
     all = res[0][0]
     unlabeled = res[1][0]
     labeled = res[2][0]
+    cursor.close()
     return JsonResponse({'all': all,'unlabeled':unlabeled,'labeled':labeled})
 
 def searchFilePath(chartNo,eventDate,studyID,seriesID):
@@ -175,6 +180,7 @@ def searchFilePath(chartNo,eventDate,studyID,seriesID):
     searchQuery='''SELECT [filePath] FROM [ExamStudySeries_6] WHERE [chartNo]=%s and [eventDate]=%s and [studyID]=%s and [seriesID]=%s'''
     cursor.execute(searchQuery,[chartNo,eventDate,studyID,seriesID])
     filePath = cursor.fetchall()[0][0]
+    cursor.close()
     return filePath
 
 @csrf_exempt
@@ -267,6 +273,7 @@ def PatientList(request):
         SeriesID.append(res[i][8])
         SeriesDes.append(res[i][9])
         viewplane.append(res[i][11])
+    cursor.close()
     return JsonResponse({'PID': PID, 'MedExecTime': MedExecTime,'StudyID':StudyID ,'SeriesID':SeriesID,'Item': Item,'StudyDes':StudyDes,'SeriesDes':SeriesDes, 'phase': phase, 'Check': Check,'viewplane':viewplane},
                         status=200)
 
