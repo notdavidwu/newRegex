@@ -430,6 +430,7 @@
     .container table tr td{font-weight: bold;}
     .container table tr th{font-weight: bold;}
     .ImageFilter{width:calc(50% - 2px);display:inline}
+    .annotator{font-size:10pt;line-height: 12px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center;word-break:break-all;word-wrap:break-word}
 </style>
 
 
@@ -1465,21 +1466,24 @@
                 $('#textarea').children('tr').remove();
                 
                 for (var i = 0; i < response.PID.length; i++) {
-                    $('#textarea').append('<tr><td><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                        '<label for=' + i + '>' +
-                        '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                        '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                        '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                        '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                        '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                        '<p class="data1">' + response.LabelName[i] +'</p>'+
-                        '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                        '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                        '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                        '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                        '<p class="indices">' + response.indices[i] +'</p>'+
-                        '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
-                        '</label></td></tr>')
+                   
+                    $('#textarea').append(`<tr><td><input onclick="draw()" type="radio" name="location" id=${i}>
+                        <label for=${i}>
+                        <p class="deleteInfo">${response.id[i]}</p>
+                        <p class="info">${response.x[i]},${response.y[i]},${response.z[i]}</p>
+                        <p class="data">${response.SUV[i]}</p>
+                        <p class="data1">StudyID: ${response.StudyID[i]}</p>
+                        <p class="data1">SeriesID: ${response.SeriesID[i]}</p>
+                        <p class="annotator">Annotator: ${response.username[i]}</p>
+                        <p class="data1">${response.LabelGroup[i]}</p>
+                        <p class="data1">${response.LabelName[i]}</p>
+                        <p class="data1">${response.LabelRecord[i]}</p>
+                        <p class="LocalStudyID">${response.StudyID[i]}</p>
+                        <p class="LocalSeriesID">${response.SeriesID[i]}</p>
+                        <p class="LocalStudyDate">${response.SD[i]}</p>
+                        <p class="indices">${response.indices[i]}</p>
+                        <p class="Dr_confirm">${response.Dr_confirm[i]}</p>
+                        </label></td></tr>`)
                     
                     if (response.indices[i]==0) {
                         //alert(response.LabelGroup[i]=='Primary tumor')
@@ -1551,24 +1555,7 @@
                         $('#users').children('option').eq(i).prop('selected',true)
                     }
                 }
-                if(response.is_superuser){
-                    $('#users').css({
-                        'z-index': '2',
-                        'position': 'fixed',
-                        'height': '40px',
-                        'top': '95px',
-                        'width': '9.9%',
-                        'margin': '0px',
-                        'right': '20%',
-                        'border-radius': '0px 0px 5px 5px'
-                    })
-                    $('.localizationform').css({
-                        'position': 'fixed',
-                        'height': 'calc(100% - 130px)', 
-                        'top': '130px',  
-                        'right': '20%'
-                    })
-                }
+
             }
         });
     }
@@ -2264,7 +2251,7 @@
                                                 for (var i = 0; i < response.DiseaseNo.length; i++) {
                                                     $('#cancer').append(`<option data-id=${response.DiseaseNo[i]}>${response.Disease[i]}</option>`)
                                                 }
-                                                $('#cancer').append('<option data-id=9999>Other</option>>')
+                                                
                                             },
                                             complete:function(){
                                                 selection()

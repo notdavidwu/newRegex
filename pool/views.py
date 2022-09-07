@@ -21,7 +21,7 @@ def pool(request):
 @csrf_exempt
 def Disease(request):
     cursor = connections['practiceDB'].cursor()
-    query = '''select * from diseasetList order by diseaseID'''
+    query = '''select * from diseasetList where diseaseID<9999 order by diseaseID'''
     cursor.execute(query,[])
     diseaseNo = []
     diseaseName = []
@@ -204,17 +204,6 @@ def PatientList(request):
     order by studyDate DESC
     '''
 
-    # query2 = '''
-    #     select studyID,seriesID,seriesDes from ExamStudySeries_6 where sliceNo in
-    #             (select MAX(sliceNo) from (
-    #             select eventID,studyID,category,seriesID,seriesDes,sliceNo
-    #             from ExamStudySeries_6) as a left outer join allEvents as b on a.eventID=b.eventID 
-    #             where b.eventID=%s ) and eventID=%s group by studyID,seriesID,seriesDes
-    #     '''
-    # queryMRI = '''
-    #     select top(1)* from ExamStudySeries_6 where eventID=%s and seriesDes in ('T1WI_CE','T1WI')　order by seriesDes DESC
-    # '''
-
     cursor = connections['practiceDB'].cursor()
     cursor.execute(query,[chartNo])
     PID = []
@@ -228,36 +217,7 @@ def PatientList(request):
     SeriesDes=[]
     viewplane=[]
     res = cursor.fetchall()
-    # for j in range(len(res)):
-    #     cursor2 = connections['AIC'].cursor()
-    #     cursor2.execute(query2, [res[j][4],res[j][4]])
-    #     res2 = cursor2.fetchall()
-    #     if res2 != []:
-    #         StudyID = (res2[0][0])
-    #         SeriesID = (res2[0][1])
-    #         Study.append(StudyID)
-    #         Series.append(SeriesID)
-    #         SeriesDes.append(res2[0][2])
-    #     else:
-    #         Study.append(0)
-    #         Series.append(0)
-    #         SeriesDes.append(0)
-
-    #     filePath = searchFilePath(res[j][0],res[j][1],StudyID,SeriesID)
-    #     if platform.system()!='Windows':
-    #         fileDir = os.path.join('/home','user','netapp',filePath)
-    #     else:
-    #         fileDir= os.path.join('//172.31.6.6/share1/NFS/image_v2',filePath)
-
-    #     fileDir = fileDir.replace('-', '')
-    #     fileDir = fileDir.replace(' ', '')
-
-    #     fileExt = "*.h5"
-
-    #     if len(list(pathlib.Path(fileDir).glob(fileExt))) == 0:
-    #         Check.append('N')
-    #     else:
-    #         Check.append('Y')
+    
 
     for i in range(len(res)):
         PID.append(res[i][0])
