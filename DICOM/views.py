@@ -1070,6 +1070,7 @@ def insertLocation(request):
     username = 'null' if (str(request.POST.get('username')) == '') else str(request.POST.get('username'))
     SUV = '0' if (str(request.POST.get('SUV')) == '') else request.POST.get('SUV')
     Disease = '' if (str(request.POST.get('Disease')) == '') else str(request.POST.get('Disease'))
+    LabelSubject = '' if (str(request.POST.get('LabelSubject')) == '') else str(request.POST.get('LabelSubject'))
     LabelGroup = '' if (str(request.POST.get('LabelGroup')) == '') else str(request.POST.get('LabelGroup'))
     LabelName = '' if (str(request.POST.get('LabelName')) == '') else str(request.POST.get('LabelName'))
     LabelRecord = '' if (str(request.POST.get('LabelRecord')) == '') else str(request.POST.get('LabelRecord'))
@@ -1086,17 +1087,17 @@ def insertLocation(request):
     '''------------------------------------------------------'''
     cursor = connections['AIC'].cursor()
     query_insertAnnotation = '''
-    insert into　annotation_new (chartNo,imageType,studyID,seriesID,studyDate,username,topicNo,updateTime,SUV,x,y,z,labelGroup,labelName,labelRecord) 
+    insert into　annotation_new (chartNo,imageType,studyID,seriesID,studyDate,username,topicNo,updateTime,SUV,x,y,z,labelSubject,labelGroup,labelName,labelRecord) 
     output Inserted.id 
-    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+    values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     '''
-    cursor.execute(query_insertAnnotation,[PID,Item,StudyID,SeriesID,SD,username,Disease,current_time,SUV,x,y,z,LabelGroup,LabelName,LabelRecord])
+    cursor.execute(query_insertAnnotation,[PID,Item,StudyID,SeriesID,SD,username,Disease,current_time,SUV,x,y,z,LabelSubject,LabelGroup,LabelName,LabelRecord])
     inserted_id = cursor.fetchone()[0]
-    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,LabelSubject,indices = selectAnnotation(request)
     return JsonResponse(
         {'inserted_id':inserted_id,'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
-         'indices': indices},
+         'indices': indices,'LabelSubject':LabelSubject},
         status=200)
 
 def removeContourFile(request,PID,studyDate,studyID,seriesID,id):
@@ -1146,11 +1147,11 @@ def deleteLocation(request):
     query = '''delete from annotationFactor where a_id=%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[id])
-    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,LabelSubject,indices = selectAnnotation(request)
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
-         'indices': indices},
+         'indices': indices,'LabelSubject':LabelSubject},
         status=200)
 
 
@@ -1170,7 +1171,7 @@ def selectAnnotation(request):
         select * from (select　*,(CAST(studyID as VARCHAR(50)) + '_' + 
         CAST(seriesID as VARCHAR(50))) as 'studySeries' from annotation_new) as a 
         where  chartNo=%s  and topicNo=%s and studySeries in (%s,%s,%s,%s) 
-        and studyDate in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,updateTime,labelName ASC
+        and studyDate in (%s,%s,%s,%s) order by CAST(SUV as float) DESC,studySeries,updateTime,username asc,labelName ASC
         '''
         cursor.execute(query,[PID, Disease, string[0], string[1], string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
     else:
@@ -1183,7 +1184,7 @@ def selectAnnotation(request):
         '''
         cursor.execute(query,[PID, username, Disease, string[0], string[1], string[2], string[3],studyDate[0],studyDate[1],studyDate[2],studyDate[3]])
     response = cursor.fetchall()
-    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID,Dr_confirm = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
+    id, PID, SD, Item, date, username, SUV, x, y, z, LabelGroup, LabelName, LabelRecord, StudyID,SeriesID,Dr_confirm,LabelSubject =[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[]
     for info in response:
         Type = str(info[2]).replace(' ', '')
         StudySeries = str(info[3])+'_'+str(info[4])
@@ -1212,16 +1213,17 @@ def selectAnnotation(request):
         StudyID.append(info[3])
         SeriesID.append(info[4])
         Dr_confirm.append(info[17])
+        LabelSubject.append(info[18].lstrip().rstrip())
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
-    return id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices
+    return id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,LabelSubject,indices
 @csrf_exempt
 def selectLocation(request):
-    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,indices = selectAnnotation(request)
+    id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,LabelSubject,indices = selectAnnotation(request)
     return JsonResponse(
         {'id': id, 'PID': PID, 'SD': SD, 'Item': Item, 'date': date, 'username': username, 'SUV': SUV, 'x': x, 'y': y,
          'z': z, 'LabelGroup': LabelGroup, 'LabelName': LabelName, 'LabelRecord': LabelRecord, 'StudyID':StudyID, 'SeriesID': SeriesID,'Dr_confirm':Dr_confirm,
-         'indices': indices},
+         'indices': indices,'LabelSubject':LabelSubject},
         status=200)
 
 
@@ -1805,9 +1807,9 @@ def getAnnotationLabel(request):
     labelGroup = []
     labelName = []
     for row in result:
-        disease.append(row[0].replace('  ',''))
-        labelGroup.append(row[1].replace('  ',''))
-        labelName.append(row[2].replace('  ',''))
+        disease.append(row[0].replace('  ','').lstrip().rstrip())
+        labelGroup.append(row[1].replace('  ','').lstrip().rstrip())
+        labelName.append(row[2].replace('  ','').lstrip().rstrip())
     indexes  = np.unique(np.array(disease), return_index=True)[1]
     disease_unique = [disease[index] for index in sorted(indexes)]
     return JsonResponse({'disease_unique':disease_unique,'disease':disease,'labelGroup':labelGroup,'labelName':labelName})

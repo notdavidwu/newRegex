@@ -1105,9 +1105,9 @@
         $("[name='Report']:checked").parents('td').css('background-color','#e78632')
         $("[name='Report']:not(':checked')").parents('td').css('background-color','#eeefef')
         for (var i = 0; i < $("[name='Report']:checked").length; i++) {
-            var text =$("[name='Report']:checked").eq(i).prev('label').children('.examDate').text()+'\n'+'\n'
-            text=text+$("[name='Report']:checked").eq(i).prev('label').children('.examReport').text()
-            $('#T'+(i+1)).text(text)
+            var text =$("[name='Report']:checked").eq(i).prev('label').children('.examDate').text()+'&#13;'+'&#13;'
+            text=text+$("[name='Report']:checked").eq(i).prev('label').children('.examReport').text().replaceAll('@','&#13;')
+            $('#T'+(i+1)).html(text)
         }
 
         if($("[name='Report']:checked").length==1){
@@ -1475,6 +1475,7 @@
                         <p class="data1">StudyID: ${response.StudyID[i]}</p>
                         <p class="data1">SeriesID: ${response.SeriesID[i]}</p>
                         <p class="annotator">Annotator: ${response.username[i]}</p>
+                        <p class="annotationLabel">${response.LabelSubject[i]}_${response.LabelGroup[i]}_${response.LabelName[i]}</p>
                         <p class="data1">${response.LabelGroup[i]}</p>
                         <p class="data1">${response.LabelName[i]}</p>
                         <p class="data1">${response.LabelRecord[i]}</p>
@@ -1612,6 +1613,7 @@
         LabelGroup = $('#LabelGroup').val();
         LabelName = $('#LabelName').val();
         LabelRecord = $('#LabelRecord').val();
+        LabelSubject = $('#cancer').val();
         $('#tumor').children('select').css('border-color', 'black')
         $('#annotation_factor_pannel').children('.menublock').remove()
 
@@ -1621,7 +1623,7 @@
             let imageType = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyDes').text()
             if(imageType != 'MRI'){
                 let object = $("[name='group1']:checked").next("label").children('div').children('div')
-                insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date)
+                insertAnnotation(PID,user_username,object,LabelSubject,LabelGroup,LabelName,LabelRecord,str,Study_Date)
             }else{
                 var Con = $('.StudyDate').map(function(){return $(this).prevAll('.StudyDes').text()+'_'+$(this).text()+'_'+$(this).prevAll('.StudyID').text()+'_'+$(this).prevAll('.SeriesID').text()[1]}).get()
                 win = $("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
@@ -1629,7 +1631,7 @@
                     if(Con[i]==Con[win-1]){
                         var ind=i+1
                         var object = $("#frame"+ind.toString()).children('label').children('div').children('div')
-                        insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date)
+                        insertAnnotation(PID,user_username,object,LabelSubject,LabelGroup,LabelName,LabelRecord,str,Study_Date)
                     }
                 }
             }
@@ -1637,7 +1639,7 @@
             $('#tumor').children('select').css('border-color', 'red')
         }
     }
-    function insertAnnotation(PID,user_username,object,LabelGroup,LabelName,LabelRecord,str,Study_Date){
+    function insertAnnotation(PID,user_username,object,LabelSubject,LabelGroup,LabelName,LabelRecord,str,Study_Date){
         $.ajax({
             type: 'post',
             url: '{% url "DICOM:insertLocation" %}', // this is the mapping between the url and view
@@ -1649,6 +1651,7 @@
                 'x': object.children('.x').text(),
                 'y': object.children('.y').text(),
                 'z': object.children('.z').text(),
+                'LabelSubject':LabelSubject,
                 'LabelGroup': LabelGroup,
                 'LabelName': LabelName,
                 'LabelRecord': LabelRecord,
@@ -1669,21 +1672,24 @@
                 insertAnnotationFactor(response.inserted_id)
                 $('#textarea').children('tr').remove();
                 for (var i = 0; i < response.PID.length; i++) {
-                    $('#textarea').append('<tr><td ><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                        '<label  for=' + i + '>' +
-                        '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                        '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                        '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                        '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                        '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                        '<p class="data1">' + response.LabelName[i] +'</p>'+
-                        '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                        '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                        '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                        '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                        '<p class="indices">' + response.indices[i] +'</p>'+
-                        '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
-                        '</label></td></tr>')
+                    $('#textarea').append(`<tr><td><input onclick="draw()" type="radio" name="location" id=${i}>
+                        <label for=${i}>
+                        <p class="deleteInfo">${response.id[i]}</p>
+                        <p class="info">${response.x[i]},${response.y[i]},${response.z[i]}</p>
+                        <p class="data">${response.SUV[i]}</p>
+                        <p class="data1">StudyID: ${response.StudyID[i]}</p>
+                        <p class="data1">SeriesID: ${response.SeriesID[i]}</p>
+                        <p class="annotator">Annotator: ${response.username[i]}</p>
+                        <p class="annotationLabel">${response.LabelSubject[i]}_${response.LabelGroup[i]}_${response.LabelName[i]}</p>
+                        <p class="data1">${response.LabelGroup[i]}</p>
+                        <p class="data1">${response.LabelName[i]}</p>
+                        <p class="data1">${response.LabelRecord[i]}</p>
+                        <p class="LocalStudyID">${response.StudyID[i]}</p>
+                        <p class="LocalSeriesID">${response.SeriesID[i]}</p>
+                        <p class="LocalStudyDate">${response.SD[i]}</p>
+                        <p class="indices">${response.indices[i]}</p>
+                        <p class="Dr_confirm">${response.Dr_confirm[i]}</p>
+                        </label></td></tr>`)
                     if (response.indices[i]==0) {
                         if(response.LabelGroup[i]=='Primary tumor'){
                             $('#' + i).next('label').css('background-color', '#BBBBBB')
@@ -1769,21 +1775,24 @@
             success: function(response) {
                 $('#textarea').children('tr').remove();
                     for (var i = 0; i < response.PID.length; i++) {
-                        $('#textarea').append('<tr><td><input onclick="draw()" type="radio" name="location" id=' + i + '>' +
-                            '<label for=' + i + '>' +
-                            '<p class="deleteInfo">' + response.id[i] + '</p>' +
-                            '<p class="info">' + response.x[i] + ',' + response.y[i] + ',' + response.z[i]+'</p><p class="data">'+response.SUV[i] + '</p>' +
-                            '<p class="data1">StudyID:' + response.StudyID[i] +'</p>'+
-                            '<p class="data1">SeriesID:' + response.SeriesID[i] +'</p>'+
-                            '<p class="data1">' + response.LabelGroup[i] +'</p>'+
-                            '<p class="data1">' + response.LabelName[i] +'</p>'+
-                            '<p class="data1">' + response.LabelRecord[i] +'</p>'+
-                            '<p class="LocalStudyID">' + response.StudyID[i] +'</p>'+
-                            '<p class="LocalSeriesID">' + response.SeriesID[i] +'</p>'+
-                            '<p class="LocalStudyDate">' + response.SD[i] +'</p>'+
-                            '<p class="indices">' + response.indices[i] +'</p>'+
-                            '<p class="Dr_confirm">' + response.Dr_confirm[i] +'</p>'+
-                            '</label></td></tr>')
+                        $('#textarea').append(`<tr><td><input onclick="draw()" type="radio" name="location" id=${i}>
+                            <label for=${i}>
+                            <p class="deleteInfo">${response.id[i]}</p>
+                            <p class="info">${response.x[i]},${response.y[i]},${response.z[i]}</p>
+                            <p class="data">${response.SUV[i]}</p>
+                            <p class="data1">StudyID: ${response.StudyID[i]}</p>
+                            <p class="data1">SeriesID: ${response.SeriesID[i]}</p>
+                            <p class="annotator">Annotator: ${response.username[i]}</p>
+                            <p class="annotationLabel">${response.LabelSubject[i]}_${response.LabelGroup[i]}_${response.LabelName[i]}</p>
+                            <p class="data1">${response.LabelGroup[i]}</p>
+                            <p class="data1">${response.LabelName[i]}</p>
+                            <p class="data1">${response.LabelRecord[i]}</p>
+                            <p class="LocalStudyID">${response.StudyID[i]}</p>
+                            <p class="LocalSeriesID">${response.SeriesID[i]}</p>
+                            <p class="LocalStudyDate">${response.SD[i]}</p>
+                            <p class="indices">${response.indices[i]}</p>
+                            <p class="Dr_confirm">${response.Dr_confirm[i]}</p>
+                            </label></td></tr>`)
 
                         if (response.indices[i]==0) {
                             if(response.LabelGroup[i]=='Primary tumor'){
@@ -1837,7 +1846,7 @@
                         let labelGroup_indexes = indexOfAll(cancerLabelGroup,unique_labelGroup[k])
                         AnnotationLabelObjectArray += `<optgroup label="&nbsp;&nbsp;&nbsp;&nbsp;${unique_labelGroup[k]}">`
                         for(let p=0;p<labelGroup_indexes.length;p++){
-                            AnnotationLabelObjectArray += `<option value="${cancerLabelName[labelGroup_indexes[p]]}">&nbsp;&nbsp;&nbsp;&nbsp;${cancerLabelName[labelGroup_indexes[p]]}</option>`
+                            AnnotationLabelObjectArray += `<option value="${response.disease_unique[i]}_${unique_labelGroup[k]}_${cancerLabelName[labelGroup_indexes[p]]}">&nbsp;&nbsp;&nbsp;&nbsp;${cancerLabelName[labelGroup_indexes[p]]}</option>`
                         }
                         AnnotationLabelObjectArray += `</optgroup>`
                     }
@@ -1873,7 +1882,7 @@
                 object_str += '<div > SUV:'+target_object.children('.data').text()+'</div>'
                 $('#annotation_basic_info').append(object_str)
                 $('#annotation_basic_info').append(`<div style="display:inline-block">Tumor Info: ${AnnotationLabelObjectArray}</div>`)
-                $('#annotationLabel').val(target_object.children('.data1').eq(3).text())
+                $('#annotationLabel').val(target_object.children('.annotationLabel').text())
                 for(var i=0; i<response.f_id.length; i++){
                     addMenuCustom($('#annotation_factor_pannel').children('.addButton'),response.f_id[i])
                     $('#annotation_detail_f_id_'+response.f_id[i]).children('.factor').val(response.factor[i])
@@ -2115,8 +2124,12 @@
                         
                         for (var i = 0; i < response.examItem.length; i++) {
                             if(response.sn[i]==response.idx) {
-                                $('#T1').html(response.examDate[i]+'\n'+'\n'+response.examReport[i])
+                                $('#T1').text(
+                                    response.examDate[i]+'\n'+'\n'+
+                                    response.examReport[i].replaceAll('@','\n').replaceAll('&#x0D;','')
+                                    )
                             }
+                        
                             $('#textReport').append(
                                     '<tr><td>' +
                                     '<label for=r' + i + '>' +
