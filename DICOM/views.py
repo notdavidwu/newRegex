@@ -1291,7 +1291,7 @@ def TextReport(request):
     query = '''
     EXEC [DICOM_TextReport] @chartNo=%s
     '''
-
+    print(MedExecTime,image_type)
     cursor = connections['practiceDB'].cursor()
     print(pid)
     cursor.execute(query,[int(pid)])
@@ -1314,52 +1314,32 @@ def TextReport(request):
     SET @chartNo=%s
     SET @eventDate=%s
 	DECLARE @search_table TABLE (
-		chartNo int,
-		orderNo int,
-		eventDate datetime,
-		medType int,
 		typeName nvarchar(max),
-		eventID int,
-		eventChecked int,
-		note nvarchar(max),
-		descriptionType int,
-		reportText nvarchar(max)
+		eventDate datetime,
+		reportText nvarchar(max),
+		ind int
 	)
 	insert into @search_table
-	        select a.chartNo,a.orderNo,a.eventDate,a.medType,b.typeName,a.eventID,a.eventChecked,a.note,c.descriptionType,c.reportText
-            from allEvents as a
-            inner join medTypeSet as b on a.medType=b.medType
-            left join eventDetails as c on a.eventID=c.eventID
-            where a.chartNo=@chartNo 
-            and eventID_F is null and (a.eventChecked <>0 or a.eventChecked is null)
-    select top 1 ind from (
-        select * ,ROW_NUMBER()　over(order by eventDate DESC,reportText)　as ind from(
-            select distinct result.typeName ,result.eventDate,result.medType ,(
-                select '--------------------------- &#13;'+
-                'DescriptionType:'+cast(descriptionType AS VARCHAR(max) )+
-                '&#13--------------------------- &#13;'+cast(reportText AS VARCHAR(max) ) + '&#13;&#13;&#13; '
-                from @search_table
-                where orderNo = result.orderNo 
-                FOR XML PATH('')
-                ) as reportText
-                    
-            from @search_table as result where result.medType<30000 
-        ) as final
-    ) as a where a.eventDate<=@eventDate
+	        EXEC [DICOM_TextReport] @chartNo=@chartNo
+    select top 1 ind from  @search_table as a
+	inner join practiceDB.dbo.medTypeSet as b on a.typeName=b.typeName
+    where eventDate<=@eventDate
     """
 
     if image_type=='PET':
         medType='(3570,3579)'
-        query_find_index += f''' and a.medType in {medType} '''
+        query_find_index += f''' and medType in {medType} '''
     elif image_type=='CT':
         medType='(3030,3031,3032,3036,3037,3038,3039)'
-        query_find_index += f''' and a.medType in {medType} '''
+        query_find_index += f''' and medType in {medType} '''
     elif image_type=='MRI':
         medType='(3040,3041,3042,3047,3048,3049)'
-        query_find_index += f''' and a.medType in {medType} '''
-
+        query_find_index += f''' and medType in {medType} '''
+    
+    print(query_find_index)
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]
+    
     cursor.close()
     return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
 
@@ -1708,7 +1688,8 @@ def UNet(request):
                 volume
             ]
         )
-
+        device = cuda.get_current_device()
+        device.reset()
     return JsonResponse({}, status=200)
     
 @csrf_exempt

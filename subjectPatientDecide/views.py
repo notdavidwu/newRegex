@@ -387,9 +387,9 @@ def insertAnnotation(cursor,topicNo,diseaseID,chartNo):
     set @topicNo = %s
     set @diseaseID = %s
     set @chartNo = %s
-    insert into AIC.dbo.annotation_new(chartNo,studyDate,imageType,updateTime,SUV,x,y,z,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
+    insert into AIC.dbo.annotation_new(chartNo,studyDate,imageType,updateTime,username,SUV,x,y,z,labelSubject,labelGroup,labelName,labelRecord,topicNo,fromWhere,studyID,seriesID,doctor_confirm)
     select a.* from(
-    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,SUV,x,y,z,labelGroup,labelName,'' as 'labelRecord',@topicNo as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
+    select distinct chartNo,studyDate,imageType,GETDATE() as 'date' ,username,SUV,x,y,z,labelSubject,labelGroup,labelName,'' as 'labelRecord',@topicNo as 'topicNo', NULL as 'fromWhere' ,studyID,seriesID,NULL as 'doctor_confirm' 
     from AIC.dbo.annotation_new where topicNo in (select topicNo from researchTopic where diseaseID=@diseaseID ) and chartNo=@chartNo
     ) as a
     left outer join(

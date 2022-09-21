@@ -67,7 +67,7 @@ if columns=='chartNo':
 if len(topicNo)==0:
     diseaseID = input('請輸入癌症編號:')
 
-chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array=[],[],[],[],[],[],[],[],[]
+chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array,pixelSpacing_array,sliceThickness_array=[],[],[],[],[],[],[],[],[],[],[]
 
 
 
@@ -220,8 +220,9 @@ for i in tqdm(range(len(PatientListID))):
                     cursor.execute(query, {'PatientListID': chartNo,'tumorType':tumorType,'studyID':studyID,'seriesID':seriesID,'studyDate':studyDate})
                 
                 data = cursor.fetchall()
-                
-                SliceThickness = PET_tag[0].SliceThickness
+                PET_ImagePositionPatient_first = list(map(lambda  coordinate:float(coordinate) ,PET_tag[0].ImagePositionPatient))
+                PET_ImagePositionPatient_second = list(map(lambda  coordinate:float(coordinate) ,PET_tag[1].ImagePositionPatient))
+                SliceThickness = abs(PET_ImagePositionPatient_first[2]-PET_ImagePositionPatient_second[2])
                 PET_PixelSpacing = PET_tag[0].PixelSpacing[0]
                 CT_PixelSpacing = CT_tag[0].PixelSpacing[0]
                 Main = ET.Element('Main')
@@ -270,7 +271,8 @@ for i in tqdm(range(len(PatientListID))):
                     y_array.append(math.floor(float(y)))
                     z_array.append(math.floor(float(z)))
                     tumorType_array.append(labelName)
-
+                    pixelSpacing_array.append(PET_PixelSpacing)
+                    sliceThickness_array.append(SliceThickness)
                 trees = ET.ElementTree(Main)
                 filename = f'{chartNo}_{studyDate}_{seriesID}_SOPT_log.xml' 
                 trees.write(os.path.join(saveFiledir,filename))
@@ -348,7 +350,10 @@ for i in tqdm(range(len(PatientListID))):
                 with h5py.File(paths, "r") as f:
                     CT_view = np.array(f['PETCT_vol'])[:, 1, :, :] #0是PET 1是CT_mod
 
-                SliceThickness = PET_tag[0].SliceThickness
+                PET_ImagePositionPatient_first = list(map(lambda  coordinate:float(coordinate) ,PET_tag[0].ImagePositionPatient))
+                PET_ImagePositionPatient_second = list(map(lambda  coordinate:float(coordinate) ,PET_tag[1].ImagePositionPatient))
+                SliceThickness = abs(PET_ImagePositionPatient_first[2]-PET_ImagePositionPatient_second[2])
+
                 PET_PixelSpacing = PET_tag[0].PixelSpacing[0]
                 CT_PixelSpacing = CT_tag[0].PixelSpacing[0]
 
@@ -415,8 +420,10 @@ for i in tqdm(range(len(PatientListID))):
                 y_array.append(math.floor(float(y)))
                 z_array.append(math.floor(float(z)))
                 tumorType_array.append(labelName)
+                pixelSpacing_array.append(PET_PixelSpacing)
+                sliceThickness_array.append(SliceThickness)
 final_result=pd.DataFrame(
-    np.vstack([chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array]).T
-    ,columns=['chartNo','studyDate','studyID','seriesID','SUV','x','y','z','tumorType']
+    np.vstack([chartNo_array,studyDate_array,studyID_array,seriesID_array,SUV_array,x_array,y_array,z_array,tumorType_array,pixelSpacing_array,sliceThickness_array]).T
+    ,columns=['chartNo','studyDate','studyID','seriesID','SUV','x','y','z','tumorType','pixelSpacing','sliceThickness']
     )
 final_result.to_csv(f'{saveFilePath}\\annotation.csv')

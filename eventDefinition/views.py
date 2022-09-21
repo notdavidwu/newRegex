@@ -1079,7 +1079,7 @@ def insertCorrelationPatientDisease(cursor,topicNo,chartNo):
     cursor.execute(query_insertAnnotation,[topicNo,chartNo,topicNo])
 
 def deleteAnnotation(cursor,topicNo,chartNo):
-    query = 'delete from aic.dbo.annotation where topicNo=%s and chartNo=%s'
+    query = 'delete from annotation where topicNo=%s and chartNo=%s'
     cursor.execute(query,[topicNo,chartNo])
 
 def deleteCorrelationPatientDisease(cursor,topicNo,chartNo):
