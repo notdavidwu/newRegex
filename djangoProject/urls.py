@@ -38,5 +38,5 @@ urlpatterns = [
     path('subjectPatientDecide/', include('subjectPatientDecide.urls', namespace='subjectPatientDecide')),
     path('appeal/', include('appeal.urls', namespace='appeal')),
     path('warehousing_eventDefinitions/', include('warehousing_eventDefinitions.urls', namespace='warehousing_eventDefinitions')),
-    
+    path('PowerBI/', include('PowerBI.urls', namespace='PowerBI')),
 ]

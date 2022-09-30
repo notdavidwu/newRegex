@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
     'appeal.apps.appealConfig',
     'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
-    
+    'PowerBI.apps.PowerBIConfig'
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
