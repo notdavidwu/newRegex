@@ -1245,7 +1245,7 @@ def findLocalMax(request):
     PixelSpacing = request.session.get(str(Category)+'_pixelspacing_' + str(ind))
     SliceThickness = request.session.get(str(Category)+'_slicethickness_' + str(ind))
     Category = request.session.get('Category_' + ind)
-    x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,Category,diameter)
+    x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,diameter)
 
     return JsonResponse({'x': x, 'y': y, 'z': z, 'maxValue': maxValue})
 
