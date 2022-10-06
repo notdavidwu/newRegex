@@ -223,6 +223,8 @@
                 'width':$("[name='group1']:checked").next("label").children('div').children('div').children('img').width(),
                 'ActualCoordinates':true,
                 'drawActualCoordinates':true,
+                'MRI_CrossLink':$('#MRI_CrossLink').is(':checked'),
+                'mip_num':$('#mip_num').val(),
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success: function(response) {
