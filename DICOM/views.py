@@ -674,7 +674,7 @@ def _localmax(CT, PET, Ox, Oy, Oz, PET_tag, PETWC):
     return x, y, z, maxValue
 
 
-def slicing(plane, img_path, variable, drawActualCoordinates, WC, WW, y, tag, catergory):
+def slicing(plane, img_path, variable, drawActualCoordinates, WC, WW, y, tag, catergory,mip_num=1):
     
     if variable is None:variable = 0
     if catergory =='PET':
@@ -688,7 +688,7 @@ def slicing(plane, img_path, variable, drawActualCoordinates, WC, WW, y, tag, ca
         img = Window_FOR_VIEW(cp.array(h5py.File(img_path, "r")['vol'][variable, :, :]), WC[catergory], WW[catergory])
     else:
         img_path = list(filter(lambda x: plane in x, img_path))[0]
-        img = Window_FOR_VIEW(cp.array(h5py.File(img_path, "r")['vol'][variable, :, :]), WC[catergory], WW[catergory])
+        img = Window_FOR_VIEW(mip(img_path,variable,mip_num), WC[catergory], WW[catergory])
     if plane == 'Axial':
         z = tag['D']
     elif plane == 'Coronal':
@@ -703,8 +703,8 @@ def slicing(plane, img_path, variable, drawActualCoordinates, WC, WW, y, tag, ca
     return img, y, z
 
 
-def processing_CT(CT, variable,  WC, WW, plane, x, y, height, drawActualCoordinates, CT_tag,contour_list,Category):
-    CTimg, y, z = slicing(plane, CT, variable, drawActualCoordinates,  WC, WW, y, CT_tag,Category)
+def processing_CT(CT, variable,  WC, WW, plane, x, y, height, drawActualCoordinates, CT_tag,contour_list,Category,mip_num):
+    CTimg, y, z = slicing(plane, CT, variable, drawActualCoordinates,  WC, WW, y, CT_tag,Category,mip_num)
     resize_shape = CTimg.shape[0:2]
     ratio = (float(CT_tag['SliceThickness']) * resize_shape[0]) / (resize_shape[1] * float(CT_tag['PixelSpacing']))
     CTpil_image = colormapping(CTimg, gray)
@@ -858,6 +858,7 @@ def image_show(request,No):
                                              height, drawActualCoordinates, CT_view_tag, PET_tag, Category)
     elif Category == 'CT':
         thickness = request.session.get('CT_view_slicethickness_' + No)
+        mip_num = int(request.POST.get('mip_num',1))
         Ori_H = request.session.get('CT_H_' + No)
         Ori_W = request.session.get('CT_W_' + No)
         Ori_D = request.session.get('CT_D_' + No)
@@ -875,7 +876,7 @@ def image_show(request,No):
         }
         contour_list=request.session.get('unet_contour_'+No)
         dicom_url, z, ratio = processing_CT(CT, variable, WC,WW, plane, x, y, height, drawActualCoordinates,
-                                            CT_tag,contour_list, Category)
+                                            CT_tag,contour_list, Category,mip_num)
     elif Category == 'RT':
         thickness = request.session.get('CT_view_slicethickness_' + No)
         Ori_H = request.session.get('view_H_' + No)
@@ -897,6 +898,7 @@ def image_show(request,No):
                                             CT_view_tag, request.session.get('ROI_index_color_' + No),
                                             request.session.get('ROI_index_' + No), Category)
     elif Category == 'MRI':
+        
         MRI_CrossLink = request.POST.get('MRI_CrossLink')
         thickness = request.session.get('MRI_slicethickness_' + No)
         Ori_H = request.session.get('MRI_H_' + No)
@@ -1805,3 +1807,15 @@ def updateAnnotationLabel(request):
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[labelGroup,labelName,id])
     return JsonResponse({})
+
+def mip(img_path,variable,mip_num=1):
+    lowerbound = variable-(mip_num//2)
+    upperbound = variable+(mip_num//2)+1
+    sliceRange = np.arange(lowerbound,upperbound,1)
+    sliceRange = sliceRange[sliceRange >= 0]
+    vol = cp.array(h5py.File(img_path, "r")['vol'][sliceRange, :, :])
+    if len(vol.shape)==3:
+        miped_slice = cp.max(vol,axis=0)
+    else:
+        miped_slice = vol
+    return miped_slice

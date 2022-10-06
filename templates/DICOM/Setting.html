@@ -109,8 +109,24 @@
     #trigger:hover + label{background-color: #999999;}
     #trigger:checked + label{background-color: #555555;-webkit-box-shadow: 0 0px 10px 0 rgba(95,186,233,0.4);box-shadow: 0 0px 0px 5px rgba(95,186,233,0.4);color: white;}
     #triggerLabel p{display: inline}
-
-
+    .CT_Setting{
+        background-image:url("{% static 'image/PET_Toolbox.png' %}");
+        background-color: #FFFFFF;
+        position: fixed;
+        height: 100px;
+        width: calc(100% - 20px);
+        left: 10px;
+        top:550px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
+        color: #0d0d0d;
+        font-weight:bold;
+        border-radius: 5px;
+        overflow-y: auto;
+        padding-top:10px;
+        padding-right:10px;
+        padding-left:10px;
+    }
+    #mip_num{width:30%}
 </style>
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
 <script>
@@ -741,9 +757,13 @@ $(document).ready(function () {
             <option value=100>100mm</option>
         </select>
     </div>
-
 </div>
-
+<div class="CT_Setting">
+    <div class="settingItem input-group">
+        <span class="input-group-text" style="width: 70%">設定mip範圍(奇數)</span>
+        <input id="mip_num" value=1>
+    </div>
+</div>
 <style>
     .input-group {margin: 0px;border-radius: 5px 5px 5px 5px}
     .input-group span{height: 34px;margin: 0px;border-radius: 5px 5px 5px 5px}
