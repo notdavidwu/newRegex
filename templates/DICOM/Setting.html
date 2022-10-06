@@ -72,20 +72,37 @@
         border-radius: 5px;
         display:none;
     }
-    #LocalMax{
+    .PET_Setting{
+        background-image:url("{% static 'image/PET_Toolbox.png' %}");
         background-color: #FFFFFF;
         position: fixed;
+        height: 100px;
         width: calc(100% - 20px);
+        left: 10px;
+        top:440px;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
+        color: #0d0d0d;
+        font-weight:bold;
+        border-radius: 5px;
+        overflow-y: auto;
+        padding-top:10px;
+        padding-right:10px;
+        padding-left:10px;
+    }
+    #LocalMax{
+        background-color: #FFFFFF;
+        width: calc(100%);
         right: 10px;
-        bottom:0px;
+        top:5px;
         height: 50px;
         border-radius: 5px;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif,Microsoft JhengHei;
         color: #0d0d0d;
         font-weight:bold;
         padding: 0.5%;
+        z-index:2;
     }
-
+    #diameter{width:30%}
     #LocalMax input[type='checkbox']{display: none}
     #LocalMax label{transition: all .3s linear;background-color: #CCCCCC;width: 100%;height: 100%;border-radius: 5px;text-align: center;justify-items: center;padding-top: 10px;}
     #LocalMax label{ -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
@@ -702,12 +719,31 @@ $(document).ready(function () {
         </div>
     </div>
 </div>
-<div id="LocalMax">
-    <input type="checkbox" id="trigger" checked>
-    <label for="trigger" id="triggerLabel" >
-        <p>啟用LocalMax功能</p>
-    </label>
+<div class="PET_Setting">
+    <div id="LocalMax">
+        <input type="checkbox" id="trigger" checked>
+        <label for="trigger" id="triggerLabel" >
+            <p>啟用LocalMax功能</p>
+        </label>
+    </div>
+    <div class="settingItem input-group">
+        <span class="input-group-text" style="width: 70%">設定Localmax搜尋範圍</span>
+        <select id="diameter">
+            <option value=10>10mm</option>
+            <option value=20>20mm</option>
+            <option value=30>30mm</option>
+            <option value=40>40mm</option>
+            <option value=50>50mm</option>
+            <option value=60>60mm</option>
+            <option value=70 selected>70mm</option>
+            <option value=80>80mm</option>
+            <option value=90>90mm</option>
+            <option value=100>100mm</option>
+        </select>
+    </div>
+
 </div>
+
 <style>
     .input-group {margin: 0px;border-radius: 5px 5px 5px 5px}
     .input-group span{height: 34px;margin: 0px;border-radius: 5px 5px 5px 5px}

@@ -507,7 +507,7 @@ def DICOM_show(request):
     return JsonResponse({"dicom_url": CTimage_uri, 'z': z}, status=200)
 
 
-def localmax(CT_D, CT_H, CT_W, PET, CT_mod_x, CT_mod_y, CT_mod_z, PET_PixelSpacing, PET_SliceThickness, PETWC,Category):
+def localmax(CT_D, CT_H, CT_W, PET, CT_mod_x, CT_mod_y, CT_mod_z, PET_PixelSpacing, PET_SliceThickness, PETWC,diameter):
 
     PET = np.array(h5py.File(PET, "r")['PET_vol'])
     
@@ -525,7 +525,7 @@ def localmax(CT_D, CT_H, CT_W, PET, CT_mod_x, CT_mod_y, CT_mod_z, PET_PixelSpaci
     CT_D = CT_D
     PET_PS = PET_PixelSpacing
     PET_TH = PET_SliceThickness
-    RegionSize = float(70 / 2)  # 挖7公分的區域
+    RegionSize = float(diameter / 2)  # 挖7公分的區域
     PET_RegionSize = math.floor(RegionSize / PET_PS) + 1  # 轉換成pixel尺度
     PET_RegionSize_D = math.floor(RegionSize / PET_TH) + 1
     PET_X = math.floor(CT_mod_x * (PET_W / CT_W))
@@ -1233,6 +1233,7 @@ def findLocalMax(request):
     y = float(request.POST.get('y'))
     z = float(request.POST.get('z'))
     WC = float(request.POST.get('PETWC'))
+    diameter=float(request.POST.get('diameter'))
     SeriesID = str(request.POST.get('SeriesID'))
     SeriesIdIndex = request.session.get('SeriesIdIndex')
     ind = list(SeriesIdIndex.keys())[list(SeriesIdIndex.values()).index(SeriesID)]
@@ -1244,7 +1245,7 @@ def findLocalMax(request):
     PixelSpacing = request.session.get(str(Category)+'_pixelspacing_' + str(ind))
     SliceThickness = request.session.get(str(Category)+'_slicethickness_' + str(ind))
     Category = request.session.get('Category_' + ind)
-    x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,Category)
+    x, y, z, maxValue = localmax(D, H, W, vol, x, y, z, PixelSpacing, SliceThickness, WC,Category,diameter)
 
     return JsonResponse({'x': x, 'y': y, 'z': z, 'maxValue': maxValue})
 

@@ -2478,7 +2478,7 @@
             //if ($('#local').is(':checked')) {
             window_number=$("[name='group1']:checked").next("label").children('div').children('div').children('.series').text()
             let StudySeries = $("[name='group1']:checked").next("label").children('div').children('div').children('.StudyID').text()+'_'+$("[name='group1']:checked").next("label").children('div').children('div').children('.SeriesID').text()
-
+            let diameter = $('#diameter').val()
             if($('#trigger').is(':checked')==true) {
                 $.ajax({
                     type: 'post',
@@ -2489,6 +2489,7 @@
                         'z': $("[name='group1']:checked").next("label").children('div').children('div').children('.z').text(),
                         'PETWC': $("[name='group1']:checked").next("label").children('div').children('div').children('.PETWC').text(),
                         'SeriesID':StudySeries,
+                        'diameter':diameter,
                         'csrfmiddlewaretoken': window.CSRF_TOKEN
                     },
                     success: function (response) {
