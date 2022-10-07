@@ -1215,7 +1215,11 @@ def selectAnnotation(request):
         StudyID.append(info[3])
         SeriesID.append(info[4])
         Dr_confirm.append(info[17])
-        LabelSubject.append(info[18].lstrip().rstrip())
+        info[18].lstrip().rstrip()
+        if info[18] is None:
+            LabelSubject.append('')
+        else:
+            LabelSubject.append(info[18].lstrip().rstrip())
     _, indices = np.unique(SeriesID, return_inverse=True)
     indices = list(indices.astype('float'))
     return id,PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,StudyID,SeriesID,Dr_confirm,LabelSubject,indices
