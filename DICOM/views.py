@@ -1215,7 +1215,7 @@ def selectAnnotation(request):
         StudyID.append(info[3])
         SeriesID.append(info[4])
         Dr_confirm.append(info[17])
-        info[18].lstrip().rstrip()
+
         if info[18] is None:
             LabelSubject.append('')
         else:
