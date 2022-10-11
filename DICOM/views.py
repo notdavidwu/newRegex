@@ -1307,12 +1307,13 @@ def TextReport(request):
     examDate = []
     examReport = []
     exam = cursor.fetchall()
-
+    eventID=[]
     for i in range(len(exam)):
         examItem.append(exam[i][0].replace(' ', ''))
         examDate.append(str(exam[i][1]).split(' ')[0])
         examReport.append(exam[i][2])
-        sn.append(exam[i][3])
+        eventID.append(exam[i][3])
+        sn.append(exam[i][4])
     
 
     query_find_index = """
@@ -1324,6 +1325,7 @@ def TextReport(request):
 		typeName nvarchar(max),
 		eventDate datetime,
 		reportText nvarchar(max),
+        eventID int,
 		ind int
 	)
 	insert into @search_table
@@ -1348,7 +1350,7 @@ def TextReport(request):
     idx = cursor.fetchall()[0][0]
     
     cursor.close()
-    return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx})
+    return JsonResponse({'examItem': examItem, 'examDate': examDate, 'examReport': examReport,'sn':sn ,'idx': idx,'eventID':eventID})
 
 
 import pandas as pd
