@@ -431,6 +431,40 @@
     .container table tr th{font-weight: bold;}
     .ImageFilter{width:calc(50% - 2px);display:inline}
     .annotator{font-size:10pt;line-height: 12px;display: block;color: #11171a;width: 100%;margin: 0;text-align: center;word-break:break-all;word-wrap:break-word}
+
+
+    .ascriptionContentHeader{
+        width:100%;
+        text-align:center;
+        border-bottom:1px solid #AAAAAA;
+        z-index:500;
+    }
+    .ascriptionHeader{
+        border-radius:10px 10px 0px 0px;
+        width:100%;
+        height:30px;
+        background:url("{% static 'image/texture.png' %}");
+        background-color:#000;
+        text-align:center;
+        line-height:30px;
+        font-weight:900;
+        color:#FFFFFF;
+        z-index:500;
+    }
+    .close{position:absolute;right:5px;margin-top:3px;filter: invert(1)}
+    #formVersion{position:absolute;top:2px;left:40%;height:26px}
+    #formDisease{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
+    #procedureOfForm{position:absolute;top:2px;left:20%;height:26px}
+    .changeSeq{position:absolute;top:2px;left:60%;height:26px}
+    #extractedFactor .ascriptionHeader{border-radius:0px;}
+    #extractedFactor li{font-size:10pt}
+    .factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
+    
+    #extractedFactor label{padding-left:5px}
+    #extractedFactor ul{margin-left: 0; padding-left: 20px;}
+    .mainBlock{
+        border-bottom:3px black solid;
+    }
 </style>
 
 
@@ -2030,7 +2064,150 @@
             }
         })
     }
+    function formGenerator(eventID,eventFactorCode,pannel,method,otherFunction,form){
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:formGenerator" %}', // this is the mapping between the url and view
+            data:{
+                'eventID':eventID,
+                'eventFactorCode':eventFactorCode,
+                'form':form,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                if(method=='prepend'){
+                    $(pannel).prepend(response.formObject)
+                }else if(method=='append'){
+                    $(pannel).html(response.formObject)
+                }
+            },
+            complete:function(){
+                if(otherFunction==true){
+                    searchExtractedFactorsRecord(form)
+                }
+            }
+        })
+    }
 
+    function changeSeq(){
+        let data_form = $('input[name="extractedFactorPannel"]:checked').attr('data-windowSeq')-1
+        let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+        $(`#factorGroupArea${data_form} .formStructure`).remove()
+        let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+        let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+        let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+        if(eventFactorCode0!=eventFactorCode1){
+            formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+        }
+    }
+
+    function changeForm(){
+        let data_form = $(event.target).attr('data-form')
+        getExtractedFactorsRecordSeq(data_form)
+        let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+        $(`#factorGroupArea${data_form[0]} .formStructure`).remove()
+        let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+        let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+        let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+        if(eventFactorCode0!=eventFactorCode1){
+            formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+        }
+    }
+
+    function extractedFactorOpen(data_form,procedureID,diseaseId,source){
+        let pd = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').eq(0).attr('id').split('_')[3]
+        let eventID = $('input[name="timePID"]:checked').next('label').children('.eventID').html()
+        let medType= $('input[name="timePID"]:checked').next('label').children('.medType').html()
+        let nWindow = $('#extractedFactor').attr('data-window')
+
+        let data_extractFactor = $('input[name="timePID"]:checked').attr('data-extractFactor')
+        
+        $('#factorGroupArea').empty()
+        $("#extractedFactor").css('display', 'inline');
+        $("#menu").css('display', 'none');
+        $(`#factorGroupArea${data_form} .formStructure`).remove()
+        $(`#factorGroupArea${data_form}`).attr('data-eventID',eventID)
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:searchExtractedEventFactorCode" %}', // this is the mapping between the url and view
+            data:{
+                'pd':pd,
+                'eventID':eventID,
+                'medType':medType,
+                'diseaseId':diseaseId,
+                'procedureID':procedureID,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                $(`.formVersion[data-form=${data_form}]`).empty()
+                for(let i=0;i<response.eventFactorCode.length;i++){
+                    $(`.formVersion[data-form=${data_form}]`).append(`<option value=${response.eventFactorCode[i]}>版本${response.version[i]}</option>`)
+                }
+                if(source==1){
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=0]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    $(`.formVersion[data-form=1]`).val($(`.formVersion[data-form=0]`).children('option:not(:selected)').eq(0).val())
+                }else{
+                    for(let j=response.isRecorded.length-1;j>=0;j--){
+                        if(response.isRecorded[j]==1){
+                            $(`.formVersion[data-form=${data_form}]`).children('option').eq(j).prop('selected',true)
+                        }
+                    }
+                    let eventFactorCode0 = $(`.formVersion[data-form=0]`).val()
+                    let eventFactorCode1 = $(`.formVersion[data-form=1]`).val()
+                    if(eventFactorCode0==eventFactorCode1){
+                        $(`.formVersion[data-form=${data_form}]`).val($(`.formVersion[data-form=${data_form}]`).children('option:not(:selected)').eq(0).val())
+                    }
+                }
+                getExtractedFactorsRecordSeq(data_form)
+            },
+            complete:function(){
+                let eventFactorCode = $(`.formVersion[data-form=${data_form}]`).val()
+                if(!eventFactorCode==false){
+                    formGenerator(eventID,eventFactorCode,`#factorGroupArea${data_form}`,'prepend',true,data_form)
+                } 
+            }
+        })
+        $('input[name=timePID]:checked').attr('data-extractFactor',1)
+    }
+    function procedureOfForm(){
+        let data_form = [$(event.target).attr('data-form')]
+        let procedure = $(event.target).val()
+        let disease = $(event.target).prev('.formDisease').val()
+        let source = 0 //0=特定的 1=全部
+        extractedFactorOpen(data_form,procedure,disease,source)
+    }
+    function getCurrentEventProcedure(){
+
+        let optionName = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').html()}).get()
+        let optionValue = $('input[name="timePID"]:checked').next('label').children('.menu').children('.menublock').map(function(){return $(this).children('.phase').children('option:checked').val()}).get()
+        $('.procedureOfForm').empty()
+
+        $('.procedureOfForm').map(function(){
+            for(let i=0;i<optionName.length;i++){
+                $(this).append(`<option data-seq=${i+1} value=${optionValue[i]}>${i+1}.${optionName[i]}</option>`)
+            }  
+        },optionName,optionValue)
+
+        let procedureID = $('.procedureOfForm').map(function(){return $(this).val()}).get()
+        let diseaseId = $('.formDisease').map(function(){return $(this).val()}).get()
+        let data_form = [0,1]
+        let source = 0 //0=特定的 1=全部
+        let window = $('#extractedFactor').attr('data-window')
+        if(window==1){
+            data_form = [0]
+        }else{
+            data_form = [0,1]
+        }
+        for(let j=0;j<data_form.length;j++){
+            
+            extractedFactorOpen(data_form[j],procedureID[j],diseaseId[j],source);
+        }
+        
+    }  
     $(document).ready(function (e) {
         getAnnotationLabel()
         getAnnotationFactorGroup()
@@ -3202,6 +3379,21 @@
         <textarea id="T3" readonly></textarea>
         <textarea id="T4" readonly></textarea>
     </div>
+
+    <input type='radio' id='extractedFactorPannel_1' name='extractedFactorPannel' data-windowSeq=1>
+    <label for='extractedFactorPannel_1'>
+        <div class="checkPannel" id="extractedFactor" data-window=1 data-windowSeq=1>
+            <div class="ascriptionHeader">
+                報告萃取
+                <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
+                <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
+                <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>    
+                <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=0></select>
+            </div>
+            <div id="factorGroupArea0"  class="row factorGroupArea"></div>
+            <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
+        </div>
+    </label>
 
 </body>
 

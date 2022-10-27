@@ -1265,7 +1265,9 @@
         let checkboxRecordedArray = $(`${container} input[name^="formStructure"][type="checkbox"]:checked`).map(function(){
             return $(this).attr('data-recorded')
         }).get()
-       
+        let checkboxSeqArray = $(`${container} input[name^="formStructure"][type="checkbox"]:checked`).map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         //------------------------------------------------------------
         let radioIDArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
             return $(this).attr('data-eventFactorID')
@@ -1277,7 +1279,9 @@
         let radioRecordedArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
             return $(this).attr('data-recorded')
         }).get()
-
+        let radioSeqArray = $(`${container} input[name^="formStructure"][type="radio"][data-usage!="text"]:checked`).map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         //------------------------------------------------------------
         let textIDArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-eventFactorID')}
@@ -1289,7 +1293,9 @@
         let textRecordedArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
-
+        let textSeqArray = $(`${container} input[name^="formStructure"][type="text"]`).map(function(){
+            if($(this).val()!=''){return $(this).parents('.mainBlock').attr('data-Seq')}
+        }).get()
         //------------------------------------------------------------
         let dateIDArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-eventFactorID')}
@@ -1301,10 +1307,12 @@
         let dateRecordedArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
             if($(this).val()!=''){return $(this).attr('data-recorded')}
         }).get()
-
+        let dateSeqArray = $(`${container} input[name^="formStructure"][type="date"]`).map(function(){
+            if($(this).val()!=''){return $(this).parents('.mainBlock').attr('data-Seq')}
+        }).get()
         let version =  $(`.formVersion[data-form=${form}]`).val()
         let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
-        let insertSeq = $(`.changeSeq[data-form=${form}]`).val()
+        let insertSeq = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
         let insertIDArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let insertValArray = checkboxValArray.concat(radioValArray,textValArray,dateValArray)
         let insertRecordedArray = checkboxRecordedArray.concat(radioRecordedArray,textRecordedArray,dateRecordedArray)
@@ -1339,13 +1347,16 @@
     }
 
     function searchExtractedFactorsRecord(form){
+
         let container = `#factorGroupArea${form}`
         
         //------------------------------------------------------------
         let checkboxIDArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-
+        let checkboxSeqArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         let checkboxClassArray = $('input[name^="formStructure"][type="checkbox"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1354,7 +1365,9 @@
         let radioIDArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-
+        let radioSeqArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         let radioClassArray = $('input[name^="formStructure"][type="radio"][data-usage!="text"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1363,7 +1376,9 @@
         let textIDArray = $('input[name^="formStructure"][type="text"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-
+        let textSeqArray = $('input[name^="formStructure"][type="text"]').map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         let textClassArray = $('input[name^="formStructure"][type="text"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
@@ -1371,17 +1386,20 @@
         let dateIDArray = $('input[name^="formStructure"][type="date"]').map(function(){
             return $(this).attr('data-eventFactorID')
         }).get()
-
+        let dateSeqArray = $('input[name^="formStructure"][type="date"]').map(function(){
+            return $(this).parents('.mainBlock').attr('data-Seq')
+        }).get()
         let dateClassArray = $('input[name^="formStructure"][type="date"]').map(function(){
             return $(this).parents('.mainBlock').attr('class').split(' ')[1]
         }).get()
 
         let eventID = $(container).attr('data-eventID')
         let procedure =  $(`.procedureOfForm[data-form=${form}]`).val()
-        let seq = $(`.changeSeq[data-form=${form}]`).val()
+        let seqArray = checkboxSeqArray.concat(radioSeqArray,textSeqArray,dateSeqArray)
         let diseaseId = $(`.ChangeDisease[data-form=${form}]`).val()
         let idArray =  checkboxIDArray.concat(radioIDArray,textIDArray,dateIDArray)
         let classArray =  checkboxClassArray.concat(radioClassArray,textClassArray,dateClassArray)
+
         $.ajax({
             type: 'post',
             url: '{% url "eventDefinition:searchExtractedFactorsRecord" %}', // this is the mapping between the url and view
@@ -1389,7 +1407,7 @@
                 'eventID':eventID,
                 'diseaseId':diseaseId,
                 'procedure':procedure,
-                'seq':seq,
+                'seq':seqArray,
                 'idArray':idArray,
                 'classArray':classArray,
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
@@ -1397,7 +1415,8 @@
             success:function(response){
                 
                 for(let i=0; i<response.seqRecorded.length; i++){
-                    let targetObject = $(`.${response.classRecorded[i]} [data-eventFactorID=${response.factorIdRecorded[i]}]`)
+                    console.log(`.${response.classRecorded[i]}[data-Seq=${response.seqRecorded[i]}] [data-eventFactorID=${response.factorIdRecorded[i]}]`)
+                    let targetObject = $(`.${response.classRecorded[i]}[data-Seq=${response.seqRecorded[i]}] [data-eventFactorID=${response.factorIdRecorded[i]}]`)
                     let type = targetObject.attr('type')
                     if (type=='text'||type=='date'){
                         targetObject.val(response.factorValueRecorded[i])
@@ -1642,18 +1661,23 @@
     }
 
     function addMainBlock(){
+
         $('#extraFactorMenu').css('display','none')
         var object = $('[data-prepareAdd=1]').clone()
         var objectHTML = object.html()
         var cloneObject = object.find('input[name^="formStructure"]')
+
         var indexArray = $('input[name^="formStructure"]').map(function(){return parseInt($(this).attr('name').split('_')[1].replaceAll('[','').replaceAll(']',''))}).get()
         var idArray = $('input[name^="formStructure"]').map(function(){return parseInt($(this).attr('id').split('_')[1])}).get()
+
         var maxIndex = Math.max.apply(Math,indexArray)+1 
         var maxID = Math.max.apply(Math,idArray)
         var names = cloneObject.map(function(){return $(this).attr('name')}).get()
+
         var id = cloneObject.map(function(){return $(this).attr('id')}).get()
         var subjectID = $('[data-prepareAdd=1]').attr('class').split(' ')[1]
         var dataSeq = Math.max.apply(Math,$(`.${subjectID}`).map(function(){return $(this).attr('data-Seq')}).get())+1 
+
         for(let i=0;i<names.length;i++){
             var newElement = names[i].split('_')
             var newID = id[i].split('_')
@@ -2649,7 +2673,7 @@
             <p class="btn btn-secondary resetbtn" id="emptyAll" role="button" onclick="emptyAll()">全部清空</p>
             <p class="btn btn-secondary resetbtn" id="1window" role="button" onclick="onewindow()">單視窗</p>
             <p class="btn btn-secondary resetbtn" id="2window" role="button" onclick="twowindow()">雙視窗</p>
-            <p class="btn btn-secondary resetbtn" id="addExtractFactorReport" role="button" onclick="addExtractFactorReport()">新增報告</p>
+            <p class="btn btn-secondary resetbtn" id="addExtractFactorReport" role="button" onclick="addMainBlock()">新增報告</p>
         </div>
 
         <input type='radio' id='extractedFactorPannel_1' name='extractedFactorPannel' data-windowSeq=1>

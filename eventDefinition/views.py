@@ -638,30 +638,18 @@ def formGenerator(request):
         cursor.execute(searchRecord,[eventID])
         recordedOrNot = len(cursor.fetchall())
         '''---------------取得大標題--------------'''
-        if recordedOrNot !=0:
-            mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
-            from eventFactor as a
-            where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,serialNo
-            '''
-            cursor.execute(mainSubjectQuery,[eventFactorID])
-        else:
-            mainSubjectQuery='''
-            select eventFactorID,factorName,itemType,labeled,dense_rank() OVER ( ORDER BY serialNo)-1 as dr
-            from eventFactor as a
-            where a.F_eventFactorID=0 and eventFactorCode=%s
-            group by eventFactorID,factorName,itemType,labeled,serialNo
-            '''
-            cursor.execute(mainSubjectQuery,[eventFactorID])
-        step = 1
+        print(eventFactorID,eventID,recordedOrNot)
+        mainSubjectQuery='''
+        exec [EventDefinition_mainSubject] @eventFactorCode=%s, @eventID=%s
+        '''
+        cursor.execute(mainSubjectQuery,[eventFactorID,eventID])
+
         
         mainSubjectSet = cursor.fetchall()
         formObject = '<div class="formStructure">'
         num=0
         for ind1,mainSubject in enumerate(mainSubjectSet):
-            step = 2
-            formObject += f'<div data-prepareAdd=0 onmousedown="record()" class="mainBlock mainBlock{mainSubject[4]}" >'
+            formObject += f'<div data-prepareAdd=0 onmousedown="record()" data-Seq={mainSubject[4]} class="mainBlock mainBlock{mainSubject[5]}" >'
             formObject += f'<b data-eventFactorID={mainSubject[0]} data-itemType={mainSubject[2]} data-labeled={mainSubject[3]}>{mainSubject[1]}</b>'
             if mainSubject[2].replace(' ','')=='text':
                 formObject += f'<ul><li><input data-recorded=0 type={mainSubject[2]}></li></ul>'
@@ -675,7 +663,7 @@ def formGenerator(request):
             structureSet = cursor.fetchall()
             
             
-            for ind2,structure in enumerate(structureSet):
+            for structure in structureSet:
                 formObject += '<ul>'
                 num += 1
                 type = structure[4].replace(' ','')
@@ -696,7 +684,6 @@ def formGenerator(request):
 
                 factorID=structure[0]
                 if stop != True:
-                    step = 3
                     formObject,num = subForm(dictionary,3,ind1,num,factorID,formObject,cursor,form)
                     
                 formObject += '</ul>'
@@ -746,7 +733,7 @@ def insertExtractedFactors(request):
     eventID = request.POST.get('eventID')
     eventFactorCode = request.POST.get('version')
     procedure = request.POST.get('procedure')
-    insertSeq = request.POST.get('insertSeq')
+    insertSeq = request.POST.getlist('insertSeq[]')
     insertIDArray = request.POST.getlist('insertIDArray[]')
     insertValArray = request.POST.getlist('insertValArray[]')
     insertRecordedArray = request.POST.getlist('insertRecordedArray[]')
@@ -754,15 +741,15 @@ def insertExtractedFactors(request):
     queryDelete='''DELETE 
     FROM [practiceDB].[dbo].[extractedFactors] where factorID in 
     (select eventFactorID from eventFactor where eventFactorCode=%s)
-    and eventID=%s and seq=%s and procedureID=%s'''
-    cursor.execute(queryDelete,[eventFactorCode,eventID,insertSeq,procedure])
+    and eventID=%s and procedureID=%s'''
+    cursor.execute(queryDelete,[eventFactorCode,eventID,procedure])
 
     query = '''select * from extractedFactors where eventID=%s and factorID=%s and procedureID=%s and seq=%s'''
-    for factorID,factorValue,Recorded in zip(insertIDArray,insertValArray,insertRecordedArray):
-        cursor.execute(query,[eventID,factorID,procedure,insertSeq])
+    for factorID,factorValue,Recorded,seq in zip(insertIDArray,insertValArray,insertRecordedArray,insertSeq):
+        cursor.execute(query,[eventID,factorID,procedure,seq])
         if len(cursor.fetchall())==0: # =0, insert this data
             queryInsert='''insert into extractedFactors (eventID,factorID,factorValue,procedureID,seq) VALUES(%s,%s,%s,%s,%s)'''
-            cursor.execute(queryInsert,[eventID,factorID,factorValue,procedure,insertSeq])
+            cursor.execute(queryInsert,[eventID,factorID,factorValue,procedure,seq])
 
     return JsonResponse({})
 
@@ -771,14 +758,16 @@ def searchExtractedFactorsRecord(request):
     cursor = connections['practiceDB'].cursor()
     eventID = request.POST.get('eventID')
     procedure = request.POST.get('procedure')
-    seq = request.POST.get('seq')
+    seqArray = request.POST.getlist('seq[]')
     idArray = request.POST.getlist('idArray[]')
     classArray = request.POST.getlist('classArray[]')
 
     factorIdString=''
     factorIdString += ",".join(map(str, idArray))
+    seqString=''
+    seqString += ",".join(map(str, seqArray))
 
-    query='''select factorID,factorValue from extractedFactors where eventID=%s and factorID in (%s) and procedureID=%s and seq=%s'''%(eventID,factorIdString,procedure,seq)
+    query='''select factorID,factorValue,seq from extractedFactors where eventID=%s and factorID in (%s) and procedureID=%s and seq in (%s)'''%(eventID,factorIdString,procedure,seqString)
 
     factorIdRecorded = []
     factorValueRecorded = []
@@ -790,7 +779,7 @@ def searchExtractedFactorsRecord(request):
     idArray = np.array(idArray)
     for row in result:
         className = classArray[np.where(idArray==str(row[0]))][0]
-        seqRecorded.append(seq)
+        seqRecorded.append(row[2])
         classRecorded.append(className)
         factorIdRecorded.append(row[0])
         factorValueRecorded.append(row[1])
