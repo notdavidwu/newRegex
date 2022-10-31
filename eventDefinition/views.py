@@ -845,6 +845,17 @@ def getFromStructure(request):
     return JsonResponse({'eventFactorID':eventFactorID,'eventFactorCode':eventFactorCode,'serialNo':serialNo,'factorName':factorName,'itemType':itemType,'labeled':labeled,'F_eventFactorID':F_eventFactorID,'isLeaf':isLeaf})
 
 @csrf_exempt
+def deleteExtractedFactor(request):
+    cursor = connections['practiceDB'].cursor()
+    eventFactorCode = request.POST.get('eventFactorCode')
+    query = '''
+    delete a from extractedFactors as a 
+    inner join [eventFactor] as b on a.factorID=b.eventFactorID
+    where [eventFactorCode]=%s
+    ''' 
+    cursor.execute(query,[eventFactorCode])
+    return JsonResponse({})
+@csrf_exempt
 def updateFromStructure(request):
     cursor = connections['practiceDB'].cursor()
     code = request.POST.getlist('code[]')
@@ -862,12 +873,13 @@ def updateFromStructure(request):
     if len(cursor.fetchall())==0:
         insertQuery='insert into eventFactorCode values(%s,%s,%s,%s,%s)'
         cursor.execute(insertQuery,[code[0],code[1],code[2],code[3],code[4]])
-
+    print(eventFactorCode)
     deleteQuery = 'delete from eventFactor where eventFactorCode=%s'
     cursor.execute(deleteQuery,[eventFactorCode])
     
     for eventFactorID,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf in zip(eventFactorIDSet,serialNoSet,factorNameSet,itemTypeSet,labeledSet,F_eventFactorIDSet,isLeafSet):
         insertQuery='insert into eventFactor values(%s,%s,%s,%s,%s,%s,%s,%s)'
+        print(eventFactorID,eventFactorCode,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf)
         cursor.execute(insertQuery,[eventFactorID,eventFactorCode,serialNo,factorName,itemType,labeled,F_eventFactorID,isLeaf])
 
     return JsonResponse({})
@@ -883,11 +895,7 @@ def getEventFactorCode(request):
     order by eventFactorCode
     '''
     queryGroupNo='''
-    SELECT distinct groupNo
-    FROM [practiceDB].[dbo].[eventFactorCode] as a
-    inner join clinicalProcedures as b on a.procedureID=b.procedureID
-    inner join diseasetList as c on a.diseaseID=c.diseaseID
-
+    select * from eventGroup
     '''
     queryDiseaseID='''
     SELECT distinct diseaseID,disease
@@ -904,12 +912,13 @@ def getEventFactorCode(request):
     inner join diseasetList as c on a.diseaseID=c.diseaseID
     '''
     result_EventFactorCode = cursor.execute(queryEventFactorCode)
-    eventFactorCode,groupNo,diseaseID,disease,procedureID,procedureName,version = [],[],[],[],[],[],[]
+    eventFactorCode,groupNo,groupName,diseaseID,disease,procedureID,procedureName,version = [],[],[],[],[],[],[],[]
     for row in result_EventFactorCode:
         eventFactorCode.append(row[0])
     result_GroupNo = cursor.execute(queryGroupNo)
     for row in result_GroupNo:
         groupNo.append(row[0])
+        groupName.append(row[1])
     result_DiseaseID = cursor.execute(queryDiseaseID)
     for row in result_DiseaseID:
         diseaseID.append(row[0])
@@ -922,7 +931,13 @@ def getEventFactorCode(request):
     for row in result_Version:
         version.append(row[0])
 
-    return JsonResponse({'eventFactorCode':eventFactorCode,'groupNo':groupNo,'diseaseID':diseaseID,'disease':disease,'procedureID':procedureID,'procedureName':procedureName,'version':version})
+    return JsonResponse({
+        'eventFactorCode':eventFactorCode,
+        'groupNo':groupNo,'groupName':groupName,
+        'diseaseID':diseaseID,'disease':disease,
+        'procedureID':procedureID,'procedureName':procedureName,
+        'version':version
+        })
 
 @csrf_exempt
 def getNewEventFactorID(request):

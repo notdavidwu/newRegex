@@ -1766,7 +1766,7 @@
                         $(`#${menu}`).css('top', y);
                     }
                     $(".customMenu").css('display', 'none');
-                    $(".customMenu").css('z-index', '100');
+                    $(".customMenu").css('z-index', '10000');
                     $(`#${menu}`).css('display', 'inline');
                 }else if(d.which == 1){
                     $(".customMenu").css('display', 'none');
@@ -1862,32 +1862,38 @@
             }
         })
     }
-    function searchForm(){
+    function searchForm(pannel,bool){
+        let code = $(`#${pannel} [name="formFilter"]`).map(function(){return $(this).val()}).get()
         
-        let code = $('input[name="formFilter"]').map(function(){return $(this).val().split('(')[0]}).get()
         if(code.includes('')==false){
-            $('#designArea tbody').empty()
-            $('#preview').empty()
+            console.log(bool==true)
+            if(bool==true){
+                $('#designArea tbody').empty()
+                $('#preview').empty()
+            }
             $.ajax({
                 type: 'post',
                 url: '{% url "eventDefinition:searchEventFactorCode" %}', // this is the mapping between the url and view
                 data:{
                     'groupNo':code[0],
                     'diseaseID':code[1],
-                    'procedureID':code[2].split(',')[0],
+                    'procedureID':code[2],
                     'version':code[3],
                     'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
                 success:function(response){
-                    $('input[list="eventFactorCode"]').val(response.eventFactorCode)
-                    formGenerator(-999999,response.eventFactorCode,'#preview','append',false)
-                    getFromStructure(response.eventFactorCode)
+                    $(`#${pannel} input[list="eventFactorCode"]`).val(response.eventFactorCode)
+                    if(bool==true){
+                        formGenerator(-999999,response.eventFactorCode,'#preview','append',false)
+                        getFromStructure(response.eventFactorCode)
+                    }
                 }
             })
-
         }else{
-            $('#designArea tbody').empty()
-            $('#preview').empty()
+            if(bool==true){
+                $('#designArea tbody').empty()
+                $('#preview').empty()
+            }
         }
     }
     function getFromStructure(eventFactorCode){
@@ -1930,9 +1936,9 @@
         $(event.target).prev('input').prop('checked',true)
     }
     function updateStructure(){
-        let code = $('.formFilter').map(function(){return $(this).val().split('(')[0]}).get()
+        let code = $('.formFilter').map(function(){return $(this).val()}).get()
         let eventFactorID = $('#designArea .eventFactorID').map(function(){return $(this).val()}).get()
-        let eventFactorCode = $('input[list="eventFactorCode"]').val()
+        let eventFactorCode = $('#formFilter input[list="eventFactorCode"]').val()
         let serialNo = $('#designArea .serialNo').map(function(){return $(this).val()}).get()
         let factorName = $('#designArea .factorName').map(function(){return $(this).val()}).get()
         let itemType = $('#designArea .itemType').map(function(){return $(this).val()}).get()
@@ -1987,6 +1993,21 @@
             }
         })
     }
+    function addGenerateValue(plane,response){
+        $(`#${plane} #eventFactorCode`).empty()
+        $(`#${plane} #groupNo`).empty()
+        $(`#${plane} #diseaseID`).empty()
+        $(`#${plane} #procedureID`).empty()
+        $(`#${plane} #version`).empty()
+        $(`#${plane} #groupNo`).append('<option value="">請選擇</option>')
+        $(`#${plane} #diseaseID`).append('<option value="">請選擇</option>')
+        $(`#${plane} #procedureID`).append('<option value="">請選擇</option>')
+        for(let i=0;i<response.eventFactorCode.length;i++){$(`#${plane} #eventFactorCode`).append(`<option value="${response.eventFactorCode[i]}">`)}
+        for(let i=0;i<response.groupNo.length;i++){$(`#${plane} #groupNo`).append(`<option value="${response.groupNo[i]}">${response.groupName[i]}</option>`)}
+        for(let i=0;i<response.diseaseID.length;i++){$(`#${plane} #diseaseID`).append(`<option value="${response.diseaseID[i]}">${response.disease[i].replaceAll(' ','')}</option>`)}
+        for(let i=0;i<response.procedureID.length;i++){$(`#${plane} #procedureID`).append(`<option value="${response.procedureID[i]}">${response.procedureName[i].replaceAll(' ','')}</option>`)}
+        for(let i=0;i<response.version.length;i++){$(`#${plane} #version`).append(`<option value="${response.version[i]}">`)}
+    }
     function formDesign(){
         $.ajax({
             type: 'post',
@@ -1996,16 +2017,8 @@
             },
             success:function (response){
                 //formGenerator(-999999,code[0],'#preview','append','')
-                $('#formFilter #eventFactorCode').empty()
-                $('#formFilter #groupNo').empty()
-                $('#formFilter #diseaseID').empty()
-                $('#formFilter #procedureID').empty()
-                $('#formFilter #version').empty()
-                for(let i=0;i<response.eventFactorCode.length;i++){$('#formFilter #eventFactorCode').append(`<option value="${response.eventFactorCode[i]}">`)}
-                for(let i=0;i<response.groupNo.length;i++){$('#formFilter #groupNo').append(`<option value="${response.groupNo[i]}">`)}
-                for(let i=0;i<response.diseaseID.length;i++){$('#formFilter #diseaseID').append(`<option value="${response.diseaseID[i]}(${response.disease[i].replaceAll(' ','')})">`)}
-                for(let i=0;i<response.procedureID.length;i++){$('#formFilter #procedureID').append(`<option value="${response.procedureID[i]}(${response.procedureName[i].replaceAll(' ','')})">`)}
-                for(let i=0;i<response.version.length;i++){$('#formFilter #version').append(`<option value="${response.version[i]}">`)}
+                addGenerateValue('formFilter',response)
+                addGenerateValue('formGeneratorMenu',response)
             }
         })
         $("#formDesignPannel").css('display', 'inline');
@@ -2386,6 +2399,93 @@
         })
     }
 
+    function copyForm(){
+        let code = $('.formFilterMenu').map(function(){return $(this).val()}).get()
+        let eventFactorCode_ori = $('#formFilter input[list="eventFactorCode"]').val()
+        let eventFactorCode = $('#formGeneratorMenu input[list="eventFactorCode"]').val()
+        let eventFactorID = $('.form-control.designFactor.eventFactorID').map(function(){return $(this).val()}).get()
+        let serialNo = $('.form-control.designFactor.serialNo').map(function(){return $(this).val()}).get()
+        let factorName = $('.form-control.designFactor.factorName').map(function(){return $(this).val()}).get()
+        let itemType = $('.form-control.designFactor.itemType').map(function(){return $(this).val()}).get()
+        let labeled = $('.form-control.designFactor.labeled').map(function(){return $(this).val()}).get()
+        let F_eventFactorID = $('.form-control.designFactor.F_eventFactorID').map(function(){return $(this).val()}).get()
+        let isLeaf = $('.form-control.designFactor.isLeaf').map(function(){return $(this).val()}).get()
+        console.log(eventFactorID.length)
+        $.ajax({
+            type: 'post',
+            url: '{% url "eventDefinition:getNewEventFactorID" %}', // this is the mapping between the url and view
+            data:{
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                let copyFactor=[]
+                let num = eventFactorID.length
+                let tatal = response.newEventFactorID+num
+                for(let i=response.newEventFactorID;i<tatal;i++){
+                    copyFactor.push(i.toString())
+                }
+                uniqueF_eventFactorID = F_eventFactorID.filter(function (value,index,self) { return self.indexOf(value) == index; })
+                for(j=0;j<uniqueF_eventFactorID.length;j++){
+                    let index_eventFactorID = eventFactorID.indexOf(uniqueF_eventFactorID[j])
+                    let index_F_eventFactorID = indexOfAll(F_eventFactorID,uniqueF_eventFactorID[j])
+                    if(index_eventFactorID!=-1){
+                        for(k=0;k<index_F_eventFactorID.length;k++){
+                            F_eventFactorID[index_F_eventFactorID[k]] = copyFactor[index_eventFactorID]
+                        }
+                    }
+                }
+
+                if(eventFactorCode_ori!=eventFactorCode){
+                    $.ajax({
+                        type: 'post',
+                        url: '{% url "eventDefinition:deleteExtractedFactor" %}', // this is the mapping between the url and view
+                        data:{
+                            'eventFactorCode':eventFactorCode,
+                            'csrfmiddlewaretoken': window.CSRF_TOKEN
+                        },
+                    })
+                    $.ajax({
+                        type: 'post',
+                        url: '{% url "eventDefinition:updateFromStructure" %}', // this is the mapping between the url and view
+                        data:{
+                            'code':code,
+                            'eventFactorID':copyFactor,
+                            'eventFactorCode':eventFactorCode,
+                            'serialNo':serialNo,
+                            'factorName':factorName,
+                            'itemType':itemType,
+                            'labeled':labeled,
+                            'F_eventFactorID':F_eventFactorID,
+                            'isLeaf':isLeaf,
+                            'csrfmiddlewaretoken': window.CSRF_TOKEN
+                        },
+                        success:function (response){
+                            $('#formGeneratorMenu').css('display','none')
+                            Swal.fire({
+                                title: '',
+                                html: '複製成功',
+                                icon: 'success',
+                                timer: 1000,
+                                showConfirmButton: false,
+                                timerProgressBar: true,
+                            })
+                        }
+                    })
+                }else{
+                    Swal.fire({
+                        title: '',
+                        html: '無法複製(同一份表格)',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                    })
+                }
+                
+            }
+        })
+        
+    }
     $(document).ready(function (e) {
         selection = getClinicalProcedures()
         $('#defaultMenuBlock1').get(0).oncontextmenu = function() {
@@ -2400,6 +2500,7 @@
         menu('defaultMenuBlock2','menu')
         menu('extractedFactor','extractFactorMenu',false)
         menu('extractedFactor2','extractFactorMenu',false)
+        menu('preview','formGeneratorMenu',false)
         move('ascription')
         move('cancerRegistCheck')
         move('patientStatusCheck')
@@ -2676,6 +2777,17 @@
             <p class="btn btn-secondary resetbtn" id="addExtractFactorReport" role="button" onclick="addMainBlock()">新增報告</p>
         </div>
 
+        <div id="formGeneratorMenu" class="customMenu">
+            <input placeholder="eventFactorCode"  autocomplete=on  class="form-control formFilterMenu resetbtn" list="eventFactorCode" disabled>
+            <datalist id="eventFactorCode"></datalist>
+            <select onchange="searchForm('formGeneratorMenu',false)" name="formFilter" class="form-control formFilterMenu" id="groupNo"></select>
+            <select onchange="searchForm('formGeneratorMenu',false)" name="formFilter" class="form-control formFilterMenu" id="diseaseID"></select>
+            <select onchange="searchForm('formGeneratorMenu',false)" name="formFilter" class="form-control formFilterMenu" id="procedureID"></select>
+            <input placeholder="version" onchange="searchForm('formGeneratorMenu',false)" name="formFilter" autocomplete=on class="form-control formFilterMenu" list="version">
+            <datalist id="version"></datalist>
+            <p onclick="copyForm()" class="btn btn-secondary resetbtn">複製<p>
+        </div>
+
         <input type='radio' id='extractedFactorPannel_1' name='extractedFactorPannel' data-windowSeq=1>
         <label for='extractedFactorPannel_1'>
             <div class="checkPannel" id="extractedFactor" data-window=1 data-windowSeq=1>
@@ -2684,7 +2796,7 @@
                     <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease" data-form=0></select>
                     <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm" data-form=0></select>
                     <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion" data-form=0></select>    
-                    <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=0></select>
+                    <!-- <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=0></select>-->
                 </div>
                 <div id="factorGroupArea0"  class="row factorGroupArea"></div>
                 <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(0)">Submit</button>
@@ -2698,7 +2810,7 @@
                     <select class="form-select form-select-sm customSelect formDisease" aria-label="Default select example" onchange="changeFormbyDisease()" id="formDisease2" data-form=1></select>
                     <select class="form-select form-select-sm customSelect procedureOfForm" onchange="procedureOfForm()" id="procedureOfForm2" data-form=1></select>
                     <select class="form-select form-select-sm customSelect formVersion" onchange="changeForm()" id="formVersion2" data-form=1></select>
-                    <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=1></select>
+                    <!-- <select class="form-select form-select-sm customSelect changeSeq" onchange="changeSeq()"  data-form=1></select>-->
                 </div>
                 <div id="factorGroupArea1"  class="row factorGroupArea"></div>
                 <button type="submit" class="btn btn-primary submit" onclick="extractedFactorSubmit(1)">Submit</button>
@@ -2719,13 +2831,10 @@
             <div id="formFilter">
                 <input placeholder="eventFactorCode"  autocomplete=on  class="formFilter form-control" list="eventFactorCode" disabled>
                 <datalist id="eventFactorCode"></datalist>
-                <input placeholder="groupNo" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="groupNo">
-                <datalist id="groupNo"></datalist>
-                <input placeholder="diseaseID" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="diseaseID">
-                <datalist id="diseaseID"></datalist>
-                <input placeholder="procedureID" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="procedureID">
-                <datalist id="procedureID"></datalist>
-                <input placeholder="version" onchange="searchForm()" name="formFilter" autocomplete=on class="formFilter form-control" list="version">
+                <select onchange="searchForm('formFilter',true)" name="formFilter" class="formFilter form-control" id="groupNo"></select>
+                <select onchange="searchForm('formFilter',true)" name="formFilter" class="formFilter form-control" id="diseaseID"></select>
+                <select onchange="searchForm('formFilter',true)" name="formFilter" class="formFilter form-control" id="procedureID"></select>
+                <input placeholder="version" onchange="searchForm('formFilter',true)" name="formFilter" autocomplete=on class="formFilter form-control" list="version">
                 <datalist id="version"></datalist>
             </div>
             <div id="designArea"  class="row">
