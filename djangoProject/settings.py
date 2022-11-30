@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'subjectPatientDecide.apps.subjectPatientDecideConfig',
     'appeal.apps.appealConfig',
     'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
-    'PowerBI.apps.PowerBIConfig'
+    'PowerBI.apps.PowerBIConfig',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -119,7 +119,7 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 
 DATABASES = {
         'default': {
-            'ENGINE': 'mssql',
+            "ENGINE": "mssql",
             'NAME': 'Django',
             'USER': 'TEST',
             'PASSWORD': '81218',

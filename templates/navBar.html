@@ -22,6 +22,7 @@
             {% if '5' in au or 'F' in au %}{% include 'accounts/MEWS.html' %}{% endif %}
             {% if '3' in au or 'F' in au %}{% include 'accounts/NLP.html' %}{% endif %}
             {% if '4' in au or 'F' in au %}{% include 'accounts/upload.html' %}{% endif %}
+            {% if '6' in au or 'F' in au %}{% include 'accounts/PowerBI.html' %}{% endif %}
             {% if user.is_superuser %}{% include 'accounts/auth.html' %}{% endif %}
         </ul>
 

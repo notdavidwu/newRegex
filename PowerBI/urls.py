@@ -20,4 +20,6 @@ app_name='PowerBI'
 urlpatterns = [
     path('', views.PowerBI,name='PowerBI'),
     path('get_embed_info/', views.get_embed_info,name='get_embed_info'),
+    path('get_dashboard/', views.get_dashboard,name='get_dashboard'),
+    path('regist_dashboard/', views.regist_dashboard,name='regist_dashboard'),
 ]

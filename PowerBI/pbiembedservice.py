@@ -23,11 +23,11 @@ class PbiEmbedService:
         '''
 
         report_url = f'https://api.powerbi.com/v1.0/myorg/groups/{workspace_id}/reports/{report_id}'    
-        print(self.get_request_header())
+
         api_response = requests.get(report_url, headers=self.get_request_header())
-        print(api_response)
+
         api_response = json.loads(api_response.text)
-        print(api_response)
+
         report = ReportConfig(api_response['id'], api_response['name'], api_response['embedUrl'])
         dataset_ids = [api_response['datasetId']]
 

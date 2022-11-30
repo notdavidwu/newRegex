@@ -13,37 +13,53 @@ import msal
 from PowerBI.pbiembedservice import PbiEmbedService
 
 def PowerBI(request):
-    return render(request, 'PowerBI/PowerBI.html',{})
+    au = request.session.get('au',0)
+    if not request.user.is_authenticated : 
+        return redirect('/')
+    return render(request, 'PowerBI/PowerBI.html',{'au':au})
 
-'''Returns report embed uration'''
-AUTHENTICATION_MODE = 'ServicePrincipal'
-# Workspace Id in which the report is present
-WORKSPACE_ID = '7c6c9886-7fc8-42bb-8dff-ae28b2a4c77d'
-# Report Id for which Embed token needs to be generated
-REPORT_ID = 'e572b80b-05c6-41f3-b331-d40706b2f35c'
-# Id of the Azure tenant in which AAD app and Power BI report is hosted. Required only for ServicePrincipal authentication mode.
-TENANT_ID = 'be4937e1-5c7a-4f12-bd7f-cc51a82d238b' 
-# Client Id (Application Id) of the AAD app
-CLIENT_ID = '2916a788-a3f5-4dee-a7a7-5811ef212e9c'
-# Client Secret (App Secret) of the AAD  Required only for ServicePrincipal authentication mode.
-CLIENT_SECRET = 'JYB8Q~bRVNA73_i_VMgvcIzbWYhr5aKxNsmGTbVJ'
-# Scope Base of AAD  Use the below uration to use all the permissions provided in the AAD app through Azure portal.
-SCOPE_BASE = ['https://analysis.windows.net/powerbi/api/.default']
-# URL used for initiating authorization request
-AUTHORITY_URL = 'https://login.microsoftonline.com/organizations'
-# Master user email address. Required only for MasterUser authentication mode.
-POWER_BI_USER = ''
-# Master user email password. Required only for MasterUser authentication mode.
-POWER_BI_PASS = ''
+@csrf_exempt
+def get_dashboard(request):
+    cursor = connections['practiceDB'].cursor()
+    query = 'SELECT workspaceID,reportID,dashboardName FROM powerBI'
+    cursor.execute(query,[])
+    res = cursor.fetchall()
+    workspaceID,reportID,dashboard_name=[],[],[]
+    for row in res:
+        workspaceID.append(row[0])
+        reportID.append(row[1])
+        dashboard_name.append(row[2])
+    cursor.close()
+    return JsonResponse({'workspaceID':workspaceID,'reportID':reportID,'dashboard_name':dashboard_name})
+
+@csrf_exempt
+def regist_dashboard(request):
+    dashboard_name = request.POST.get('dashboard_name')
+    dashboard_url = request.POST.get('dashboard_url')
+    workspaceID = [dashboard_url.split('/')[i+1] for i,term in enumerate(dashboard_url.split('/')) if term=='groups'][0]
+    reportID = [dashboard_url.split('/')[i+1] for i,term in enumerate(dashboard_url.split('/')) if term=='reports'][0]
+    cursor = connections['practiceDB'].cursor()
+
+    query = 'SELECT COUNT(*) as counter FROM powerBI WHERE workspaceID=%s and reportID=%s and dashboardName=%s'
+    cursor.execute(query,[workspaceID,reportID,dashboard_name])
+    check = cursor.fetchall()[0][0]
+    if check == 0:
+        query = 'INSERT INTO powerBI (workspaceID,reportID,dashboardName) VALUES (%s,%s,%s)'
+        cursor.execute(query,[workspaceID,reportID,dashboard_name])
+    cursor.close()
+    return JsonResponse({})
 
 @csrf_exempt
 def get_embed_info(request):
-
+    
+    # Workspace Id in which the report is present
+    WORKSPACE_ID = request.POST.get('workspaceID')
+    # Report Id for which Embed token needs to be generated
+    REPORT_ID = request.POST.get('reportID')
     embed_info = PbiEmbedService().get_embed_params_for_single_report(WORKSPACE_ID, REPORT_ID)
     tokenId = embed_info[0]
     accessToken = embed_info[1]
     tokenExpiry = embed_info[2]
     reportConfig = embed_info[3]
-    print(tokenId)
     return JsonResponse({'data':f'{embed_info}' })
 
