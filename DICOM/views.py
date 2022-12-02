@@ -1344,7 +1344,7 @@ def TextReport(request):
     elif image_type=='MRI':
         medType='(3040,3041,3042,3047,3048,3049)'
         query_find_index += f''' and medType in {medType} '''
-    
+    query_find_index += 'order by ind'
     print(query_find_index)
     cursor.execute(query_find_index,[pid,MedExecTime])
     idx = cursor.fetchall()[0][0]

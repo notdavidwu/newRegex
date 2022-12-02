@@ -29,6 +29,7 @@
         <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap-utilities.rtl.min.css' %}">
         <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
         <!-- JS, Popper.js, and jQuery -->
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
         <script src="{% static 'css_js/popper.min.js' %}"></script>
         <script src="{% static 'css_js/bootstrap.min.js' %}"></script>
@@ -70,6 +71,15 @@ $(function () {
 });
 
 function powerBI(){
+    $("#powerbi_area").empty()
+    $("#powerbi_area").append(`
+        <section id="report-container"  class="embed-container" style="width:100%;">
+        </section>
+        <section class="error-container m-5">
+        </section>
+    `)
+
+
     var reportContainer = $("#report-container").get(0);
 
     // Initialize iframe for embedding report
@@ -132,18 +142,12 @@ function powerBI(){
             });
         },
         error: function (err) {
-
-            // Show error container
-            var errorContainer = $(".error-container");
-            $(".embed-container").hide();
-            errorContainer.show();
-
-            // Format error message
-            var errMessageHtml = "<strong> Error Details: </strong> <br/>" + $.parseJSON(err.responseText)["errorMsg"];
-            errMessageHtml = errMessageHtml.split("\n").join("<br/>")
-
-            // Show error message on UI
-            errorContainer.html(errMessageHtml);
+            Swal.fire({
+                title: '',
+                html: '載入失敗，請聯繫工作人員',
+                icon: 'error',
+                showConfirmButton: true,
+            })
         }
     });
 }
@@ -160,9 +164,7 @@ function get_dashboard(){
             for(let i=0; i<response.workspaceID.length; i++){
                 $('#dashboard_menu').append(`<option data-workspaceID=${response.workspaceID[i]} data-reportID=${response.reportID[i]} >${response.dashboard_name[i]}</option>`)
             }
-            if(response.workspaceID.length==1){
-                powerBI()
-            }
+            powerBI()
         }
     })
 }
@@ -215,7 +217,7 @@ function regist_dashboard(){
         </form>
     </div>
 </body>
-    <main class="row">
+    <main class="row" id='powerbi_area'>
         <section id="report-container"  class="embed-container" style="width:100%;">
         </section>
         <!-- Used to display report embed error messages -->

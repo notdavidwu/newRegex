@@ -43,14 +43,21 @@ def get_users(request):
 @csrf_exempt
 def get_auth_app(request):
     un=request.POST.get('username')
-    query = '''select Authority_app from auth_app where username=%s'''
+    query = '''select * from app as a
+            left join (
+                select Authority_app from auth_app
+                where username=%s
+            ) as b on a.no=b.Authority_app'''
     cursor = connections['default'].cursor()
     cursor.execute(query,[un])
     res = cursor.fetchall()
-    auth_app = []
-    for i in range(len(res)):
-        auth_app.append(res[i][0].replace(' ',''))
-    return JsonResponse({'auth_app': auth_app})
+    object_array=''
+    for row in res:
+        if row[2] !=None:
+            object_array+=f'<div class="form-check form-switch"><input class="form-check-input" checked onchange="update_authApp()" value="{row[0]}" type="checkbox" name="auth_app" id="{row[1]}"><label class="form-check-label" for="cancer_research">{row[1]}</label></div>'
+        else:
+            object_array+=f'<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="{row[0]}" type="checkbox" name="auth_app" id="{row[1]}"><label class="form-check-label" for="cancer_research">{row[1]}</label></div>'
+    return JsonResponse({'object_array': object_array})
 
 @csrf_exempt
 def upadte_auth_app(request):
@@ -194,7 +201,7 @@ def update_all_annotations(request):
 def getAuthDiseaseLabeledUser(request):
     Disease=request.POST.get('disease')
     username=request.POST.get('username')
-    query = '''select distinct username from annotation where Disease=%s and username<>%s'''
+    query = '''select distinct username from annotation_new where Disease=%s and username<>%s'''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[Disease,username])
     res = cursor.fetchall()
@@ -209,12 +216,12 @@ def insertAuthDiseaseLabeledUser(request):
     export_user=request.POST.get('export_user')
     import_user=request.POST.get('import_user')
     query = '''
-        insert into annotation(PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
+        insert into annotation_new(PID,SD,Item,date,username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,fromWhere,seriesID)
         SELECT a.* 
         from(
             SELECT PID,SD,Item,date,%s as username,SUV,x,y,z,LabelGroup,LabelName,LabelRecord,Click_X,Click_Y,Click_Z,Disease,StudyID,%s as fromWhere,seriesID FROM annotation 
             WHERE Disease=%s and username=%s
-        ) as a left outer join annotation as b on a.PID=b.PID and a.SD=b.SD and a.Item=b.Item and a.date=b.date and a.username=b.username and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.StudyID=b.StudyID and a.seriesID=b.seriesID
+        ) as a left outer join annotation_new as b on a.PID=b.PID and a.SD=b.SD and a.Item=b.Item and a.date=b.date and a.username=b.username and a.SUV=b.SUV and a.x=b.x and a.y=b.y and a.z=b.z and a.StudyID=b.StudyID and a.seriesID=b.seriesID
         where b.PID is null
     '''
     cursor = connections['AIC'].cursor()
@@ -228,7 +235,7 @@ def removeAuthDiseaseLabeledUser(request):
     import_user=request.POST.get('import_user')
     print(disease)
     query = '''
-        delete from  annotation  where username=%s and fromWhere=%s and Disease=%s
+        delete from  annotation_new  where username=%s and fromWhere=%s and Disease=%s
     '''
     cursor = connections['AIC'].cursor()
     cursor.execute(query,[import_user,export_user,disease])

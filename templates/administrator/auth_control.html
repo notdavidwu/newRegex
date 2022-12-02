@@ -135,31 +135,9 @@ function auth(){
         success:function (response){
             $('#authApp').empty()
             $('#authApp').append('<h2>權限管理設定</h2>')
-            if(response.auth_app.includes('1')){
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="1" checked type="checkbox" name="auth_app" id="cancer_research"><label class="form-check-label" for="cancer_research">癌症研究</label></div>')
-            }else{
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="1" type="checkbox" name="auth_app" id="cancer_research"><label class="form-check-label" for="cancer_research">癌症研究</label></div>')
-            }
-            if(response.auth_app.includes('2')){
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="2" checked type="checkbox" name="auth_app" id="infection"><label class="form-check-label" for="infection">感染管控</label></div>')
-            }else{
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="2" type="checkbox" name="auth_app" id="infection"><label class="form-check-label" for="infection">感染管控</label></div>')
-            }
-            if(response.auth_app.includes('3')){
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="3" checked type="checkbox" name="auth_app" id="NLP"><label class="form-check-label" for="NLP">自然語言分析</label></div>')
-            }else{
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="3" type="checkbox" name="auth_app" id="NLP"><label class="form-check-label" for="NLP">自然語言分析</label></div>')
-            }
-            if(response.auth_app.includes('4')){
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="4" checked type="checkbox" name="auth_app" id="upload"><label class="form-check-label" for="upload">影像上傳</label></div>')
-            }else{
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="4" type="checkbox" name="auth_app" id="upload"><label class="form-check-label" for="upload">影像上傳</label></div>')
-            }
-            if(response.auth_app.includes('5')){
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="5" checked type="checkbox" name="auth_app" id="MEWS"><label class="form-check-label" for="MEWS">MEWS</label></div>')
-            }else{
-                $('#authApp').append('<div class="form-check form-switch"><input class="form-check-input" onchange="update_authApp()" value="5" type="checkbox" name="auth_app" id="MEWS"><label class="form-check-label" for="MEWS">MEWS</label></div>')
-            }
+            
+            $('#authApp').append(response.object_array)
+
         }
     })
     $.ajax({
