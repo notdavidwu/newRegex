@@ -67,7 +67,6 @@ INSTALLED_APPS = [
     'appeal.apps.appealConfig',
     'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
     'PowerBI.apps.PowerBIConfig',
-    "debug_toolbar",
     'corsheaders',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
@@ -93,7 +92,6 @@ MIDDLEWARE = [
     'django_globals.middleware.Global',
     'django_plotly_dash.middleware.BaseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     'corsheaders.middleware.CorsMiddleware',
 ]
 
@@ -101,11 +99,6 @@ CORS_ALLOW_ALL_ORIGINS =False
 
 ROOT_URLCONF = 'djangoProject.urls'
 
-INTERNAL_IPS = [
-    # ...
-    "127.0.0.1",
-    # ...
-]
 
 TEMPLATES = [
     {
