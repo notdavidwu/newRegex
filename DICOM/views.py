@@ -263,7 +263,6 @@ def load_DICOM(request):
     paths = sorted([os.path.join(filename) for filename in tempPath])[0]
     request.session['PET_' + WindowNo] = paths
     with h5py.File(paths, "r") as f:
-        a_group_key = list(f.keys())
         headers = f['CT_header']
         request.session['CT_pixelspacing_' + WindowNo] = float(
             pydicom.dataset.Dataset.from_json(headers[0]).PixelSpacing[0])
@@ -294,9 +293,9 @@ def load_DICOM(request):
             pydicom.dataset.Dataset.from_json(headers[0]).ImagePositionPatient[2])
         request.session['CT_view_ImagePositionPatient_S_' + WindowNo] = float(
             pydicom.dataset.Dataset.from_json(headers[1]).ImagePositionPatient[2])
-        request.session['view_D_' + WindowNo] = f['PETCT_vol'][:,0].shape[0]
-        request.session['view_H_' + WindowNo] = f['PETCT_vol'][:,0].shape[1]
-        request.session['view_W_' + WindowNo] = f['PETCT_vol'][:,0].shape[2]
+        request.session['view_D_' + WindowNo] = f['PETCT_vol'].shape[0]
+        request.session['view_H_' + WindowNo] = f['PETCT_vol'].shape[2]
+        request.session['view_W_' + WindowNo] = f['PETCT_vol'].shape[3]
         
 
     return JsonResponse({}, status=200)

@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'appeal.apps.appealConfig',
     'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
     'PowerBI.apps.PowerBIConfig',
-    'corsheaders',
+
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -92,13 +92,9 @@ MIDDLEWARE = [
     'django_globals.middleware.Global',
     'django_plotly_dash.middleware.BaseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS =False
-
 ROOT_URLCONF = 'djangoProject.urls'
-
 
 TEMPLATES = [
     {
@@ -341,3 +337,4 @@ else:
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 5242880
 
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
