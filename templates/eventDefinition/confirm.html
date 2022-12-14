@@ -1,4 +1,4 @@
-
+{% load compress %}
 {% load static%}
 
 <!DOCTYPE html>
@@ -358,7 +358,7 @@
     #medtypeFilter{padding-left:5px;padding-right:5px}
 </style>
 
-
+{% compress js %}
 <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
 <script >
 
@@ -2591,6 +2591,7 @@
 
 //-------------------------------定位功能------------------------------------
 </script>
+{% endcompress %}
 <body >
 {{ user.username|json_script:"user_username" }}
 {{ user.last_name|json_script:"hospital" }}

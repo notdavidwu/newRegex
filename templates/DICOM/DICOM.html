@@ -497,7 +497,7 @@
         count1=Math.floor(b/height)
 
         plane=$("#frame"+window_sno).children('label').children('div').children('div').children('.plane').text()
-        $("#frame"+window_sno).children('label').children('div').children('div').children('.variable').text(count1+1+'/'+num)
+        $("#frame"+window_sno).children('label').children('div').children('div').children('.variable').text(count1+0+'/'+num)
         //if($('#frame1').children('input').is(':checked')){
         if(plane=='Axial'){
             $('#frame'+window_sno).children('label').children('div').children('div').children('.z').text(count1);
@@ -534,7 +534,7 @@
                             let b = $('#frame'+ind).children('label').children('.slider').scrollTop();
                             let num = Math.floor($('#frame'+ind).children('label').children('.slider').children().height()/height)
                             let count=Math.floor(b/height)
-                            $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(count+1+'/'+num)
+                            $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(count+0+'/'+num)
                         }
                         if(plane=='Axial'){
                             $('#frame'+ind).children('label').children('div').children('div').children('.z').text(count1)
@@ -568,7 +568,7 @@
                             let num = Math.floor($('#frame'+ind).children('label').children('.slider').children().height()/height)
                             let count=Math.floor(b/height)
                             
-                            $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(count+1+'/'+num)
+                            $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(count+0+'/'+num)
                             $('#frame'+ind).children('label').children('div').children('div').children('.z').text(count)
                         }
                     }
@@ -1070,7 +1070,7 @@
                 let height=$('#frame'+ind).children('label').children('.slider').height();
                 let num = Math.ceil($('#frame'+ind).children('label').children('.slider').children().height()/height)
                 
-                $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+1+'/'+num)
+                $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+0+'/'+num)
             }
         }
     }
@@ -1116,7 +1116,7 @@
                             $("#frame"+response.ind).children('label').children('div').children('#dicom'+response.ind).children('.y').text(response.y)
                             $("#frame"+response.ind).children('label').children('div').children('#dicom'+response.ind).children('.z').text(response.z)
                             $("#frame"+response.ind).children('label').children('.slider').scrollTop(response.z*$("#frame"+response.ind).children('label').children('.slider').height())
-                            $('#frame'+response.ind).children('label').children('div').children('div').children('.variable').text(response.z+1+'/'+num)
+                            $('#frame'+response.ind).children('label').children('div').children('div').children('.variable').text(response.z+0+'/'+num)
                             ajax(response.ind,response.x,response.y,response.z,true,true)
                         }
                     });
@@ -1127,7 +1127,7 @@
                     $("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.y').text(y)
                     $("#frame"+ind).children('label').children('div').children('#dicom'+ind).children('.z').text(z)
                     $("#frame"+ind).children('label').children('.slider').scrollTop(frameXYZ['z']*$("#frame"+ind).children('label').children('.slider').height())
-                    $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+1+'/'+num)
+                    $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+0+'/'+num)
                 }
             }
         }
@@ -1250,7 +1250,7 @@
         
         $("#frame"+WindowNo).children('label').children('.slider').children('div').css('height',sliceNum*100+'%')
         $('#frame'+WindowNo).children('label').children('.slider').scrollTop(0)
-        $('#frame'+WindowNo).children('label').children('div').children('div').children('.variable').text(1+'/'+sliceNum)
+        $('#frame'+WindowNo).children('label').children('div').children('div').children('.variable').text(0+'/'+sliceNum)
 
         if(StudyDes=='PET'){
             loadDICOMurlname="{% url 'DICOM:load_DICOM' %}"
@@ -1473,7 +1473,7 @@
                         $('#frame'+ind).children('label').children('div').children('div').children('.z').text(z)
                         let height=$('#frame'+ind).children('label').children('.slider').height();
                         let num = Math.ceil($('#frame'+ind).children('label').children('.slider').children().height()/height)
-                        $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+1+'/'+num)
+                        $('#frame'+ind).children('label').children('div').children('div').children('.variable').text(parseInt(frameXYZ['z'])+0+'/'+num)
                     }
                 }
             }
@@ -2392,7 +2392,7 @@
                                         $('.slider').children('div').css('height',z*100+'%')    
 
                                         $('#CT-PET').css('margin-top','60px')
-                                        $("#frame1").children('label').children('div').children('div').children('.variable').text(1+'/'+z)
+                                        $("#frame1").children('label').children('div').children('div').children('.variable').text(0+'/'+z)
 
                                         //$('#frame1').children('label').children('div').children('div').children('.img').css('height',Math.round($('#frame1').height())+'px');
                                         ActualCoordinates=false

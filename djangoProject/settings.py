@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(s2g%#sj&n2#04eb%m4*3zcv0qg=l15aq@qrl82i^ys52+%-x6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'appeal.apps.appealConfig',
     'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
     'PowerBI.apps.PowerBIConfig',
+    "debug_toolbar",
+    'corsheaders',
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 ASGI_APPLICATION = 'djangoProject.routing.application'
@@ -91,9 +93,19 @@ MIDDLEWARE = [
     'django_globals.middleware.Global',
     'django_plotly_dash.middleware.BaseMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS =False
+
 ROOT_URLCONF = 'djangoProject.urls'
+
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    # ...
+]
 
 TEMPLATES = [
     {
