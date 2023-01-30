@@ -1,0 +1,83 @@
+{% load static%}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Homepage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script>
+    console.log("123")
+    </script>
+    {% include 'static/index.js.html' %}
+    {% comment %} {% load static %} {% endcomment %}
+    {% comment %} {% include 'static/index.css' %} {% endcomment %}
+    {% comment %} <link rel="stylesheet" href="{% static "index.css" %}"> {% endcomment %}
+    {% comment %} <link href="static/index.css" rel="stylesheet" type="text/css"> {% endcomment %}
+    {% comment %} <script src="{% static 'index.js.html' %}" type="text/javascript"></script> {% endcomment %}
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+      <symbol id="check-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+      </symbol>
+    </svg>
+    {% comment %} <link rel="stylesheet" href="index.css"> {% endcomment %}
+  </head>
+  <body>
+    {% comment %} <h1>Hello, world!</h1> {% endcomment %}
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="{% url 'home' %}" style=" user-select:none;" id="title">Regex</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          </div>
+        </div>
+      </nav>
+  </br>
+    <div style="position:absolute; top:150px; left:600px; user-select:none;">
+      <div class="form-check" >
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1"checked>
+        <label class="form-check-label" for="flexRadioDefault1">
+          Highlight Mode
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" >
+        <label class="form-check-label" for="flexRadioDefault2">
+          Extract Mode
+        </label>
+      </div>
+    </div>
+
+  </div>
+    <textarea class="form-control" placeholder="Type a Regex here" id="regexText" style="height:200px; width:700px; position:absolute; top:220px; left:80px; user-select:none; resize:none;"></textarea>
+    <a class='btn btn-secondary' style="width:90px; position:absolute; top:350px; left:845px; user-select:none;" id="executebtn" onclick="Highlight_Extract();" href="javascript:void(0);">Execute</a>
+    <a class='btn btn-secondary' style="width:90px; position:absolute; top:550px; left:845px; user-select:none; visibility:hidden;" id="returnbtn" onclick="output_to_input()" href="javascript:void(0);">Return</a>
+    <textarea class="form-control" placeholder="Paste your text here" id="inputText" style="height:1000px; width:700px; position:absolute; top:450px; left:80px; user-select:none; overflow-y:scroll; resize:none;" ></textarea>
+    <p class="form-control" placeholder="Your output will show up here" id="result" style="height:1000px; width:700px; position:absolute; top:450px; left:1000px; user-select:none; white-space:pre-wrap; overflow-y: scroll;" >Your output will show up here</p>
+    <textarea class="form-control" placeholder="Extracted String(s)" id="ExtractOutput" style="height:200px; width:250px; position:absolute; top:220px; left:1000px; user-select:none; resize:none;" ></textarea>
+    <p id="Total" style="position:absolute; top:150px; left:1000px; font-size:40px; user-select:none; "  >Total</p>
+    <div class="alert alert-success d-flex align-items-center" id="alertBlock" role="alert" style="position:absolute; top:100px; left:1150px; height:50px; width:320px; visibility:hidden;" >
+      <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Success:" id="alertBlock" style="position:absolute; top:15px; right:130px;height:20px; "><use xlink:href="#check-circle-fill"/></svg>
+      <div id="alertBlock" style="user-select:none; position:absolute; top:13px; left:50px;">
+        Extracted data saved!
+      </div>
+    </div>
+    <div class="alert alert-info" role="alert" id="inuptNothing"style="height:60px; width:300px; position:absolute; top:120px; left:80px; user-select:none; visibility:hidden;">
+      Please input something!!
+    </div>
+    <div class="alert alert-info" role="alert" id="outputNothing"style="height:60px; width:300px; position:absolute; top:120px; left:80px; user-select:none; visibility:hidden;">
+      There's nothing left!!
+    </div>
+    <div>
+      <div id="table" class="table table-bordered" style=" width:400px; position:absolute; top:155px; left:1300px; user-select:none; height: 265px;  overflow: auto; display: block;"></div>
+    </div>
+
+    {% block content %}
+    {% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  </body>
+</html>

@@ -1,0 +1,217 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<!-- Animate.css v3.5.2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" rel="stylesheet" />
+<!-- lettering.js v0.7.0 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lettering.js/0.7.0/jquery.lettering.min.js"></script>
+<!-- Textillate.js v0.4.0 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/textillate/0.4.0/jquery.textillate.min.js"></script>
+<script src="http://jschr.github.io/textillate/jquery.textillate.js"></script>
+
+
+<script >
+
+    $(document).ready(function () {  
+        //關閉按鈕顯示
+        $('input[type=radio][id="flexRadioDefault1"]').change(function() {
+            document.getElementById("returnbtn").style.visibility = 'hidden';
+        });
+        console.log("document.ready")
+    });
+
+    //存檔到後端資料庫
+    function BtnClicked(){
+        console.log("execute in")
+        input = document.getElementById('ExtractOutput').value
+        regex = document.getElementById('regexText').value
+        //console.log(input,regex)
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'TextFormView' %}', // this is the mapping between the url and view
+            data:{
+                'inputText': input,
+                'regexText': regex,
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+            },
+            complete:function (){              
+            },
+        });
+        console.log("execute end")
+    }
+
+    //將輸出變成輸入
+    function output_to_input(){
+        result_value = document.getElementById("result").innerHTML;
+        if (result_value != "" && result_value != "Your output will show up here"){
+            document.getElementById("inputText").value = document.getElementById("result").innerHTML;
+        } else {
+            diaplay_output_nothing();
+        }
+    }
+
+    //改變文字顏色
+    function Highlight_Extract() {
+        highLight = document.getElementById('flexRadioDefault1')
+        if (highLight.checked == true) {
+            //定義輸入的regex值存進變數
+            let textToSearch = document.getElementById("regexText").value; 
+
+            //定義輸入的文本存進變數
+            let text = document.getElementById("inputText");
+            if (textToSearch == ""){
+                diaplay_please_input_something();
+            }
+            else{
+                //放到結果欄內
+                document.getElementById("result").innerHTML = text.value
+
+                //取出輸出的文本
+                let paragraph = document.getElementById("result").innerHTML;
+                //將輸入文本丟到輸出欄位變數
+                paragraph = text.value
+                //處理輸入的regex文本
+                textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+                console.log(textToSearch)
+                console.log(paragraph)
+                //將處理好的regex文本定義為新的regex物件
+                let pattern = new RegExp(`${textToSearch}`,"gi");
+                console.log(pattern)
+                
+                
+                //將輸出文本與regex物件有符合的地方加上<mark>標籤，然後丟到輸出欄位       
+                document.getElementById("result").innerHTML = paragraph.replace(pattern, match => `<mark>${match}</mark>`);
+            }
+        }
+
+        //萃取模式
+        exTract = document.getElementById('flexRadioDefault2')
+        if (exTract.checked == true) {
+            //定義輸入的regex值存進變數
+            let textToSearch = document.getElementById("regexText").value; 
+            let table_regex = document.getElementById("regexText").value;
+
+            //定義輸入的文本存進變數
+            let text = document.getElementById("inputText");
+            //放到結果欄內
+            document.getElementById("result").innerHTML = text.value
+
+            //取出輸出的文本
+            let paragraph = document.getElementById("result").innerHTML;
+            //將輸入文本丟到輸出欄位變數
+            paragraph = text.value
+            //處理輸入的regex文本
+            textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+            //console.log(textToSearch)
+            //console.log(paragraph)
+            //將處理好的regex文本定義為新的regex物件
+            let pattern = new RegExp(`${textToSearch}`,"gi");
+            //console.log(pattern)
+            
+            
+            //將輸出文本與regex物件有符合的地方取代為空白      
+            document.getElementById("result").innerHTML = paragraph.replace(pattern, " ");
+            console.log(text.value.match(pattern))
+            //抓出被取代的資料 + 排版
+            extractedArray = text.value.match(pattern);
+
+
+            var ex = "";
+            var count = 0;
+            for(var i=0 ; i<extractedArray.length ; i++){
+                ex = ex.concat((i+1).toString(), ". ", extractedArray[i], "\n")
+                count += 1;
+            }
+            if (textToSearch == ""){
+                diaplay_please_input_something();
+            }
+            else{
+                
+                //排完丟到畫面顯示
+                document.getElementById("ExtractOutput").innerHTML = ex;
+                //計算抓取資料數量            
+                document.getElementById("Total").innerHTML = "Total : " + count.toString();
+
+                var x = document.getElementById("alertBlock");
+                console.log(x.style.visibility)
+                if (document.getElementById("alertBlock").style.visibility == 'hidden') {
+                    document.getElementById("alertBlock").style.visibility = 'visible';
+                    setTimeout(function() {
+                        //your code to be executed after 1 second                    
+                        document.getElementById("alertBlock").style.visibility = 'hidden';
+                    }, 1200);
+                }
+                //資料到後端儲存
+                BtnClicked();
+                document.getElementById("returnbtn").style.visibility = 'visible';
+
+                //開始建立表格
+                //解析輸入的regex
+                let dateFormat = new RegExp(`${textToSearch}`,"gi");
+                //console.log("dateFormat: "+ dateFormat);          
+                result_array = []
+                //迴圈執行exec()取得回傳的groups 原本exec只會找一筆所以要回圈 match回傳值沒有groups所以不能用
+                while(null != (g = dateFormat.exec(paragraph))) {
+                    //console.log("groups: " + g.groups);  // ouput: "a"
+                    //console.log("pattern: " + g);
+                    result_array.push(g.groups);
+                }
+                //如果有用named capture groups
+                if (result_array[0] != null){
+                    console.log(result_array);
+                    //創建表格元素
+                    let myTable = document.querySelector('#table');
+                    console.log(Object.keys(result_array[0]));
+                    let headers = Object.keys(result_array[0]);
+                    let table = document.createElement('table');
+                    let headerRow = document.createElement('tr');
+                    headers.forEach(headerText => {
+                        let header = document.createElement('th');
+                        let textNode = document.createTextNode(headerText);
+                        header.appendChild(textNode);
+                        headerRow.appendChild(header);
+                    });
+                    table.appendChild(headerRow);
+                    result_array.forEach(emp => {
+                        let row = document.createElement('tr');
+                        Object.values(emp).forEach(text => {
+                            let cell = document.createElement('td');
+                            let textNode = document.createTextNode(text);
+                            cell.appendChild(textNode);
+                            row.appendChild(cell);
+                        })
+                        table.appendChild(row);
+                    });
+                    myTable.appendChild(table);
+                }
+            }
+        }
+      }
+
+    //顯示請輸入文字
+      function diaplay_please_input_something() {
+        var x = document.getElementById("inuptNothing");
+        console.log(x.style.visibility)
+        if (document.getElementById("inuptNothing").style.visibility == 'hidden') {
+            document.getElementById("inuptNothing").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("inuptNothing").style.visibility = 'hidden';
+            }, 1200);
+        }
+      }
+
+    //顯示無輸出文字
+    function diaplay_output_nothing() {
+    var x = document.getElementById("outputNothing");
+    console.log(x.style.visibility)
+    if (document.getElementById("outputNothing").style.visibility == 'hidden') {
+        document.getElementById("outputNothing").style.visibility = 'visible';
+        setTimeout(function() {
+            //your code to be executed after 1 second                    
+            document.getElementById("outputNothing").style.visibility = 'hidden';
+        }, 1200);
+    }
+    }
+
+</script>
