@@ -1,18 +1,208 @@
 <style>
-div {
-    display: inline-block;
-}
-button {
-    display: inline-block;
-    padding: 10px 20px;
-}
-#table {
-    text-align: center;
-    display: block;
-    margin-top: 20px;
-}
-th, td {
-    border: 1px solid black;
-    padding: 5px;
-}
+  #dropdownbutton {
+    width:200px;
+    position:absolute;
+    left:80px;
+  }
+
+  .rowg-3needs-validation {
+    height:0px;
+    width:0px;
+    position:absolute;
+    top:0px;
+    left:0px;
+  }
+
+  #regexName {
+    height:50px;
+    width:300px;
+    position:absolute;
+    top:220px;
+    left:80px;
+    user-select:none;
+    resize:none;
+  }
+  
+  #validText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+  }
+
+  #invalidText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+  }
+
+  #check {
+    position:absolute;
+    top:225px;
+    left:400px;
+    user-select:none; 
+  }
+
+  #regexText {
+    height:100px;
+    width:700px;
+    position:absolute;
+    top:310px; left:80px;
+    user-select:none;
+    resize:none;
+  }
+
+  #executebtn {
+    width:90px;
+    position:absolute;
+    top:350px;
+    left:845px;
+    user-select:none;
+  }
+
+  #returnbtn {
+    width:90px;
+    position:absolute;
+    top:550px;
+    left:845px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #inputText {
+    height:300px;
+    width:700px;
+    position:absolute;
+    top:450px;
+    left:80px;
+    user-select:none;
+    overflow-y:scroll;
+    resize:none;
+  }
+  
+  #result {
+    height:300px;
+    width:700px;
+    position:absolute;
+    top:450px;
+    left:1000px;
+    user-select:none;
+    white-space:pre-wrap;
+    overflow-y: scroll;
+  }
+  
+  #ExtractOutput {
+    height:200px;
+    width:250px;
+    position:absolute;
+    top:220px;
+    left:1000px;
+    user-select:none;
+    resize:none;
+  }
+  
+  #Total {
+    position:absolute;
+    top:150px;
+    left:1000px;
+    font-size:40px;
+    user-select:none; 
+  }
+  
+  #alertBlock {
+    position:absolute;
+    top:100px;
+    left:1150px;
+    height:50px;
+    width:320px;
+    visibility:hidden; 
+  }
+  
+  #alertBlock1 {
+    position:absolute;
+    top:15px;
+    right:130px;
+    height:20px; 
+  }
+  
+  #alertBlock2 {
+    user-select:none;
+    position:absolute;
+    top:13px;
+    left:50px;
+  }
+  
+  #fail {
+    position:absolute;
+    top:100px;
+    left:1150px;
+    height:50px;
+    width:320px;
+    visibility:hidden;
+  }
+  
+  .bibi-exclamation-triangle-fillflex-shrink-0me-2 {
+    position:absolute;
+    top:15px;
+    left:20px;
+    height:20px; 
+  }
+  
+  #alertBlock3 {
+    user-select:none;
+    position:absolute;
+    top:13px;
+    left:50px;
+  }
+  
+  #inuptNothing {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;    
+    visibility:hidden;
+  }
+  
+  #outputNothing {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;
+    visibility:hidden;
+  }
+  
+  #table {
+    width:400px;
+    position:absolute;
+    top:155px;
+    left:1300px;
+    user-select:none;
+    height:265px;
+    overflow:auto;
+    display:block;
+  }
+  
+  #title.relative {
+    position:relative;
+    left: 30px;
+    user-select:none;
+  }
+  
+  #title2 {
+    user-select:none;
+    position:absolute;
+    left:200px;
+  }
+  
+  #Mode {
+    position:absolute;
+    top:150px;
+    left:600px;
+    user-select:none;
+  }
 </style>

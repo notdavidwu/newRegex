@@ -15,29 +15,142 @@
         $('input[type=radio][id="flexRadioDefault1"]').change(function() {
             document.getElementById("returnbtn").style.visibility = 'hidden';
         });
+        //刪除選項
+        //removeOptions(document.getElementById('dropdownbutton'));
+        //get_vocabularies();
         console.log("document.ready")
+
+        //確認名稱
+        $("#check").click(function(){
+            //console.log("check clicked");
+            Name = document.getElementById("regexName").value
+            //console.log(name);
+            
+            $("#validText").text("Name is valid!");
+            $("#regexName").attr('class', 'form-control is-valid');
+            //不為空檢查，否則顯示不可為空
+            if (Name != ""){
+                checkName(Name);
+            }else{
+                $("#invalidText").text("Name CAN'T be null!");
+                $("#regexName").attr('class', 'form-control is-invalid');
+            }
+        });
+
+        //執行按鈕
+        $("#executebtn").click(function(){
+            Highlight_Extract();
+        });
+        
+        //返回按鈕
+        $("#returnbtn").click(function(){
+            output_to_input();
+        });
     });
 
+    //確認名稱合法與否
+    function checkName(Name){
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'checkName' %}',
+            data:{
+                'Name': Name,
+            },
+            success:function (response){
+                //console.log("result : " + response.status)
+                if (response.status == '0'){                     
+                    //有找到，報錯
+                    $("#invalidText").text("Duplicate name!");
+                    $("#regexName").attr('class', 'form-control is-invalid');
+                }else{
+                    //沒找到，正確
+                    $("#validText").text("Name is valid!");
+                    $("#regexName").attr('class', 'form-control is-valid');
+                }
+            },
+        })
+    }
+
     //存檔到後端資料庫
-    function BtnClicked(){
+    function BtnClicked_1(count,itemName){
         console.log("execute in")
-        input = document.getElementById('ExtractOutput').value
-        regex = document.getElementById('regexText').value
+        console.log(itemName)        
+        token = document.getElementById('regexName').value        
+        tokenType = document.getElementById('dropdownbutton').value
+        console.log("tokenType : " + tokenType)
         //console.log(input,regex)
         $.ajax({
             type: 'POST',
-            url: '{% url 'TextFormView' %}', // this is the mapping between the url and view
+            url: '{% url 'insertVocabulary' %}',
             data:{
-                'inputText': input,
-                'regexText': regex,
+                'token': token,
+                'nWord': count,
+                'tokenType': tokenType,                
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
+                console.log("result : " + response.status)
+                if (response.status == '0'){                    
+                    display_data_saved();
+                }else{
+                    console.log("data not saved");
+                    display_data_not_saved();
+                }
+                if (tokenType == 'E'){
+                    BtnClicked_2(response,itemName);
+                }
             },
-            complete:function (){              
+            fail:function (){         
             },
         });
-        console.log("execute end")
+    }
+    //存檔到後端資料庫
+    function BtnClicked_2(response,itemName){
+        //console.log("btnclicked_2" + response.data[0].token)        
+        tokenID = response.data[0].tokenID;        
+        regex = document.getElementById('regexText').value
+        console.log("tokenID" + tokenID);
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'inserttokenRE' %}',
+            data:{
+                'tokenID': tokenID,
+                'RE': regex,               
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){    
+                console.log("btnclicked3")
+                BtnClicked_3(response,itemName);
+            },
+            fail:function (){              
+            },
+        });
+    }
+    //存檔到後端資料庫
+    function BtnClicked_3(response,itemName){   
+        //console.log("btnclicked3_itemName " + itemName)  
+        tokenREID = response.data[0].tokenREID;        
+        console.log("btnclicked")
+        for (var i=0 ; i< itemName.length ; i++){
+            console.log("btnclicked :" + (i+1) + "times")
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'inserttokenREItem' %}',
+                data:{
+                    'tokenREID': tokenREID,
+                    'serialNo': i+1,
+                    'itemName': itemName[i],               
+                    'csrfmiddlewaretoken': window.CSRF_TOKEN
+                },
+                success:function (response){
+                    //BtnClicked_2(response);
+                },
+                fail:function (){              
+                },
+            });
+        }
+        
     }
 
     //將輸出變成輸入
@@ -72,11 +185,11 @@
                 paragraph = text.value
                 //處理輸入的regex文本
                 textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
-                console.log(textToSearch)
-                console.log(paragraph)
+                //console.log(textToSearch)
+                //console.log(paragraph)
                 //將處理好的regex文本定義為新的regex物件
                 let pattern = new RegExp(`${textToSearch}`,"gi");
-                console.log(pattern)
+                //console.log(pattern)
                 
                 
                 //將輸出文本與regex物件有符合的地方加上<mark>標籤，然後丟到輸出欄位       
@@ -111,7 +224,7 @@
             
             //將輸出文本與regex物件有符合的地方取代為空白      
             document.getElementById("result").innerHTML = paragraph.replace(pattern, " ");
-            console.log(text.value.match(pattern))
+            //console.log(text.value.match(pattern))
             //抓出被取代的資料 + 排版
             extractedArray = text.value.match(pattern);
 
@@ -131,20 +244,6 @@
                 document.getElementById("ExtractOutput").innerHTML = ex;
                 //計算抓取資料數量            
                 document.getElementById("Total").innerHTML = "Total : " + count.toString();
-
-                var x = document.getElementById("alertBlock");
-                console.log(x.style.visibility)
-                if (document.getElementById("alertBlock").style.visibility == 'hidden') {
-                    document.getElementById("alertBlock").style.visibility = 'visible';
-                    setTimeout(function() {
-                        //your code to be executed after 1 second                    
-                        document.getElementById("alertBlock").style.visibility = 'hidden';
-                    }, 1200);
-                }
-                //資料到後端儲存
-                BtnClicked();
-                document.getElementById("returnbtn").style.visibility = 'visible';
-
                 //開始建立表格
                 //解析輸入的regex
                 let dateFormat = new RegExp(`${textToSearch}`,"gi");
@@ -158,10 +257,10 @@
                 }
                 //如果有用named capture groups
                 if (result_array[0] != null){
-                    console.log(result_array);
+                    //console.log(result_array);
                     //創建表格元素
                     let myTable = document.querySelector('#table');
-                    console.log(Object.keys(result_array[0]));
+                    //console.log(Object.keys(result_array[0]));
                     let headers = Object.keys(result_array[0]);
                     let table = document.createElement('table');
                     let headerRow = document.createElement('tr');
@@ -184,15 +283,23 @@
                     });
                     myTable.appendChild(table);
                 }
+                if (result_array[0] != null){
+                    console.log("result_array :" + Object.keys(result_array[0]));
+                    console.log("save pressed");
+                    //資料到後端儲存
+                    BtnClicked_1(extractedArray.length,Object.keys(result_array[0]));
+                    document.getElementById("returnbtn").style.visibility = 'visible';
+
+                }
             }
         }
       }
 
     //顯示請輸入文字
       function diaplay_please_input_something() {
-        var x = document.getElementById("inuptNothing");
-        console.log(x.style.visibility)
-        if (document.getElementById("inuptNothing").style.visibility == 'hidden') {
+        var x = document.getElementById("inuptNothing");        
+        //console.log(x.style.visibility)
+        if (document.getElementById("inuptNothing").style.visibility != 'visible') {
             document.getElementById("inuptNothing").style.visibility = 'visible';
             setTimeout(function() {
                 //your code to be executed after 1 second                    
@@ -204,8 +311,8 @@
     //顯示無輸出文字
     function diaplay_output_nothing() {
     var x = document.getElementById("outputNothing");
-    console.log(x.style.visibility)
-    if (document.getElementById("outputNothing").style.visibility == 'hidden') {
+    //console.log(x.style.visibility)
+    if (document.getElementById("outputNothing").style.visibility != 'visible') {
         document.getElementById("outputNothing").style.visibility = 'visible';
         setTimeout(function() {
             //your code to be executed after 1 second                    
@@ -213,5 +320,41 @@
         }, 1200);
     }
     }
+
+    
+    //刪除選項
+    function removeOptions(selectElement) {
+        var i, L = selectElement.options.length - 1;
+        for(i = L; i >= 0; i--) {
+           selectElement.remove(i);
+        }
+     }
+
+    //顯示已儲存
+    function display_data_saved(){
+       var x = document.getElementById("alertBlock");
+       //console.log(x.style.visibility)
+       if (document.getElementById("alertBlock").style.visibility != 'visible') {
+           document.getElementById("alertBlock").style.visibility = 'visible';
+           setTimeout(function() {
+               //your code to be executed after 1 second                    
+               document.getElementById("alertBlock").style.visibility = 'hidden';
+           }, 1200);
+       }
+    }
+
+    //顯示儲存失敗
+    function display_data_not_saved(){
+        var x = document.getElementById("fail");
+        //console.log(x.style.visibility)
+        if (document.getElementById("fail").style.visibility != 'visible') {
+            document.getElementById("fail").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("fail").style.visibility = 'hidden';
+            }, 1200);
+        }
+     }
+     
 
 </script>

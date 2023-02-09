@@ -26,6 +26,20 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('view/', TextView),
     path('TextFormView/', TextFormView, name="TextFormView"),
+    path('getVocabulary/', getVocabulary, name="getVocabulary"),
+    path('insertVocabulary/', insertVocabulary, name="insertVocabulary"),
+    path('inserttokenRE/', inserttokenRE, name="inserttokenRE"),
+    path('inserttokenREItem/', inserttokenREItem, name="inserttokenREItem"),
+    path('checkName/', checkName, name="checkName"),
+    path('checkRE/', checkRE, name="checkRE"),    
+    path('checkREItem/', checkREItem, name="checkREItem"),
+    path('getVocabularyByType/', getVocabularyByType, name="getVocabularyByType"),
+    path('getVocabulary/', getVocabulary, name="getVocabulary"),
+    path('getAnalyseText/', getAnalyseText, name="getAnalyseText"),
+    path('getReportID/', getReportID, name="getReportID"),
+    path('getReportText/', getReportText, name="getReportText"),
+    
     path('', Home.as_view(),name="home"),
+    path('Page2/', Page2.as_view(),name="Page2"),
     
 ]

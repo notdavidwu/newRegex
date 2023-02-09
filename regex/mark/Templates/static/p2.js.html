@@ -1,0 +1,419 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
+<script>
+    $(document).ready(function () {
+        const excel_file = document.getElementById('excel_file'); 
+        var text;   
+        excel_file.addEventListener('change', async(event) => {    
+            
+            if(!['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'].includes(event.target.files[0].type)){
+                document.getElementById('excel_data').innerHTML = '<div class="alert alert-danger">Only .xlsx or .xls file format are allowed</div>';    
+                excel_file.value = '';    
+                return false;
+            }    
+            var reader = new FileReader();    
+            reader.readAsArrayBuffer(event.target.files[0]);
+            reader.onload = function(event){   
+                var data = new Uint8Array(reader.result);    
+                var work_book = XLSX.read(data, {type:'array'});    
+                var sheet_name = work_book.SheetNames;    
+                var sheet_data = XLSX.utils.sheet_to_json(work_book.Sheets[sheet_name[0]], {header:1});    
+                if(sheet_data.length > 0){
+                    console.log("sheet_data : " + sheet_data);
+                    var table_output = '<table class="table table-striped table-bordered" id="excelTable" style="width:650px; height:405px; display: block; overflow: auto; " >';    
+                    for(var row = 0; row < sheet_data.length; row++){
+                        table_output += '<tr style="user-select:none;">';    
+                        for(var cell = 0; cell < sheet_data[row].length; cell++){
+                            if(row == 0){    
+                                table_output += '<th>'+sheet_data[row][cell]+'</th>';    
+                            }else{    
+                                table_output += '<td><div class="btndiv" id="btn" style="height: 50px; overflow:hidden;"><button type="button" class="btn btn-light">'+sheet_data[row][cell]+'</button></div></td>';    
+                            }    
+                        }    
+                        table_output += '</tr>';    
+                    }    
+                    table_output += '</table>';    
+                    document.getElementById('excel_data').innerHTML = table_output;
+                }    
+                excel_file.value = '';
+                //取得產生excel的按鈕內容
+                getTableElement();  
+            }
+            //document.getElementById("loadingAnimation").style.visibility = "visible"; 
+            //setTimeout(function() {
+            //    console.log("text : " + text);
+            //    document.getElementById("loadingAnimation").style.visibility = "hidden"; 
+            //}, 900);
+        });        
+        getTokenP2();
+        //根據select顯示token
+        $("#selectRegexType").on('change', function() {
+            value = document.getElementById('selectRegexType').value;
+            if (value == "T" || value =="E"){
+                getTokenByTypeP2();
+            }else{
+                getTokenP2();
+            }
+          });
+
+        //按下執行按鈕
+        $("#page2Execute").click(function(){
+            //取得已選取的regex
+            var selected = getAllSelectedRegex();
+            //console.log("selected : " + selected);
+            batchProcessingExtract(selected);
+        });
+
+        //按下清除所有按鈕
+        $("#page2ClearALL").click(function(){
+            console.log("ClearALL!!!");
+            document.getElementById('floatingTextarea2').value = '';
+        });
+
+        //根據select顯示Excel Or DB
+        $("#selectExcelDB").on('change', function() {
+            value = document.getElementById('selectExcelDB').value;
+            if (value == "Excel"){
+                document.getElementById('excelSelector').style.visibility = 'visible';
+            }else{
+                document.getElementById('excelSelector').style.visibility = 'hidden';
+                createReportButton();
+            }
+        });        
+        $('button[name="reportButton"]').click(function(){
+            //var valueis = $(this).attr('onclick');
+            console.log("clicked" + $(this).value);
+        });
+        createReportButton();
+        //console.log("x : " + document.getElementsByName("reportButton")[0].value);
+        
+
+    
+        
+    });
+    
+    //抓regexName(token)
+    function getTokenP2(){
+        document.getElementById('tokenContainer').innerHTML = "";
+        //console.log("get token p2 " + selectValue);
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getVocabulary' %}',
+            data:{
+            },
+            success:function (response){
+                console.log(response.data);
+                var count = Object.keys(response.data).length;
+                console.log(count);
+                var topdis = 0;
+                var id = 0;
+                for(var i=0 ; i<count ; i++){
+                    topdis += 30;
+                    id += 1;
+                    var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:100px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    document.getElementById('tokenContainer').innerHTML += checkBox;
+                }
+            },
+        })
+    }
+
+    //抓regexName(token)
+    function getTokenByTypeP2(){
+        document.getElementById('tokenContainer').innerHTML = "";
+        selectValue = document.getElementById('selectRegexType').value;
+        //console.log("get token p2 " + selectValue);
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getVocabularyByType' %}',
+            data:{
+                'tokenType':selectValue,
+            },
+            success:function (response){
+                console.log(response.data);
+                var count = Object.keys(response.data).length;
+                console.log(count);
+                var topdis = 0;
+                var id = 0;
+                for(var i=0 ; i<count ; i++){
+                    //console.log("token : " + response.dict[i].token)
+                    topdis += 30;
+                    id += 1;
+                    var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:100px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    document.getElementById('tokenContainer').innerHTML += checkBox;
+                }
+            },
+        })
+    }
+
+    //取得產生excel的按鈕內容 
+    function getTableElement(){
+        //test get button
+        let buttons = document.querySelector('#excelTable');  //步驟1
+        var text = document.getElementById('floatingTextarea2').innerHTML;
+        //console.log(buttons);
+        buttons.addEventListener('click', (e) => { //步驟2
+            if (e.target.nodeName === 'BUTTON') { //步驟3
+                //console.log('Click! ' + e.target.innerText);
+                //prepend寫法
+                //document.getElementById('floatingTextarea2').insertAdjacentHTML("afterbegin", e.target.innerText + '\n\n');
+                //append寫法                
+                document.getElementById('floatingTextarea2').value += e.target.innerText + '\n\n';
+                document.getElementById('floatingTextarea2').innerHTML += e.target.innerText + '\n\n';
+            }
+        });        
+    }
+
+    //取得被選取的regex
+    function getAllSelectedRegex(){
+        var array = [];
+        $("input:checkbox[name=checkBoxes]:checked").each(function() {
+            array.push($(this).val());
+        });
+        console.log(array);
+        return array;
+    }
+
+
+    //批量萃取
+    function batchProcessingExtract(selected){
+        if (selected.length == 0){
+            display_noRegex();
+        }
+        var valueText = document.getElementById("floatingTextarea2").value;
+        if (valueText == ""){
+            display_noInput();
+        }
+        //console.log("selected : " + selected);
+        //萃取模式
+        if ((selected.length != 0) && (valueText != "")) {
+            //console.log("array is not null");
+            let buttons = document.querySelector('#excelTable');  //步驟1
+            //console.log(buttons);              
+
+            var TokenID = [];
+            var REGEX = [];
+            var TokenType = [];
+            var ItemName = [];
+            //迴圈執行陣列走訪+萃取
+            for(var i=0 ; i<selected.length ; i++){
+                //console.log("element is :" + selected[i]);
+                //找tokenID
+                $.ajax({
+                    async: false,
+                    type: 'GET',
+                    url: '{% url 'checkName' %}',
+                    data:{
+                        'Name': selected[i],
+                    },
+                    //成功找RE
+                    success:function (response){
+                        TokenID.push(response.tokenID);
+                        TokenType.push(response.tokenType);
+                        //console.log("TokenID : " + response.tokenID);
+                        $.ajax({
+                            async: false,
+                            type: 'GET',
+                            url: '{% url 'checkRE' %}',
+                            data:{
+                                'tokenID': response.tokenID,
+                            },
+                            success:function (response1){
+                                REGEX.push(response1.RE);
+                                //如果是E就找第三張表
+                                if (response.tokenType === 'E'){
+                                    $.ajax({
+                                        async: false,
+                                        type: 'GET',
+                                        url: '{% url 'checkREItem' %}',
+                                        data:{
+                                            'tokenREID': response1.tokenREID,
+                                        },
+                                        success:function (response2){
+                                            //console.log("itemName : " + response2.data[1].itemName);
+                                            for (var itemnameLen=0 ; itemnameLen<response2.data.length ; itemnameLen++){
+                                                ItemName.push(response2.data[itemnameLen].itemName);
+                                                console.log("itemName : " + ItemName);
+                                            }                                            
+                                        },
+                                    });
+
+                                }
+                                //console.log("RE : " + response1.RE)
+                            },
+                        });
+                        //console.log("com : " + TokenID + REGEX);            
+                    },
+                });
+                
+            }
+            console.log("regex: " + REGEX);
+            //取出的資料總數
+            var start_end_count = 0;
+            //用來決定第i個selected從哪開始填入陣列(不然會被洗掉)
+            var origin = 0;
+            var start = [];
+            var end = [];
+            var array = [];
+            var patternArray = [];
+            for(var i=0 ; i<REGEX.length ; i++){
+                //定義輸入的regex值存進變數
+                let textToSearch = REGEX[i];
+                //定義輸入的文本存進變數
+                var text = document.getElementById("floatingTextarea2").value;
+                //處理輸入的regex文本
+                if (textToSearch){
+                    textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+                }
+                //將處理好的regex文本定義為新的regex物件
+                let pattern = new RegExp(`${textToSearch}`,"gi");
+                patternArray[i] = pattern;
+                //console.log("patternArray : " + patternArray);
+                while (match = pattern.exec(text)) {
+                    //console.log(match.index + ' ' + pattern.lastIndex);
+                    start[start_end_count] = match.index;
+                    end[start_end_count] = pattern.lastIndex;
+                    start_end_count += 1;
+                }                
+                for(var j=origin ; j<start_end_count ; j++){
+                    array[j] = [start[j], end[j], selected[i]]; 
+                }
+                origin = start_end_count;
+                
+                //console.log(pattern);
+            }
+            //螢光
+            $('#floatingTextarea2').highlightWithinTextarea({
+                highlight: patternArray
+            });
+
+            
+            
+            //顯示結果表格
+            if (selected.length != 0){
+                //console.log(result_array);
+                //創建表格元素
+                let myTable = document.querySelector('#result_data');
+                //console.log(Object.keys(result_array[0]));
+                let headers = ['Start','End','RegexName'];
+                let table = document.createElement('table');
+                let headerRow = document.createElement('tr');
+                headers.forEach(headerText => {
+                    let header = document.createElement('th');
+                    let textNode = document.createTextNode(headerText);
+                    header.appendChild(textNode);
+                    headerRow.appendChild(header);
+                });
+                table.appendChild(headerRow);
+                array.forEach(emp => {
+                    let row = document.createElement('tr');
+                    Object.values(emp).forEach(text => {
+                        let cell = document.createElement('td');
+                        let textNode = document.createTextNode(text);
+                        cell.appendChild(textNode);
+                        row.appendChild(cell);
+                    })
+                    table.appendChild(row);
+                });
+                myTable.appendChild(table);
+            }
+        }        
+    }
+
+    
+    //顯示未選regex
+    function display_noRegex(){
+        var x = document.getElementById("noRegex");
+        //console.log(x.style.visibility)
+        if (document.getElementById("noRegex").style.visibility != 'visible') {
+            document.getElementById("noRegex").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("noRegex").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+    
+    //顯示未輸入
+    function display_noInput(){
+        var x = document.getElementById("noInput");
+        //console.log(x.style.visibility)
+        if (document.getElementById("noInput").style.visibility != 'visible') {
+            document.getElementById("noInput").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("noInput").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+
+    //產生表格.按鈕 + 監聽按鈕
+    function createReportButton(){
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getReportID' %}',
+            data:{
+            },
+            success:async function (response){
+                array = [];
+                for (var i=0 ; i<response.data.length ; i++){
+                    array[0] = ["Report"];
+                    array.push([response.data[i].reportID]);
+                }
+                console.log(array);
+                if(array.length > 0){
+                    //console.log("sheet_data : " + array[0]);
+                    var table_output = '<table class="table table-striped table-bordered" id="reportTable" style="width:200px; height:600px; display: block; overflow: auto; " >';    
+                    for(var row = 0; row < array.length; row++){
+                        table_output += '<tr style="user-select:none;">';    
+                        for(var cell = 0; cell < array[row].length; cell++){
+                            if(row == 0){    
+                                table_output += '<th>'+array[row][cell]+'</th>';    
+                            }else{    
+                                table_output += '<td><div class="btndiv" id="reportbtn" style="height: 50px; overflow:hidden;"><button type="button" class="btn btn-light" name="reportButton" value="' + array[row][cell] + '">'+array[row][cell]+'</button></div></td>';    
+                            }    
+                        }    
+                        table_output += '</tr>';
+                    }    
+                    table_output += '</table>';
+                    document.getElementById('reportText').innerHTML = table_output;
+                }
+                getTableElementOfReport();
+            },
+        })
+    }
+
+    //取得表格ID
+    function getTableElementOfReport(){
+        //test get button
+        var text = document.getElementById('floatingTextarea2').innerHTML;
+        var button = document.getElementsByName("reportButton");
+        console.log("button: " + button[0].value);
+        for (var i=0 ; i<button.length ; i++){
+            button[i].addEventListener('click', function(event) {
+                console.log("clicked : " + $(this)[0].value);
+                getReport($(this)[0].value);
+            });
+        }
+    }
+
+    //用按鈕value丟到後端取得reportText
+    function getReport(reportID){
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getReportText' %}',
+            data:{
+                'reportID': reportID,
+            },
+            success:async function (response){
+                console.log(response.reportText);
+                document.getElementById('floatingTextarea2').value += response.reportText + '\n\n';
+                document.getElementById('floatingTextarea2').innerHTML += response.reportText + '\n\n';                
+            },
+        })
+    }
+
+    
+
+    
+    </script>
