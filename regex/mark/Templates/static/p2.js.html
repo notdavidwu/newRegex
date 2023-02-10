@@ -1,7 +1,7 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
-<script>
+<script>    
     $(document).ready(function () {
         const excel_file = document.getElementById('excel_file'); 
         var text;   
@@ -62,7 +62,20 @@
             //取得已選取的regex
             var selected = getAllSelectedRegex();
             //console.log("selected : " + selected);
-            batchProcessingExtract(selected);
+            processingExtract(selected);
+        });
+
+        //按下執行全部按鈕
+        $("#page2ExecuteAll").click(function(){
+            
+            
+            //取得所有已生成的textarea
+            var textArea = document.getElementsByClassName('text');
+            console.log(textArea[1]);
+            //取得已選取的regex
+            var selected = getAllSelectedRegex();
+            //console.log("selected : " + selected);
+            BatchProcessingExtract(selected);
         });
 
         //按下清除所有按鈕
@@ -88,9 +101,35 @@
         createReportButton();
         //console.log("x : " + document.getElementsByName("reportButton")[0].value);
         
+        //根據select哪個textarea
+        $("#selectOutput").on('change', function() {
+            id = document.getElementById('selectOutput').value;            
+            //隱藏所有textarea
+            var textArea = document.getElementsByClassName('text');
+            for (var i=0 ; i<textArea.length ; i++){
+                if (textArea[i].style.display != "none"){
+                    textArea[i].style.display = "none";
+                    console.log("break " + i);
+                    break;
+                }
+            }
+            //被選取的textarea顯示
+            //console.log("id : " + id);
+            document.getElementById("id"+id).style.display = "block";
+            //選中的文章按鈕加邊框 前任刪邊框
+            selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
+            console.log("selected BUTTON :" + selectedButton);
+            if (selectedButton[0]){
+                selectedButton[0].classList.remove('border','border-primary');
+            }               
+            document.getElementById(id).className += " " + "border border-primary";
+        });
 
-    
-        
+        //快速鍵 20230210之後再做
+        //document.onkeydown = function (e) {
+        //    console.log('key down');
+        //    console.log(e);
+        //};
     });
     
     //抓regexName(token)
@@ -175,14 +214,18 @@
     }
 
 
-    //批量萃取
-    function batchProcessingExtract(selected){
+    //萃取單筆
+    function processingExtract(selected){
         if (selected.length == 0){
             display_noRegex();
+            return
         }
-        var valueText = document.getElementById("floatingTextarea2").value;
-        if (valueText == ""){
+        var selectedOption = document.getElementById("selectOutput").value
+        var valueText = document.getElementById("id" + selectedOption);
+        //console.log("valuetext :" + valueText.value);
+        if (!valueText){
             display_noInput();
+            return
         }
         //console.log("selected : " + selected);
         //萃取模式
@@ -195,7 +238,188 @@
             var REGEX = [];
             var TokenType = [];
             var ItemName = [];
-            //迴圈執行陣列走訪+萃取
+            //迴圈執行陣列走訪(提取RE)
+            for(var i=0 ; i<selected.length ; i++){
+                //console.log("element is :" + selected[i]);
+                //找tokenID
+                $.ajax({
+                    async: false,
+                    type: 'GET',
+                    url: '{% url 'checkName' %}',
+                    data:{
+                        'Name': selected[i],
+                    },
+                    //成功找RE
+                    success:function (response){
+                        TokenID.push(response.tokenID);
+                        TokenType.push(response.tokenType);
+                        //console.log("TokenID : " + response.tokenID);
+                        $.ajax({
+                            async: false,
+                            type: 'GET',
+                            url: '{% url 'checkRE' %}',
+                            data:{
+                                'tokenID': response.tokenID,
+                            },
+                            success:function (response1){
+                                REGEX.push(response1.RE);
+                                //如果是E就找第三張表
+                                if (response.tokenType === 'E'){
+                                    $.ajax({
+                                        async: false,
+                                        type: 'GET',
+                                        url: '{% url 'checkREItem' %}',
+                                        data:{
+                                            'tokenREID': response1.tokenREID,
+                                        },
+                                        success:function (response2){
+                                            //console.log("itemName : " + response2.data[1].itemName);
+                                            for (var itemnameLen=0 ; itemnameLen<response2.data.length ; itemnameLen++){
+                                                ItemName.push(response2.data[itemnameLen].itemName);
+                                                //console.log("itemName : " + ItemName);
+                                            }                                            
+                                        },
+                                    });
+
+                                }
+                                //console.log("RE : " + response1.RE)
+                            },
+                        });
+                        //console.log("com : " + TokenID + REGEX);            
+                    },
+                });
+                
+            }
+            console.log("regex: " + REGEX);
+            //取出的資料總數
+            var start_end_count = 0;
+            //用來決定第i個selected從哪開始填入陣列(不然會被洗掉)
+            var origin = 0;
+            var start = [];
+            var end = [];
+            var array = [];
+            var patternArray = [];
+            for(var i=0 ; i<REGEX.length ; i++){
+                //定義輸入的regex值存進變數
+                let textToSearch = REGEX[i];
+                //處理輸入的regex文本
+                if (textToSearch){
+                    textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+                }
+                //將處理好的regex文本定義為新的regex物件
+                let pattern = new RegExp(`${textToSearch}`,"gi");
+                //若是選擇DB就存起來
+                var selectExcelDB = document.getElementById("selectExcelDB");
+                if (selectExcelDB.value === "DB"){
+
+                    paragraph = valueText.innerHTML
+                    //將輸出文本與regex物件有符合的地方取代為空白      
+                    x = paragraph.replace(pattern, " ");
+
+                    //console.log("x : " + x );
+                    valueText.innerHTML = paragraph.replace(pattern, " ");
+                    //console.log("selected DB");
+                    //第一步先update analyseText
+                    //$.ajax({
+                    //    async: false,
+                    //    type: 'PATCH',
+                    //    url: '{% url 'getReportText' %}',
+                    //    data:{
+                    //        'residualText': response1.tokenREID,
+                    //    },
+                    //    success:function (response2){
+                    //        //console.log("itemName : " + response2.data[1].itemName);
+                    //        for (var itemnameLen=0 ; itemnameLen<response2.data.length ; itemnameLen++){
+                    //            ItemName.push(response2.data[itemnameLen].itemName);
+                    //            console.log("itemName : " + ItemName);
+                    //        }                                            
+                    //    },
+                    //});
+                    patternArray[i] = pattern;
+                    //console.log("paragraph : " + paragraph);
+                    while (match = pattern.exec(paragraph)) {
+                        //console.log(match.index + ' ' + pattern.lastIndex);
+                        start[start_end_count] = match.index;
+                        end[start_end_count] = pattern.lastIndex;
+                        start_end_count += 1;
+                        console.log("match : " + match);                    
+                        //var textOfTextArea = document.getElementById("id"+ selectedOption);
+                        //textOfTextArea.innerHTML = "text";
+                    }                
+                    for(var j=origin ; j<start_end_count ; j++){
+                        array[j] = [start[j], end[j], selected[i]]; 
+                    }
+                    origin = start_end_count;
+                }
+                
+                //console.log(pattern);
+            }
+            //螢光
+            //console.log("hightlight: " + selectedOption + patternArray);
+            //x = $('#id'+selectedOption).highlightWithinTextarea({
+            //    highlight: patternArray
+            //});
+            //console.log("x: "  + x);
+            //var textOfTextArea = document.getElementById("id"+ selectedOption);
+            //textOfTextArea.innerHTML = "text";
+            
+            
+            //顯示結果表格
+            if (selected.length != 0){
+                //console.log(result_array);
+                //創建表格元素
+                let myTable = document.querySelector('#result_data');
+                //console.log(Object.keys(result_array[0]));
+                let headers = ['Start','End','RegexName'];
+                let table = document.createElement('table');
+                let headerRow = document.createElement('tr');
+                headers.forEach(headerText => {
+                    let header = document.createElement('th');
+                    let textNode = document.createTextNode(headerText);
+                    header.appendChild(textNode);
+                    headerRow.appendChild(header);
+                });
+                table.appendChild(headerRow);
+                array.forEach(emp => {
+                    let row = document.createElement('tr');
+                    Object.values(emp).forEach(text => {
+                        let cell = document.createElement('td');
+                        let textNode = document.createTextNode(text);
+                        cell.appendChild(textNode);
+                        row.appendChild(cell);
+                    })
+                    table.appendChild(row);
+                });
+                myTable.appendChild(table);
+            }
+        }        
+    }
+
+    //萃取全部(需要iter的是文章id 取得文章內容)
+    function BatchProcessingExtract(selected){
+        if (selected.length == 0){
+            display_noRegex();
+            return
+        }
+        var selectedOption = document.getElementById("selectOutput").value
+        var valueText = document.getElementById("id" + selectedOption);
+        //console.log("valuetext :" + valueText.value);
+        if (!valueText){
+            display_noInput();
+            return
+        }
+        //console.log("selected : " + selected);
+        //萃取模式
+        if ((selected.length != 0) && (valueText != "")) {
+            //console.log("array is not null");
+            let buttons = document.querySelector('#excelTable');  //步驟1
+            //console.log(buttons);              
+
+            var TokenID = [];
+            var REGEX = [];
+            var TokenType = [];
+            var ItemName = [];
+            //迴圈執行陣列走訪(提取RE)
             for(var i=0 ; i<selected.length ; i++){
                 //console.log("element is :" + selected[i]);
                 //找tokenID
@@ -259,34 +483,66 @@
             for(var i=0 ; i<REGEX.length ; i++){
                 //定義輸入的regex值存進變數
                 let textToSearch = REGEX[i];
-                //定義輸入的文本存進變數
-                var text = document.getElementById("floatingTextarea2").value;
                 //處理輸入的regex文本
                 if (textToSearch){
                     textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
                 }
                 //將處理好的regex文本定義為新的regex物件
                 let pattern = new RegExp(`${textToSearch}`,"gi");
-                patternArray[i] = pattern;
-                //console.log("patternArray : " + patternArray);
-                while (match = pattern.exec(text)) {
-                    //console.log(match.index + ' ' + pattern.lastIndex);
-                    start[start_end_count] = match.index;
-                    end[start_end_count] = pattern.lastIndex;
-                    start_end_count += 1;
-                }                
-                for(var j=origin ; j<start_end_count ; j++){
-                    array[j] = [start[j], end[j], selected[i]]; 
+                //若是選擇DB就存起來
+                var selectExcelDB = document.getElementById("selectExcelDB");
+                if (selectExcelDB.value === "DB"){
+
+                    paragraph = valueText.innerHTML
+                    //將輸出文本與regex物件有符合的地方取代為空白
+                    x = paragraph.replace(pattern, " ");
+
+                    //console.log("x : " + x );
+                    valueText.innerHTML = paragraph.replace(pattern, " ");
+                    //console.log("selected DB");
+                    //第一步先update analyseText
+                    //$.ajax({
+                    //    async: false,
+                    //    type: 'PATCH',
+                    //    url: '{% url 'getReportText' %}',
+                    //    data:{
+                    //        'residualText': response1.tokenREID,
+                    //    },
+                    //    success:function (response2){
+                    //        //console.log("itemName : " + response2.data[1].itemName);
+                    //        for (var itemnameLen=0 ; itemnameLen<response2.data.length ; itemnameLen++){
+                    //            ItemName.push(response2.data[itemnameLen].itemName);
+                    //            console.log("itemName : " + ItemName);
+                    //        }
+                    //    },
+                    //});
+                    patternArray[i] = pattern;
+                    //console.log("paragraph : " + paragraph);
+                    while (match = pattern.exec(paragraph)) {
+                        //console.log(match.index + ' ' + pattern.lastIndex);
+                        start[start_end_count] = match.index;
+                        end[start_end_count] = pattern.lastIndex;
+                        start_end_count += 1;
+                        console.log("match : " + match);
+                        //var textOfTextArea = document.getElementById("id"+ selectedOption);
+                        //textOfTextArea.innerHTML = "text";
+                    }                
+                    for(var j=origin ; j<start_end_count ; j++){
+                        array[j] = [start[j], end[j], selected[i]]; 
+                    }
+                    origin = start_end_count;
                 }
-                origin = start_end_count;
                 
                 //console.log(pattern);
             }
             //螢光
-            $('#floatingTextarea2').highlightWithinTextarea({
-                highlight: patternArray
-            });
-
+            //console.log("hightlight: " + selectedOption + patternArray);
+            //x = $('#id'+selectedOption).highlightWithinTextarea({
+            //    highlight: patternArray
+            //});
+            //console.log("x: "  + x);
+            //var textOfTextArea = document.getElementById("id"+ selectedOption);
+            //textOfTextArea.innerHTML = "text";
             
             
             //顯示結果表格
@@ -317,6 +573,9 @@
                 });
                 myTable.appendChild(table);
             }
+
+
+            
         }        
     }
 
@@ -370,7 +629,7 @@
                             if(row == 0){    
                                 table_output += '<th>'+array[row][cell]+'</th>';    
                             }else{    
-                                table_output += '<td><div class="btndiv" id="reportbtn" style="height: 50px; overflow:hidden;"><button type="button" class="btn btn-light" name="reportButton" value="' + array[row][cell] + '">'+array[row][cell]+'</button></div></td>';    
+                                table_output += '<td><div class="btndiv" id="reportbtn" style="height: 50px; overflow:hidden;"><button type="button"  class="btn btn-light" name="reportButton" id="' + array[row][cell] + '" value="' + array[row][cell] + '">'+array[row][cell]+'</button></div></td>';    
                             }    
                         }    
                         table_output += '</tr>';
@@ -388,11 +647,18 @@
         //test get button
         var text = document.getElementById('floatingTextarea2').innerHTML;
         var button = document.getElementsByName("reportButton");
-        console.log("button: " + button[0].value);
         for (var i=0 ; i<button.length ; i++){
-            button[i].addEventListener('click', function(event) {
-                console.log("clicked : " + $(this)[0].value);
+            button[i].addEventListener('click', function(event) {                
+                //console.log("clicked : " + $(this)[0].value);
                 getReport($(this)[0].value);
+                //console.log("class : " + $(this)[0].className);
+                if ($(this)[0].className === "btn btn-light"){
+                    $(this)[0].className = "btn btn-light active";
+                    //console.log("class : " + $(this)[0].className);
+                }else if ($(this)[0].className === "btn btn-light active"){
+                    $(this)[0].className = "btn btn-light";
+                    //console.log("class : " + $(this)[0].className);
+                }
             });
         }
     }
@@ -406,11 +672,135 @@
                 'reportID': reportID,
             },
             success:async function (response){
-                console.log(response.reportText);
-                document.getElementById('floatingTextarea2').value += response.reportText + '\n\n';
-                document.getElementById('floatingTextarea2').innerHTML += response.reportText + '\n\n';                
+                //console.log(response.reportText);
+                //document.getElementById('floatingTextarea2').value += response.reportText + '\n\n';
+                //document.getElementById('floatingTextarea2').innerHTML += response.reportText + '\n\n';
+                //產生
+
+                //Button toggle
+                var btn = document.getElementById(reportID);
+                if (btn.className === "btn btn-light active"){
+                    //新增選項
+                    var option = document.createElement("option");
+                    option.id = reportID + "option";
+                    option.class = "selectOption";
+                    option.text = reportID;
+                    option.value = reportID;
+                    var select = document.getElementById("selectOutput");
+                    select.appendChild(option);
+                    //取消選取所有option
+                    var OP = document.getElementsByClassName('selectOption');
+                    for (var i=0 ; i<OP.length ; i++){
+                        if (OP[i].selected != false){
+                            OP[i].selected = false;
+                            break;
+                        }
+                    }
+                    //選擇剛生成的option
+                    document.getElementById(reportID + "option").selected = true;
+
+                    //隱藏所有textarea
+                    var textArea = document.getElementsByClassName('text');
+                    for (var i=0 ; i<textArea.length ; i++){
+                        if (textArea[i].style.display != "none"){
+                            textArea[i].style.display = "none";
+                            break;
+                        }
+                    }
+                    //新增textarea
+                    document.getElementById("textAreaDiv").innerHTML += '<textarea class="text" id="id'+ reportID +'" value="'+ response.reportText +'" style="width:600px; height:300px; display:block; overflow:auto;">'+ response.reportText +'</textarea>';
+                    //新增的textarea顯示
+                    $("#"+reportID+"").attr("display","block");
+
+                    
+                    //選中的文章按鈕加邊框 前任刪邊框
+                    selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
+                    //console.log("selected BUTTON :" + selectedButton);
+                    if (selectedButton[0]){
+                        selectedButton[0].classList.remove('border','border-primary');
+                    }               
+                    document.getElementById(reportID).className += " " + "border border-primary"; 
+                }
+                else if (btn.className === "btn btn-light"){
+                    //刪除選項
+                    var selectobject = document.getElementById("selectOutput");
+                    for (var i=0; i<selectobject.length; i++) {
+                        if (selectobject.options[i].value == reportID){
+                            selectobject.remove(i);
+                            break;
+                        }
+                    }
+                    console.log("selected :" + selectobject.value);
+                    //隱藏所有textarea
+                    var textArea = document.getElementsByClassName('text');
+                    for (var i=0 ; i<textArea.length ; i++){
+                        if(textArea[i].style.display != "none"){
+                            textArea[i].style.display = "none";
+                            break;
+                        }
+                    }
+                    //被選取的textarea顯示
+                    if (selectobject.value){
+                        document.getElementById("id"+selectobject.value).style.display = "block";
+                    }
+                    //刪除被取消選取的textArea
+                    var element = document.getElementById("id" + reportID);
+                    element.parentNode.removeChild(element);
+
+                }
+                else if (btn.className === "btn btn-light active border border-primary") {
+                    console.log("selected button touched !!!");
+                    
+                    
+
+                    //取消邊框.active
+                    selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
+                    //console.log("selected BUTTON :" + selectedButton);
+                    if (selectedButton[0]){
+                        selectedButton[0].classList.remove('border', 'border-primary', 'active');
+                    }
+
+                    //刪除被取消選取的textArea
+                    var element = document.getElementById("id" + reportID);
+                    element.parentNode.removeChild(element);
+                    
+                    //刪除被取消選取的option
+                    var deleteOption = document.getElementById(reportID + "option");
+                    deleteOption.parentNode.removeChild(deleteOption);
+
+                    //選擇第一筆已選取按鈕
+                    leftButton = document.getElementsByClassName("btn btn-light active");
+                    if (leftButton[0]){
+                        //console.log("there's button left!!!");
+                        //console.log("leftbutton : " + leftButton[0].id);
+
+                        //顯示已選取按鈕邊框
+                        document.getElementById(leftButton[0].id).className = "btn btn-light active border border-primary";
+                        
+                        //顯示第一筆已選取文章
+                        leftTextArea = document.getElementById("id"+leftButton[0].id);
+                        console.log("leftTextArea :" + leftTextArea.id);
+                        leftTextArea.style.display = "block";
+
+                        //選擇剩下的第一筆選項
+                        document.getElementById(leftButton[0].id + "option").selected = true;
+                        //傳入button.id調整table位置
+                        trigger(leftButton[0].id);
+                    }
+
+                }         
             },
         })
+    }
+
+    //調整table位置
+    function trigger(buttonId){
+        //往父級找 找到第一個tr(返回陣列值)
+        var $objTr = $(`#${buttonId}`).parents('tr');
+        //取得返回值的第一個
+        var objTr = $objTr[0];
+        //捲動動畫
+        $('#reportTable').animate({scrollTop:(objTr.offsetTop-250)},'normal');
     }
 
     

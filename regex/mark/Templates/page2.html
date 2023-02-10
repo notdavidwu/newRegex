@@ -22,7 +22,7 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
           <a class="navbar-brand" href="{% url 'home' %}" id="title" >RegexBuilder</a>
-          <a class="navbar-brand" href="{% url 'Page2' %}" id="title1">Excel</a>
+          <a class="navbar-brand" href="{% url 'Page2' %}" id="title1">Batch Process</a>
         </div>
     </nav>
   </br>
@@ -64,17 +64,18 @@
     </div>
 
     <div class="container" id="select" >
-        <div class="p-3 mb-2 bg-danger-subtle text-emphasis-danger" id="selectRegex">Select Regex you want to use.</div>
-        <div class="p-3 mb-2 bg-warning-subtle text-emphasis-warning" id="tokenContainer" ></div>
+        <div class="p-3 mb-2 bg-primary-subtle text-emphasis-primary" id="selectRegex">Select Regex you want to use.</div>
+        <div class="p-3 mb-2 bg-success-subtle text-emphasis-success" id="tokenContainer" ></div>
     </div>
     <div>
       <div id="table" class="tabletable-bordered" ></div>
     </div>
     <button type="button" class="btn btn-secondary" id="page2Execute" >Execute</button>    
+    <button type="button" class="btn btn-secondary" id="page2ExecuteAll" >ExecuteALL</button>    
     <button type="button" class="btn btn-danger" id="page2ClearALL" >ClearALL</button>
         
-    <div class="form-floating" >
-      <textarea class=""  id="floatingTextarea2" ></textarea>
+    <div class="form-floating" id="textAreaDiv">
+      <textarea class="text"  id="floatingTextarea2" ></textarea>
     </div>
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectRegexType">
       <option selected >Select Type</option>
@@ -84,6 +85,8 @@
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectExcelDB">
       <option selected value="DB">DB</option>
       <option value="Excel">Excel</option>
+    </select>
+    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectOutput">
     </select>
     <div class="alert alert-danger" role="alert" id="noRegex">
       Please select a regex!!

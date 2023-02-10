@@ -447,8 +447,39 @@ def getReportText(request):
             result['reportText'] = []
             result['reportText'].append(reportID.reportText)
         conn.close()
+
+    if request.method == 'PATCH':
+        #取得資料
+        result = {'status':'1'} #預設沒找到
         
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer'
+        password = 'test81218'
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        print("patch in")
+        #更新資料表
+        query = 'update analyseText set analysed = ?, residualText = ? where reportID = ?;'
+        args = ["Y", request.GET['residualText'], request.GET['reportID']]
+        x = cursor.execute(query, args)
+        
+        conn.commit()
+        #reportID = cursor.fetchone()
+        print(x)
+
+        # #有找到
+        # if reportID != None:
+        #     #print(reportID.reportText)
+        #     result['status'] = '0'
+        #     result['reportText'] = []
+        #     result['reportText'].append(reportID.reportText)
+        conn.close()        
     return JsonResponse(result)
+
+
+
 
 
 class Home(ListView):

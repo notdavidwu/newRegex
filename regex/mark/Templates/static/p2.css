@@ -99,7 +99,13 @@
 
   #page2Execute {    
     position:absolute;
-    right:535px;
+    right:635px;
+    top:430px;
+  }
+
+  #page2ExecuteAll {    
+    position:absolute;
+    right:480px;
     top:430px;
   }
 
@@ -173,6 +179,13 @@
   #reportText {
     position:absolute;
     top:100px;
+  }
+
+  #selectOutput {
+    position:absolute;
+    right:850px;
+    top:65px;
+    width:150px;
   }
    
   

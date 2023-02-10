@@ -73,8 +73,8 @@
 
     //存檔到後端資料庫
     function BtnClicked_1(count,itemName){
-        console.log("execute in")
-        console.log(itemName)        
+        //console.log("execute in")
+        //console.log(itemName)        
         token = document.getElementById('regexName').value        
         tokenType = document.getElementById('dropdownbutton').value
         console.log("tokenType : " + tokenType)
@@ -99,6 +99,10 @@
                 if (tokenType == 'E'){
                     BtnClicked_2(response,itemName);
                 }
+                if (tokenType == 'T'){
+                    BtnClicked_2(response);
+                }
+
             },
             fail:function (){         
             },
@@ -121,7 +125,9 @@
             },
             success:function (response){    
                 console.log("btnclicked3")
-                BtnClicked_3(response,itemName);
+                if (tokenType == 'E'){
+                    BtnClicked_3(response,itemName);
+                }
             },
             fail:function (){              
             },
@@ -283,13 +289,20 @@
                     });
                     myTable.appendChild(table);
                 }
-                if (result_array[0] != null){
+                var tokenType = document.getElementById('dropdownbutton').value;
+                if (tokenType == "E"){
                     console.log("result_array :" + Object.keys(result_array[0]));
-                    console.log("save pressed");
+                    console.log("save pressed E");
                     //資料到後端儲存
                     BtnClicked_1(extractedArray.length,Object.keys(result_array[0]));
                     document.getElementById("returnbtn").style.visibility = 'visible';
 
+                }
+                if (tokenType == "T"){
+                    //console.log("result_array :" + Object.keys(result_array[0]));
+                    console.log("save pressed T " + extractedArray.length);
+                    BtnClicked_1(extractedArray.length);
+                    //document.getElementById("returnbtn").style.visibility = 'visible';
                 }
             }
         }
