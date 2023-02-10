@@ -66,9 +66,7 @@
         });
 
         //按下執行全部按鈕
-        $("#page2ExecuteAll").click(function(){
-            
-            
+        $("#page2ExecuteAll").click(function(){           
             //取得所有已生成的textarea
             var textArea = document.getElementsByClassName('text');
             console.log(textArea[1]);
@@ -123,6 +121,9 @@
                 selectedButton[0].classList.remove('border','border-primary');
             }               
             document.getElementById(id).className += " " + "border border-primary";
+            
+            //傳入button.id調整table位置
+            trigger(id);
         });
 
         //快速鍵 20230210之後再做
