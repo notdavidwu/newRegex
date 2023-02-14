@@ -131,9 +131,9 @@
 
   #result_data {
     position:absolute;
-    right:750px;
+    right:620px;
     top:500px;
-    width:250px;
+    width:380px;
     height:350px;
     overflow:auto;
   }
@@ -156,6 +156,16 @@
   }
 
   #noInput {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #noMatch {
     height:60px;
     width:300px;
     position:absolute;

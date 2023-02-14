@@ -12,6 +12,7 @@ from mark.forms import *
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import re
 import pyodbc
+import json
 
 
     # queryset = Text.objects.all()
@@ -435,7 +436,7 @@ def getReportText(request):
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
-        query = 'SELECT * FROM analyseText where reportID = ?;'        
+        query = 'SELECT * FROM analyseText where reportID = ?;'
         args = [request.GET['reportID']]
         cursor.execute(query, args)
         reportID = cursor.fetchone()
@@ -445,7 +446,12 @@ def getReportText(request):
             #print(reportID.reportText)
             result['status'] = '0'
             result['reportText'] = []
-            result['reportText'].append(reportID.reportText)
+            # result['reportText'].append(reportID.reportText)
+            if reportID.analysed == 'N':
+                result['reportText'].append(reportID.reportText)
+            else:
+                result['reportText'].append(reportID.residualText)
+
         conn.close()
 
     if request.method == 'PATCH':
@@ -459,23 +465,139 @@ def getReportText(request):
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        print("patch in")
+        # print("patch in")
         #更新資料表
-        query = 'update analyseText set analysed = ?, residualText = ? where reportID = ?;'
-        args = ["Y", request.GET['residualText'], request.GET['reportID']]
-        x = cursor.execute(query, args)
+        query = 'update analyseText  set analysed = ?, residualText = ? output INSERTED.reportID where reportID = ?;'
+        raw = request.body.decode('utf-8')
+        body = json.loads(raw)
+        # print('data : ' + data.getlist['residualText'])
+        print( body['reportID'])
         
-        conn.commit()
-        #reportID = cursor.fetchone()
-        print(x)
+        args = ["Y", body['residualText'], body['reportID']]
+        
+        cursor.execute(query, args)
+        reportID = cursor.fetchone()
+        print(reportID[0])
 
-        # #有找到
-        # if reportID != None:
-        #     #print(reportID.reportText)
-        #     result['status'] = '0'
-        #     result['reportText'] = []
-        #     result['reportText'].append(reportID.reportText)
-        conn.close()        
+        #有找到
+        if reportID != None:
+            #print(reportID.reportText)
+            result['status'] = '0'
+            result['reportID'] = reportID[0]        
+        conn.commit()
+        conn.close()
+
+    if request.method == 'POST':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        
+        query = "select * from Vocabulary output where token = ?"
+        args = [request.POST.get('token')]
+        cursor.execute(query, args)
+        tokenID = cursor.fetchone()
+        result['data'] = []
+        
+        #取得post資料
+        # result['data'] = []
+        record = {}
+        record['reportID'] = request.POST.get('reportID')
+        record['posStart'] = request.POST.get('posStart')
+        record['posEnd'] = request.POST.get('posEnd')
+        record['tokenID'] = tokenID.tokenID
+        result['data'].append(record)
+
+        #插入資料表
+        query = 'INSERT into textToken (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+        args = [request.POST.get('reportID'), request.POST.get('posStart'), request.POST.get('posEnd'), tokenID.tokenID]
+        cursor.execute(query, args)
+
+        conn.commit()
+        conn.close()
+        result['status'] = '0'
+        print(result)
+    return JsonResponse(result)
+
+@csrf_exempt
+def getTokenREItemID(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設沒找到
+        
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer'
+        password = 'test81218'
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        #查詢tokenID
+        query = 'SELECT * FROM Vocabulary where token = ?;'
+        args = [request.GET['token']]
+        cursor.execute(query, args)
+        tokenID = cursor.fetchone()
+
+        #查詢tokenREID
+        query = 'SELECT * FROM tokenRE where tokenID = ?;'
+        args = [tokenID.tokenID]
+        cursor.execute(query, args)
+        tokenREID = cursor.fetchone()
+
+        if tokenID.tokenType == 'E':
+            #查詢tokenREItemID
+            query = 'SELECT * FROM tokenREItem where tokenREID = ? and itemName = ?;'
+            args = [tokenREID.tokenREID,request.GET['itemName']]
+            cursor.execute(query, args)
+            tokenREItemID = cursor.fetchone()
+
+
+
+        #有找到
+        if tokenID != None:
+            result['status'] = '0'
+            result['tokenID'] = tokenID.tokenID
+            result['tokenREID'] = tokenREID.tokenREID
+            result['tokenType'] = tokenID.tokenType
+            if tokenID.tokenType == 'E':
+                result['tokenREItemID'] = tokenREItemID.tokenREItemID
+        #     print(token[0])
+        conn.close()
+
+    if request.method == 'POST':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        
+        #取得post資料
+        record = {}
+        result['data'] = []
+        record['reportID'] = request.POST.get('reportID')
+        record['posStart'] = request.POST.get('posStart')
+        record['tokenREItemID'] = request.POST.get('tokenREItemID')
+        record['extractedValue'] = request.POST.get('extractedValue')
+        result['data'].append(record)
+
+        #插入資料表
+        query = 'INSERT into extractedValueFromToken (reportID, posStart, tokenREItemID, extractedValue) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+        args = [request.POST.get('reportID'), request.POST.get('posStart'), request.POST.get('tokenREItemID'), request.POST.get('extractedValue')]
+        cursor.execute(query, args)
+
+        conn.commit()
+        conn.close()
+        result['status'] = '0'
+        print(result)
     return JsonResponse(result)
 
 

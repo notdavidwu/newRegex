@@ -38,6 +38,7 @@ urlpatterns = [
     path('getAnalyseText/', getAnalyseText, name="getAnalyseText"),
     path('getReportID/', getReportID, name="getReportID"),
     path('getReportText/', getReportText, name="getReportText"),
+    path('getTokenREItemID/', getTokenREItemID, name="getTokenREItemID"),
     
     path('', Home.as_view(),name="home"),
     path('Page2/', Page2.as_view(),name="Page2"),
