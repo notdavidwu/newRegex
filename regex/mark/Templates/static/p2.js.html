@@ -405,8 +405,7 @@
             var start = [];
             var end = [];
             var array = [];
-            var patternArray = [];            
-            var matchArrayIndex = 0;
+            var patternArray = [];
             for(var i=0 ; i<REGEX.length ; i++){
                 //定義輸入的regex值存進變數
                 let textToSearch = REGEX[i];
@@ -419,37 +418,16 @@
                 //若是選擇DB就存起來
                 var selectExcelDB = document.getElementById("selectExcelDB");
                 if (selectExcelDB.value === "DB"){
-
-                    paragraph = valueText.innerHTML
+                    paragraph = valueText.innerHTML;
                     //將輸出文本與regex物件有符合的地方取代為空白
                     x = paragraph.replace(pattern, " ");
-
                     //console.log("x : " + x );
-                    valueText.innerHTML = paragraph.replace(pattern, " ");
-                    
+                    valueText.innerHTML = paragraph.replace(pattern, " ");                    
                     //無符合配對20230213之後修
                     //if (valueText.innerHTML == paragraph){                            
                     //    display_noMatch(textToSearch);
                     //    return;
                     //}
-
-                    //console.log("selected DB");
-                    //第一步先update analyseText
-                    //$.ajax({
-                    //    async: false,
-                    //    type: 'PATCH',
-                    //    url: '{% url 'getReportText' %}',
-                    //    data:{
-                    //        'residualText': response1.tokenREID,
-                    //    },
-                    //    success:function (response2){
-                    //        //console.log("itemName : " + response2.data[1].itemName);
-                    //        for (var itemnameLen=0 ; itemnameLen<response2.data.length ; itemnameLen++){
-                    //            ItemName.push(response2.data[itemnameLen].itemName);
-                    //            console.log("itemName : " + ItemName);
-                    //        }
-                    //    },
-                    //});
                     patternArray[i] = pattern;
                     //console.log("paragraph : " + paragraph);
                     matchArray = [];
@@ -459,154 +437,178 @@
                         end[start_end_count] = pattern.lastIndex;
                         start_end_count += 1;
                         //console.log("match : " + match);
-                        matchArray.push(match.groups);
+                        if (match.groups){
+                            match.groups['tokenID'] = TokenID[i];
+                            matchArray.push(match.groups);
+                        }
                         //match.groups
-                        //console.log("matchGroups : " , match.groups);
-                        matchArrayIndex += 1;
-                        //var textOfTextArea = document.getElementById("id"+ selectedOption);
-                        //textOfTextArea.innerHTML = "text";
                     }
                     //console.log("matchArray : " , matchArray);
-                    //for (var x=0 ; x<matchArray.length ; x++){
-                    //    console.log("matchArray : " + matchArray[x]);
-                    //}
                     for(var j=origin ; j<start_end_count ; j++){
                         array[j] = [currentReportID,start[j], end[j], selected[i]]; 
                     }
                     origin = start_end_count;
-                }                
+                }
                 //console.log(pattern);
             }
-            //螢光
-            //console.log("hightlight: " + selectedOption + patternArray);
-            //x = $('#id'+selectedOption).highlightWithinTextarea({
-            //    highlight: patternArray
-            //});
-            //console.log("x: "  + x);
-            //var textOfTextArea = document.getElementById("id"+ selectedOption);
-            //textOfTextArea.innerHTML = "text";
-            
-            
+
             //顯示結果表格
             if (selected.length != 0 && array[0]){
-                //console.log(result_array);
-                //創建表格元素
-                let myTable = document.querySelector('#result_data');
-                //console.log(Object.keys(result_array[0]));
                 let headers = ['ReportID','Start','End','RegexName'];
-                let table = document.createElement('table');
-                let headerRow = document.createElement('tr');
-                headers.forEach(headerText => {
-                    let header = document.createElement('th');
-                    let textNode = document.createTextNode(headerText);
-                    header.appendChild(textNode);
-                    headerRow.appendChild(header);
-                });
-                table.appendChild(headerRow);
-                array.forEach(emp => {
-                    let row = document.createElement('tr');
-                    Object.values(emp).forEach(text => {
-                        let cell = document.createElement('td');
-                        let textNode = document.createTextNode(text);
-                        cell.appendChild(textNode);
-                        row.appendChild(cell);
-                    })
-                    table.appendChild(row);
-                });
-                myTable.appendChild(table);
+                showTable(headers, array);                
             }
-            
-            //測試取得對應index的itemname跟itemvalue(回傳陣列)
-            //console.log(Object.keys(matchArray[0]));
-            //console.log(Object.values(matchArray[0]));
-            //每篇文章的 每個RE的 每個match的 每個變數的值
-
 
             //update analyseText
+            //將二維陣列拆開放到後端
+            var reportID = [];
+            var posStart = [];
+            var posEnd = [];
+            var tokenID = [];
+            for (var i=0 ; i<array.length ; i++){
+                reportID[i] = array[i][0];
+                posStart[i] = array[i][1];
+                posEnd[i] = array[i][2];
+                tokenID[i] = array[i][3];
+            }
+            console.log("mathcArray : " , matchArray);
+
+            response = updateAnalyseText(currentReportID, valueText.innerHTML);
+            if (response.status === '0'){
+                response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
+                if (response1.status === '0'){
+                    console.log("response1 : " , response1);
+                    response2 = selecttokenREItem(matchArray);
+                    if (response2.status === '0'){
+                        //取得value.posStart
+                        var Value = [];
+                        for (var i=0 ; i<matchArray.length ; i++){
+                            Value.push(Object.values(matchArray[i]));
+                        }
+                        //console.log("values : ", Value);
+                        //console.log("posStart : ", posStart);
+                        insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
+                    }
+                }
+            }
             var arrayIndex = 0;            
             var extractArray = [];
+        }
+    }
+
+    //update analyseText
+    function updateAnalyseText(reportID, residualText){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'PATCH',
+            url: '{% url 'getReportText' %}',                
+            data:JSON.stringify({
+                'reportID' : reportID,
+                'residualText': residualText,
+            }),
+            success:function (response){
+                res = response;
+                console.log(response.status);
+            },
+        });
+        return res;
+    }
+
+    //找vocabulary + insert textToken
+    function selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID){
+        var res;
+        console.log("reportID :", reportID);
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'getReportText' %}',                
+            data:{
+                'reportID[]' : reportID,
+                'posStart[]' : posStart,
+                'posEnd[]' : posEnd,
+                'tokenID[]' : tokenID,
+            },
+            //成功存第三章表(每個array值會有一個tokenID.一次的match)
+            success:function (response){
+                res = response;
+            },
+        });
+        return res;
+    }
+
+    //查詢每個match的每個RE的每個變數的編號(25~31)
+    function selecttokenREItem(matchArray){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            url: '{% url 'getTokenREItemID' %}',
+            data: JSON.stringify(matchArray),
+            //成功存第三章表(每個array值會有一個tokenID.一次的match)
+            success:function (response){
+                res = response;
+            },
+        });
+        return res;
+    }
+
+    //新增extractedvaluefromtoken
+    function insertExtractedvaluefromtoken(reportID, posStart, response2, Value){
+        //console.log(response2.data[0]);
+        if (response2.status === "0"){
+            var tokenREItemID = response2.data[0].tokenREItemID;
+            var tokenType = response2.data[0].tokenType;
+            //console.log("tokenREItemID : ", tokenREItemID);
+            //console.log("tokenType : ", tokenType);
+
             $.ajax({
                 async: false,
-                type: 'PATCH',
-                url: '{% url 'getReportText' %}',                
-                data:JSON.stringify({
-                    'reportID' : currentReportID,
-                    'residualText': valueText.innerHTML,
-                }),
-                success:function (response){
-                    console.log(response.status);
-                    if (response.status === "0"){
-                        //console.log("update analyseText success : " + response.reportID);
-                        //陣列裡面每個值都存一次第二章表
-                        array.forEach(ary => {
-                            $.ajax({
-                                async: false,
-                                type: 'POST',
-                                url: '{% url 'getReportText' %}',                
-                                data:{
-                                    'reportID' : response.reportID,
-                                    'posStart': ary[1],
-                                    'posEnd': ary[2],
-                                    'token': ary[3],
-                                },
-                                //成功存第三章表(每個array值會有一個tokenID.一次的match)
-                                success:function (response1){
-                                    if (response1.status === "0" && matchArray[arrayIndex]){                                        
-                                        Key = Object.keys(matchArray[arrayIndex]);
-                                        Value = Object.values(matchArray[arrayIndex]);
-                                        for (var i=0 ; i<Key.length ; i++){
-                                            //console.log("i : " + i);
-                                            //console.log("value : " + Value[i]);
-                                            $.ajax({
-                                                async: false,
-                                                type: 'GET',
-                                                url: '{% url 'getTokenREItemID' %}',                
-                                                data:{
-                                                    'token' : ary[3],
-                                                    'itemName': Key[i],
-                                                },
-                                                //成功存第三章表(每個array值會有一個tokenID.一次的match)
-                                                success:function (response2){
-                                                    if (response2.status === "0" && response2.tokenType === "E"){
-                                                        extractArray[arrayIndex] = ([response.reportID, ary[1], response2.tokenREItemID, Value[i]])
-                                                        //console.log("tokenID : " + response2.tokenID);
-                                                        //console.log("tokenREID : " + response2.tokenREID);
-                                                        //console.log("tokenREItemID : " + response2.tokenREItemID);
-                                                        //console.log("extractArray : " + extractArray[arrayIndex]);
-                                                        $.ajax({
-                                                            async: false,
-                                                            type: 'POST',
-                                                            url: '{% url 'getTokenREItemID' %}',                
-                                                            data:{
-                                                                'reportID' : extractArray[arrayIndex][0],
-                                                                'posStart': extractArray[arrayIndex][1],
-                                                                'tokenREItemID': extractArray[arrayIndex][2],
-                                                                'extractedValue': extractArray[arrayIndex][3],
-                                                            },
-                                                            success:function (response3){
-                                                                //if (response3.status === "0"){
-                                                                //    console.log("extractedValueFromToken save Success !!!");
-                                                                //}
-                                                            },
-                                                        });
-                                                    }
-                                                },
-                                            });
-                                        }
-                                    }
-                                },
-                            });
-                            arrayIndex += 1;
-                        });
-
-
-
-
-
-                    }
+                type: 'POST',
+                url: '{% url 'insertExtractedValueFromToken' %}',
+                data: {
+                    'reportID[]' : reportID,
+                    'posStart[]' : posStart,
+                    'tokenREItemID[]' : tokenREItemID,
+                    'Value[]' : Value,
+                    'tokenType[]' : tokenType,
+                },
+                success:function (response3){
+                    //if (response3.status === "0"){
+                    //    console.log("extractedValueFromToken save Success !!!");
+                    //}
                 },
             });
-        }        
+        }
+
+    }
+
+    //顯示結果表格
+    function showTable(headers,array){
+        //console.log(result_array);
+        //創建表格元素
+        let myTable = document.querySelector('#result_data');
+        //console.log(Object.keys(result_array[0]));
+        let table = document.createElement('table');
+        let headerRow = document.createElement('tr');
+        headers.forEach(headerText => {
+            let header = document.createElement('th');
+            let textNode = document.createTextNode(headerText);
+            header.appendChild(textNode);
+            headerRow.appendChild(header);
+        });
+        table.appendChild(headerRow);
+        array.forEach(emp => {
+            let row = document.createElement('tr');
+            Object.values(emp).forEach(text => {
+                let cell = document.createElement('td');
+                let textNode = document.createTextNode(text);
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            })
+            table.appendChild(row);
+        });
+        myTable.appendChild(table);
     }
 
     

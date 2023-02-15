@@ -446,11 +446,11 @@ def getReportText(request):
             #print(reportID.reportText)
             result['status'] = '0'
             result['reportText'] = []
-            # result['reportText'].append(reportID.reportText)
-            if reportID.analysed == 'N':
-                result['reportText'].append(reportID.reportText)
-            else:
-                result['reportText'].append(reportID.residualText)
+            result['reportText'].append(reportID.reportText)
+            # if reportID.analysed == 'N':
+            #     result['reportText'].append(reportID.reportText)
+            # else:
+            #     result['reportText'].append(reportID.residualText)
 
         conn.close()
 
@@ -497,36 +497,33 @@ def getReportText(request):
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        
-        query = "select * from Vocabulary output where token = ?"
-        args = [request.POST.get('token')]
-        cursor.execute(query, args)
-        tokenID = cursor.fetchone()
-        result['data'] = []
-        
-        #取得post資料
-        # result['data'] = []
-        record = {}
-        record['reportID'] = request.POST.get('reportID')
-        record['posStart'] = request.POST.get('posStart')
-        record['posEnd'] = request.POST.get('posEnd')
-        record['tokenID'] = tokenID.tokenID
-        result['data'].append(record)
+        # print(request.POST)
+        reportID = request.POST.getlist('reportID[]')
+        posStart = request.POST.getlist('posStart[]')
+        posEnd = request.POST.getlist('posEnd[]')
+        tokenID = request.POST.getlist('tokenID[]')
+        # print(len(reportID), len(posStart), len(posEnd), len(tokenID))
+        # print(reportID, posStart, posEnd, tokenID)
+        for i in range(len(reportID)):
+            # print(reportID[i], posStart[i], posEnd[i], tokenID[i])
+            query = "select * from Vocabulary where token = ?"
+            args = [tokenID[i]]
+            cursor.execute(query, args)
+            id = cursor.fetchone()
 
-        #插入資料表
-        query = 'INSERT into textToken (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
-        args = [request.POST.get('reportID'), request.POST.get('posStart'), request.POST.get('posEnd'), tokenID.tokenID]
-        cursor.execute(query, args)
+            #插入資料表
+            query = 'INSERT into textToken (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+            args = [reportID[i], posStart[i], posEnd[i], id.tokenID]
+            cursor.execute(query, args)
 
         conn.commit()
         conn.close()
         result['status'] = '0'
-        print(result)
     return JsonResponse(result)
 
 @csrf_exempt
 def getTokenREItemID(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         #取得資料
         result = {'status':'1'} #預設沒找到
         
@@ -537,38 +534,86 @@ def getTokenREItemID(request):
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        #查詢tokenID
-        query = 'SELECT * FROM Vocabulary where token = ?;'
-        args = [request.GET['token']]
-        cursor.execute(query, args)
-        tokenID = cursor.fetchone()
 
-        #查詢tokenREID
-        query = 'SELECT * FROM tokenRE where tokenID = ?;'
-        args = [tokenID.tokenID]
-        cursor.execute(query, args)
-        tokenREID = cursor.fetchone()
-
-        if tokenID.tokenType == 'E':
-            #查詢tokenREItemID
-            query = 'SELECT * FROM tokenREItem where tokenREID = ? and itemName = ?;'
-            args = [tokenREID.tokenREID,request.GET['itemName']]
+        data = []
+        #取締一個取成功
+        if request.is_ajax():
+            # print('Raw Data: "%s"' % request.body)
+            body_unicode = request.body.decode('utf-8')
+            body = json.loads(body_unicode)
+            for i in body:
+                data.append(i)
+            # print(data)
+            # content = body[0]
+            # print('Data: "%s"' % content['year'])
+        tokenIDArray = []
+        tokentype = []
+        tokenREIDArray = []
+        tokenREItemIDArray = []
+        for i in data:
+            #查詢tokenType
+            query = 'SELECT * FROM Vocabulary where tokenID = ?;'
+            args = [i['tokenID']]
             cursor.execute(query, args)
-            tokenREItemID = cursor.fetchone()
+            tokenType = cursor.fetchone()
+            # print("tokenType ", tokenID.tokenType)
+            if tokenType:
+                tokenIDArray.append(tokenType.tokenID)
+                tokentype.append(tokenType.tokenType)
+
+
+            #查詢tokenREID
+            query = 'SELECT * FROM tokenRE where tokenID = ?;'
+            args = [i['tokenID']]
+            cursor.execute(query, args)
+            tokenREID = cursor.fetchone()
+            if tokenREID:
+                tokenREIDArray.append(tokenREID.tokenREID)
+                                
+            temp = []
+            for key in list(i.keys()):
+                if tokenType.tokenType == 'E':
+                    # print(j)
+                    #查詢tokenREItemID
+                    query = 'SELECT * FROM tokenREItem where tokenREID = ? and itemName = ?;'
+                    args = [tokenREID.tokenREID, key]
+                    cursor.execute(query, args)
+                    tokenREItemID = cursor.fetchone()
+                if tokenREItemID:
+                    temp.append(tokenREItemID.tokenREItemID)
+            tokenREItemIDArray.append(temp)
+                    
+                        # print("tokenREItemID ", tokenREItemID.tokenREItemID)
+        print(tokenIDArray)
+        print(tokentype)
+        print(tokenREIDArray)
+        print(tokenREItemIDArray)
+
 
 
 
         #有找到
-        if tokenID != None:
+        if (tokenType != None) and (tokenREID != None) :
             result['status'] = '0'
-            result['tokenID'] = tokenID.tokenID
-            result['tokenREID'] = tokenREID.tokenREID
-            result['tokenType'] = tokenID.tokenType
-            if tokenID.tokenType == 'E':
-                result['tokenREItemID'] = tokenREItemID.tokenREItemID
-        #     print(token[0])
-        conn.close()
+            # result['tokenID'] = tokenIDArray
+            # result['tokenREID'] = tokentype
+            # result['tokenType'] = tokenREIDArray
+            # # if (tokenType.tokenType == 'E') and (tokenREItemID != None):
+            # result['tokenREItemID'] = tokenREItemIDArray
 
+            record = {}
+            result['data'] = []
+            record['tokenID'] = tokenIDArray
+            record['tokenREID'] = tokenREIDArray
+            record['tokenType'] = tokentype
+            record['tokenREItemID'] = tokenREItemIDArray
+            result['data'].append(record)
+        # print(result)
+        conn.close()
+    return JsonResponse(result)
+
+@csrf_exempt
+def insertExtractedValueFromToken(request):
     if request.method == 'POST':
         #取得資料
         result = {'status':'1'} #預設失敗
@@ -579,28 +624,55 @@ def getTokenREItemID(request):
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        
-        #取得post資料
-        record = {}
-        result['data'] = []
-        record['reportID'] = request.POST.get('reportID')
-        record['posStart'] = request.POST.get('posStart')
-        record['tokenREItemID'] = request.POST.get('tokenREItemID')
-        record['extractedValue'] = request.POST.get('extractedValue')
-        result['data'].append(record)
+        # print("request: ", request.POST.getlist('tokenID[]'))
 
-        #插入資料表
-        query = 'INSERT into extractedValueFromToken (reportID, posStart, tokenREItemID, extractedValue) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
-        args = [request.POST.get('reportID'), request.POST.get('posStart'), request.POST.get('tokenREItemID'), request.POST.get('extractedValue')]
-        cursor.execute(query, args)
+        #取得post資料
+        reportID = request.POST.getlist('reportID[]')
+        posStart = request.POST.getlist('posStart[]')
+        tokenREItemID = request.POST.getlist('tokenREItemID[]')
+        tokenType = request.POST.getlist('tokenType[]')        
+        Value = request.POST.getlist('Value[]')
+        # print("tokenID: ", request.POST.getlist('tokenID[]'))
+        # print("posStart: ", request.POST.getlist('posStart[]'))
+        # print("tokenREItemID: ", request.POST.getlist('tokenREItemID[]')[0].split(','))
+        # print("tokenType: ", request.POST.getlist('tokenType[]'))
+        # print("Value: ", request.POST.getlist('Value[]'))
+
+        # 處理tokenREItemID二維陣列(用逗號分開轉int)
+        for i in range(len(tokenREItemID)):
+            tokenREItemID[i] = tokenREItemID[i].split(',')
+            for j in range(len(tokenREItemID[i])):
+                tokenREItemID[i][j] = int(tokenREItemID[i][j])
+        # print("tokenREItemID: ", tokenREItemID)
+
+        # 處理Value二維陣列(用逗號分開)
+        for i in range(len(Value)):
+            Value[i] = Value[i].split(',')
+        print("Value: ", Value)
+
+        # record = {}
+        # result['data'] = []
+        # record['reportID'] = request.POST.get('reportID')
+        # record['posStart'] = request.POST.get('posStart')
+        # record['tokenREItemID'] = request.POST.get('tokenREItemID')
+        # record['extractedValue'] = request.POST.get('extractedValue')
+        # result['data'].append(record)
+
+        #插入資料表()
+        for i in range(len(reportID)):
+            for j in range(len(tokenREItemID[i])):
+                # print(tokenType[i])
+                if tokenType[i] == 'E':
+                    # print(reportID[i], posStart[i], tokenREItemID[i][j], Value[i][j])
+                    query = 'INSERT into extractedValueFromToken (reportID, posStart, tokenREItemID, extractedValue) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+                    args = [reportID[i], posStart[i], tokenREItemID[i][j], Value[i][j]]
+                    cursor.execute(query, args)
 
         conn.commit()
         conn.close()
         result['status'] = '0'
-        print(result)
+        # print(result)
     return JsonResponse(result)
-
-
 
 
 
