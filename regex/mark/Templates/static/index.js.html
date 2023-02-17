@@ -23,13 +23,14 @@
         //確認名稱
         $("#check").click(function(){
             //console.log("check clicked");
-            Name = document.getElementById("regexName").value
+            Name = [];
+            Name.push(document.getElementById("regexName").value);
             //console.log(name);
             
             $("#validText").text("Name is valid!");
             $("#regexName").attr('class', 'form-control is-valid');
             //不為空檢查，否則顯示不可為空
-            if (Name != ""){
+            if (Name[0] != ""){
                 checkName(Name);
             }else{
                 $("#invalidText").text("Name CAN'T be null!");
@@ -54,7 +55,7 @@
             type: 'GET',
             url: '{% url 'checkName' %}',
             data:{
-                'Name': Name,
+                'Name[]': Name,
             },
             success:function (response){
                 //console.log("result : " + response.status)

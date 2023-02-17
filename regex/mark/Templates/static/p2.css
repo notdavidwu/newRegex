@@ -175,6 +175,16 @@
     visibility:hidden;
   }
 
+  #dataSaved {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
   #selectExcelDB {
     position:absolute;
     left:50px;
