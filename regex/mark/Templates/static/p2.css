@@ -114,6 +114,12 @@
     right:780px;
     top:430px;
   }
+
+  #page2SelectALL {
+    position:absolute;
+    left:50px;
+    top:100px;
+  }
   
   .form-floating {
     width:600px;

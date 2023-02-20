@@ -28,6 +28,7 @@
     top:265px;
     left:90px;
     width:300px;
+    user-select:none;
   }
 
   #invalidText {
@@ -35,6 +36,7 @@
     top:265px;
     left:90px;
     width:300px;
+    user-select:none;
   }
 
   #check {

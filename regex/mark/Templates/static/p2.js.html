@@ -95,6 +95,7 @@
                 return;
             }        
             var Value = [];
+            console.log("Value : ", Value);
             var lengthOfArray = 0;
             for (var i=0 ; i<activeButton.length ; i++){
                 //console.log("activeButton : " + activeButton[i].innerHTML);                
@@ -103,7 +104,7 @@
                 //console.log("valueText : " + valueText.innerHTML);    
                 var currentReportID = activeButton[i].innerHTML;
                 
-                lengthOfArray += BatchProcessingExtract(lengthOfArray, Value, selected, valueText, currentReportID);
+                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID);
                 //console.log("lengthOfArray : ", lengthOfArray);
             }
         });
@@ -170,6 +171,25 @@
                 pageDown(selectedButton, activeButton);
             }
         };
+
+        //選擇全部按鈕
+        $('#page2SelectALL').click(function(){
+            //x = $("button.btn btn-light").not(".active");
+            //.addclass("active");
+            
+            //activeButton = document.getElementsByClassName("btn btn-light active");
+            //for (var i=0 ; i<activeButton.length ; i++){
+            //    activeButton[i].classList.remove('active');
+            //}
+            
+            Button = document.getElementsByClassName("btn btn-light");
+            for (var i=0 ; i<Button.length ; i++){
+                //Button[i].classList.add('active');.
+                Button[i].click();
+            }
+            //x = $(".btn btn-light");
+            //console.log("x : ", x);
+        });
     });
 
     //PageUp
@@ -344,8 +364,9 @@
     }
 
     //萃取全部(需要iter的是文章id 取得文章內容)
-    function BatchProcessingExtract(lengthOfArray, Value, selected, valueText, currentReportID){
+    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID){
         //console.log("selected : " + selected);
+        var Value = [];
         //萃取模式
         if ((selected.length != 0) && (valueText != "")) {
 
@@ -516,8 +537,9 @@
                 //    return;
                 //}
                 patternArray[i] = pattern;
-                //console.log("paragraph : " + paragraph);
+                console.log("paragraph : " + paragraph.length);
                 var length = 0;
+
                 while (match = pattern.exec(paragraph)) {
                     //console.log(match.index + ' ' + pattern.lastIndex);
                     start[start_end_count] = match.index;
@@ -529,7 +551,7 @@
                         matchArray.push(match.groups);
                     }
                     else{    
-                        //console.log("push!!!");
+                        console.log("push!!!");
                         var nomatch = {};
                         nomatch['tokenID'] = TokenID[i];
                         matchArray.push(nomatch);
@@ -597,7 +619,7 @@
 
     //查詢每個match的每個RE的每個變數的編號(25~31)
     function selecttokenREItem(matchArray){
-        //console.log("matchArray : " , matchArray);
+        console.log("matchArray : " , matchArray);
         if (matchArray.length != 0){
             var res;
             $.ajax({
