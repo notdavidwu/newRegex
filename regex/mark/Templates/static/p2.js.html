@@ -300,7 +300,15 @@
                 for(var i=0 ; i<count ; i++){
                     topdis += 30;
                     id += 1;
-                    var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    var typeOfRegex = document.getElementById('selectRegexType').value;
+                    if (typeOfRegex != 'U'){
+                        var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    }
+                    else{
+                        var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; " checked><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                        
+                    }
+                    //var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
                     document.getElementById('tokenContainer').innerHTML += checkBox;
                 }
             },
@@ -313,6 +321,7 @@
         selectValue = document.getElementById('selectRegexType').value;
         //console.log("get token p2 " + selectValue);
         $.ajax({
+            async: 'false',
             type: 'GET',
             url: '{% url 'getVocabularyByType' %}',
             data:{
@@ -324,12 +333,22 @@
                 //console.log(count);
                 var topdis = 0;
                 var id = 0;
+                
+                var typeOfRegex = document.getElementById('selectRegexType').value;
                 for(var i=0 ; i<count ; i++){
                     //console.log("token : " + response.dict[i].token)
                     topdis += 30;
                     id += 1;
                     var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
                     document.getElementById('tokenContainer').innerHTML += checkBox;
+                }                
+                //如果是U就全選
+                if (typeOfRegex === 'U'){
+                    var checkboxes = document.getElementsByClassName('form-check-input');
+                    console.log("len: ", checkboxes.length)
+                    for (var i=0 ; i<checkboxes.length ; i++ ){
+                        checkboxes[i].checked = true;
+                    }
                 }
             },
         })
@@ -372,7 +391,7 @@
 
             //取得RE
             result = getRegularExpression(selected);
-            //console.log("result : ", result);            
+            //console.log("result : ", result);
             var TokenID = result[0];
             var REGEX = result[1];
             var TokenType = result[2];
@@ -385,10 +404,12 @@
             result = getMatchData(REGEX, valueText, TokenID, currentReportID, selected);
             var array = result[0];
             var matchArray = result[1];
+            var tokenIDForU = result[2];
 
-            console.log(array);
+            //console.log(array);
             
-            console.log(matchArray);
+            //console.log(matchArray);
+            console.log("tokenIDForU", tokenIDForU);
 
             //顯示結果表格
             if (selected.length != 0 && array[0]){
@@ -409,26 +430,43 @@
                 tokenID[i] = array[i][3];
             }
             
-            console.log("mathcArray : " , matchArray);
+            //紀錄上一篇文章的長度給下一篇文章用
+            lengthOfArray = array.length;
+            
+            //console.log("matchArray : " , matchArray);
             if (matchArray.length != 0){
                 response = updateAnalyseText(currentReportID, valueText.innerHTML);
-                if (response.status === '0' ){
-                    response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
-                    if (response1.status === '0'){
-                        //console.log("response1 : " , response1);
-                        response2 = selecttokenREItem(matchArray);
-                        //console.log("response2 : ", response2);
-                        if (response2 && response2.status === '0'){
-                            //取得value.posStart
-                            for (var i=0 ; i<matchArray.length ; i++){
-                                Value.push(Object.values(matchArray[i]));
-                            }
-                            //console.log("values : ", Value);
-                            //console.log("posStart : ", posStart);
-                            response3 = insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
-                            //console.log("response3 : ", response3);
-                            if (response3 && response3.status === '0'){
-                                display_dataSaved();
+                if (response && response.status === '0' ){
+                    //取得select 值
+                    var selectVal = document.getElementById("selectRegexType").value;
+                    //如果有存成功且為U
+                    if (tokenIDForU.length != 0 && selectVal === 'U'){
+                        console.log("現在是U");
+                        responseU = insertTextTokenForU(reportID, posStart, posEnd, tokenIDForU);
+                        if (responseU && responseU.status === '0'){
+                            display_dataSaved();
+                        }                       
+                        return lengthOfArray;
+                    }
+                    else{
+                        console.log("response", response);
+                        response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
+                        if (response1 && response1.status === '0'){
+                            //console.log("response1 : " , response1);
+                            response2 = selecttokenREItem(matchArray);
+                            //console.log("response2 : ", response2);
+                            if (response2 && response2 && response2.status === '0'){
+                                //取得value.posStart
+                                for (var i=0 ; i<matchArray.length ; i++){
+                                    Value.push(Object.values(matchArray[i]));
+                                }
+                                //console.log("values : ", Value);
+                                //console.log("posStart : ", posStart);
+                                response3 = insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
+                                //console.log("response3 : ", response3);
+                                if (response3 && response3 && response3.status === '0'){
+                                    display_dataSaved();
+                                }
                             }
                         }
                     }
@@ -436,9 +474,7 @@
             }
             var arrayIndex = 0;            
             var extractArray = [];
-        }        
-        //紀錄上一篇文章的長度給下一篇文章用
-        lengthOfArray = array.length;
+        }
         return lengthOfArray;
     }
 
@@ -557,8 +593,10 @@
                     if (match.groups){
                         match.groups['tokenID'] = TokenID[i];
                         matchArray.push(match.groups);
-                        console.log("wholeString : ", getLength(match.groups['wholeString']));
+                        //console.log("wholeString : ", getLength(match.groups['wholeString']));
+                        //含中文的長度
                         length = getLength(match.groups['wholeString']);
+                        //字串內長度
                         origin_length = match.groups['wholeString'].length;
 
                         token.push(match.groups['wholeString']);
@@ -566,22 +604,21 @@
                         tokentype.push("U");
 
                         var blank = "";
-                        for (var b=0 ; b<(length) ; b++){
+                        for (var b=0 ; b<(origin_length) ; b++){
                             blank += " ";
                         }
+                        //console.log("length", length);
+                        //console.log("origin_length", origin_length);
                         //將輸出文本與regex物件有符合的地方取代為空白
-                        console.log("match.index", match.index);
-                        valueText.innerHTML = replaceCharacter(valueText.innerHTML, match.index,(match.index + origin_length), blank);
+                        //console.log("match.index", match.index);
+                        valueText.innerHTML = replaceCharacter(valueText.innerHTML, match.index, pattern.lastIndex, blank);
                     }
-                    else{    
-                        //console.log("push!!!");
-                        var nomatch = {};
-                        nomatch['tokenID'] = TokenID[i];
-                        matchArray.push(nomatch);
-                    }
-                    console.log("token : ", token);
-                    console.log("nword : ", nword);
-                    console.log("tokentype : ", tokentype);
+                    //else{
+                    //    console.log("push!!!");
+                    //    var nomatch = {};
+                    //    nomatch['tokenID'] = TokenID[i];
+                    //    matchArray.push(nomatch);
+                    //}
 
                     //console.log("match : ", match[0]);
                     //console.log("length : ", length);
@@ -595,22 +632,32 @@
             }
             //console.log(pattern);
         }
-        return [array, matchArray]
+        
+        //console.log("token : ", token);
+        //console.log("nword : ", nword);
+        //console.log("tokentype : ", tokentype);
+
+        //寫入Vocabulary
+        tokenIDForU = insertVocabulary_U(token, nword, tokentype);
+        return [array, matchArray, tokenIDForU]
     }
 
-    //儲存字典(array)
-    function insertVocabulary_Array(token, nWord, tokenType){
-        $.ajax({
+    //儲存字典(array) for U
+    function insertVocabulary_U(token, nWord, tokenType){
+        var res;
+        $.ajax({            
+            async: false,
             type: 'POST',
-            url: '{% url 'insertVocabulary_array' %}',
+            url: '{% url 'insertVocabulary_U' %}',
             data:{
                 'token[]': token,
-                'nWord[]': count,
+                'nWord[]': nWord,
                 'tokenType[]': tokenType,                
                 'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
-                //console.log("result : " + response.status)
+                console.log("result : " + response.data)
+                res = response.data;
                 //if (response.status == '0'){                    
                 //    display_data_saved();
                 //}else{
@@ -630,6 +677,29 @@
             fail:function (){         
             },
         });
+        return res;
+    }
+
+    //insert textToken for U
+    function insertTextTokenForU(reportID, posStart, posEnd, tokenID){
+        var res;
+        console.log("tokenID :", tokenID);
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'insertTextToken_U' %}',                
+            data:{
+                'reportID[]' : reportID,
+                'posStart[]' : posStart,
+                'posEnd[]' : posEnd,
+                'tokenID[]' : tokenID,
+            },
+            //成功存第三章表(每個array值會有一個tokenID.一次的match)
+            success:function (response){
+                res = response;
+            },
+        });
+        return res;
     }
 
     //計算字串(含中文)長度
@@ -642,7 +712,7 @@
         return (
           string.slice(0, index) +
           replacement +
-          string.slice(index + length, string.length)
+          string.slice(length, string.length)
         );
     }
 
