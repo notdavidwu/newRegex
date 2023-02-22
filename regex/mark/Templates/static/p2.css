@@ -137,10 +137,10 @@
 
   #result_data {
     position:absolute;
-    right:620px;
-    top:500px;
+    left:300px;
+    top:100px;
     width:380px;
-    height:350px;
+    height:700px;
     overflow:auto;
   }
 

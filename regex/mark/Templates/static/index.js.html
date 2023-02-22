@@ -72,13 +72,20 @@
         })
     }
 
+    //計算字串(含中文)長度
+    function getLength(str){ 
+        return str.toString().replace(/[^\x00-\xff]/g,"OO").length;
+    }
+
     //存檔到後端資料庫
-    function BtnClicked_1(count,itemName){
+    function BtnClicked_1(itemName){
         //console.log("execute in")
-        //console.log(itemName)        
-        token = document.getElementById('regexName').value        
+        //console.log(itemName)
+
+        token = document.getElementById('regexName').value
         tokenType = document.getElementById('dropdownbutton').value
         console.log("tokenType : " + tokenType)
+        count = getLength(token);
         //console.log(input,regex)
         $.ajax({
             type: 'POST',
@@ -102,8 +109,10 @@
                 }
                 if (tokenType == 'T'){
                     BtnClicked_2(response);
+                }                
+                if (tokenType == 'U'){
+                    BtnClicked_2(response);
                 }
-
             },
             fail:function (){         
             },
@@ -111,7 +120,7 @@
     }
     //存檔到後端資料庫
     function BtnClicked_2(response,itemName){
-        //console.log("btnclicked_2" + response.data[0].token)        
+        //console.log("btnclicked_2" + response.data[0].token)
         tokenID = response.data[0].tokenID;        
         regex = document.getElementById('regexText').value
         console.log("tokenID" + tokenID);
@@ -291,20 +300,25 @@
                     myTable.appendChild(table);
                 }
                 var tokenType = document.getElementById('dropdownbutton').value;
-                if (tokenType == "E"){
+                if (tokenType === "E"){
                     console.log("result_array :" + Object.keys(result_array[0]));
                     console.log("save pressed E");
                     //資料到後端儲存
-                    BtnClicked_1(extractedArray.length,Object.keys(result_array[0]));
+                    BtnClicked_1(Object.keys(result_array[0]));
                     document.getElementById("returnbtn").style.visibility = 'visible';
-
                 }
-                if (tokenType == "T"){
+                if (tokenType === "T"){
                     //console.log("result_array :" + Object.keys(result_array[0]));
                     console.log("save pressed T " + extractedArray.length);
-                    BtnClicked_1(extractedArray.length);
+                    BtnClicked_1();
                     //document.getElementById("returnbtn").style.visibility = 'visible';
                 }
+                if (tokenType === "U"){
+                    //console.log("result_array :" + Object.keys(result_array[0]));
+                    BtnClicked_1();
+                    //document.getElementById("returnbtn").style.visibility = 'visible';
+                }
+                
             }
         }
       }

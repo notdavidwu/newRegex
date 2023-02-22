@@ -48,7 +48,7 @@
         //根據select顯示token
         $("#selectRegexType").on('change', function() {
             value = document.getElementById('selectRegexType').value;
-            if (value == "T" || value =="E"){
+            if (value === "T" || value ==="E" || value === "U"){
                 getTokenByTypeP2();
             }else{
                 getTokenP2();
@@ -384,7 +384,11 @@
             //處理textArea並且回傳找到值的陣列
             result = getMatchData(REGEX, valueText, TokenID, currentReportID, selected);
             var array = result[0];
-            var matchArray = result[1];            
+            var matchArray = result[1];
+
+            console.log(array);
+            
+            console.log(matchArray);
 
             //顯示結果表格
             if (selected.length != 0 && array[0]){
@@ -405,26 +409,27 @@
                 tokenID[i] = array[i][3];
             }
             
-            //console.log("mathcArray : " , matchArray);
-
-            response = updateAnalyseText(currentReportID, valueText.innerHTML);
-            if (response.status === '0'){
-                response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
-                if (response1.status === '0'){
-                    //console.log("response1 : " , response1);
-                    response2 = selecttokenREItem(matchArray);
-                    //console.log("response2 : ", response2);
-                    if (response2 && response2.status === '0'){
-                        //取得value.posStart
-                        for (var i=0 ; i<matchArray.length ; i++){
-                            Value.push(Object.values(matchArray[i]));
-                        }
-                        //console.log("values : ", Value);
-                        //console.log("posStart : ", posStart);
-                        response3 = insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
-                        //console.log("response3 : ", response3);
-                        if (response3 && response3.status === '0'){
-                            display_dataSaved();
+            console.log("mathcArray : " , matchArray);
+            if (matchArray.length != 0){
+                response = updateAnalyseText(currentReportID, valueText.innerHTML);
+                if (response.status === '0' ){
+                    response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
+                    if (response1.status === '0'){
+                        //console.log("response1 : " , response1);
+                        response2 = selecttokenREItem(matchArray);
+                        //console.log("response2 : ", response2);
+                        if (response2 && response2.status === '0'){
+                            //取得value.posStart
+                            for (var i=0 ; i<matchArray.length ; i++){
+                                Value.push(Object.values(matchArray[i]));
+                            }
+                            //console.log("values : ", Value);
+                            //console.log("posStart : ", posStart);
+                            response3 = insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
+                            //console.log("response3 : ", response3);
+                            if (response3 && response3.status === '0'){
+                                display_dataSaved();
+                            }
                         }
                     }
                 }
@@ -516,17 +521,21 @@
         var array = [];
         var patternArray = [];
         var matchArray = [];
+        var token = [];
+        var nword = [];
+        var tokentype = [];
         for(var i=0 ; i<REGEX.length ; i++){
             //console.log("i : " + i);
             //console.log("regex: " + REGEX.length);
             //定義輸入的regex值存進變數
-            let textToSearch = REGEX[i];
+            let textToSearch = "(?<wholeString>(" + REGEX[i] + "))";
+            console.log(textToSearch);
             //處理輸入的regex文本
             if (textToSearch){
                 textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
             }
             //將處理好的regex文本定義為新的regex物件
-            let pattern = new RegExp(`${textToSearch}`,"gi");
+            let pattern = new RegExp(`${textToSearch}`,"g");
             //若是選擇DB就存起來
             var selectExcelDB = document.getElementById("selectExcelDB");
             if (selectExcelDB.value === "DB"){
@@ -537,9 +546,8 @@
                 //    return;
                 //}
                 patternArray[i] = pattern;
-                console.log("paragraph : " + paragraph.length);
+                //console.log("paragraph : " + paragraph.length);
                 var length = 0;
-
                 while (match = pattern.exec(paragraph)) {
                     //console.log(match.index + ' ' + pattern.lastIndex);
                     start[start_end_count] = match.index;
@@ -549,31 +557,93 @@
                     if (match.groups){
                         match.groups['tokenID'] = TokenID[i];
                         matchArray.push(match.groups);
+                        console.log("wholeString : ", getLength(match.groups['wholeString']));
+                        length = getLength(match.groups['wholeString']);
+                        origin_length = match.groups['wholeString'].length;
+
+                        token.push(match.groups['wholeString']);
+                        nword.push(match.groups['wholeString'].length);
+                        tokentype.push("U");
+
+                        var blank = "";
+                        for (var b=0 ; b<(length) ; b++){
+                            blank += " ";
+                        }
+                        //將輸出文本與regex物件有符合的地方取代為空白
+                        console.log("match.index", match.index);
+                        valueText.innerHTML = replaceCharacter(valueText.innerHTML, match.index,(match.index + origin_length), blank);
                     }
                     else{    
-                        console.log("push!!!");
+                        //console.log("push!!!");
                         var nomatch = {};
                         nomatch['tokenID'] = TokenID[i];
                         matchArray.push(nomatch);
                     }
-                    length = pattern.lastIndex-match.index;
+                    console.log("token : ", token);
+                    console.log("nword : ", nword);
+                    console.log("tokentype : ", tokentype);
+
+                    //console.log("match : ", match[0]);
+                    //console.log("length : ", length);
                 }
                 //console.log("matchArray : " , matchArray);
                 for(var j=origin ; j<start_end_count ; j++){
                     //console.log("j : " + j);
-                    array[j] = [currentReportID,start[j], end[j], selected[i]]; 
+                    array[j] = [currentReportID,start[j], end[j], selected[i]];
                 }
                 origin = start_end_count;
-                var blank = "";
-                for (var b=0 ; b<(length) ; b++){
-                    blank += " ";
-                }
-                //將輸出文本與regex物件有符合的地方取代為空白
-                valueText.innerHTML = paragraph.replace(pattern, blank);
             }
             //console.log(pattern);
         }
         return [array, matchArray]
+    }
+
+    //儲存字典(array)
+    function insertVocabulary_Array(token, nWord, tokenType){
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'insertVocabulary_array' %}',
+            data:{
+                'token[]': token,
+                'nWord[]': count,
+                'tokenType[]': tokenType,                
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                //console.log("result : " + response.status)
+                //if (response.status == '0'){                    
+                //    display_data_saved();
+                //}else{
+                //    console.log("data not saved");
+                //    display_data_not_saved();
+                //}
+                //if (tokenType == 'E'){
+                //    BtnClicked_2(response,itemName);
+                //}
+                //if (tokenType == 'T'){
+                //    BtnClicked_2(response);
+                //}                
+                //if (tokenType == 'U'){
+                //    BtnClicked_2(response);
+                //}
+            },
+            fail:function (){         
+            },
+        });
+    }
+
+    //計算字串(含中文)長度
+    function getLength(str){ 
+        return str.toString().replace(/[^\x00-\xff]/g,"OO").length;
+    }
+
+    //替換字串(原字串, 起始index, 結束index, 要代替的字串)
+    function replaceCharacter(string, index, length, replacement) {
+        return (
+          string.slice(0, index) +
+          replacement +
+          string.slice(index + length, string.length)
+        );
     }
 
     //update analyseText
@@ -619,7 +689,7 @@
 
     //查詢每個match的每個RE的每個變數的編號(25~31)
     function selecttokenREItem(matchArray){
-        console.log("matchArray : " , matchArray);
+        //console.log("matchArray : " , matchArray);
         if (matchArray.length != 0){
             var res;
             $.ajax({
@@ -644,6 +714,20 @@
             var res;
             var tokenREItemID = response2.data[0].tokenREItemID;
             var tokenType = response2.data[0].tokenType;
+            //console.log("Value : ", Value);
+            // ordinary for loop
+            for (var i=0 ; i<Value.length ; i++) {
+                for (var j=0 ; j<Value[i].length ; j++){
+                        //console.log(Value[i][j].toString());
+                    if (Value[i][j].toString().indexOf(",") != -1){
+                        index = Value[i][j].toString().indexOf(",");
+                        //console.log("逗號");
+                        //console.log(Value[i][j][x]);
+                        Value[i][j] = Value[i][j].replace(/,/gi, "|");
+                        //console.log(Value[i][j]);
+                    }
+                }
+            }
             //console.log("tokenREItemID : ", tokenREItemID);
             //console.log("tokenType : ", tokenType);
 
