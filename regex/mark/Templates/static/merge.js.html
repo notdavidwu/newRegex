@@ -1,0 +1,260 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
+<script>    
+    $(document).ready(function () {
+        //顯示資料
+        printAllData();
+
+        //監聽選擇全部以及取消全選
+        selectAll_cancelAll(tokenID);
+    });
+
+    //顯示資料
+    function printAllData(){
+        response = getTextTokenData();
+        //console.log("response.data : ", response.data);
+
+        //處理成tokenID1[].tokenID2[]
+        tokenID = seperateArray(response.data);
+        console.log(tokenID);
+        
+        //取得字典的字
+        token = getDictionary(tokenID);
+        //token[0] = token1
+        //token[1] = token2
+        //console.log("token", token);
+
+        //顯示結果表格
+        if (token){
+            let headers = ['No','First', 'Second', 'MergeCheck'];
+            var array = [];
+            var temp = [];
+            //token.forEach(function(tk){
+            //    console.log("tk = ", tk);
+            //    for (var i=0 ; i<tk.length ; i++ ){
+            //        console.log("tk[i] = ", tk[i]);
+            //    }
+            //});
+            for(var i=0 ; i<token[0].length ; i++){
+                array.push([i+1, token[0][i], token[1][i]])
+            }
+            //console.log("array = ", array);
+            showTable(headers, array, tokenID);
+        }
+    }
+
+    //取得所有資料
+    function getTextTokenData(){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'getTextToken' %}',
+            data:{
+            },
+            success:function (response){
+                res = response;
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
+
+    //處理成tokenID1[].tokenID2[]
+    function seperateArray(data){
+        var res = [];
+        var firstTokenID = [];
+        var secondTokenID = [];
+        data.forEach(function(a){
+            //console.log(a.tokenID1, a.tokenID2);
+            firstTokenID.push(a.tokenID1);
+            secondTokenID.push(a.tokenID2);
+
+        });
+        res.push(firstTokenID);
+        res.push(secondTokenID);
+        //console.log(res);
+        return res;
+    }
+
+    //取出字典的字
+    function getDictionary(tokenID){
+        var res = [];
+        var tokenID1 = tokenID[0];
+        var tokenID2 = tokenID[1];
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'getToken' %}',
+            data:{
+                "tokenID1[]" : tokenID1,
+                "tokenID2[]" : tokenID2,
+            },
+            success:function (response){
+                res.push(response.data[0].token1);
+                res.push(response.data[0].token2);
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
+
+    //顯示結果表格
+    function showTable(headers, array, tokenID){
+        //console.log("array : ",array);
+        //創建表格元素
+        let myTable = document.querySelector('#result_data');
+        myTable.className = "table table-striped-columns";
+        //console.log(Object.keys(result_array[0]));
+        let table = document.createElement('table');
+        let headerRow = document.createElement('tr');
+        headers.forEach(headerText => {
+            let header = document.createElement('th');
+            let textNode = document.createTextNode(headerText);
+            header.appendChild(textNode);
+            headerRow.appendChild(header);
+        });
+        table.appendChild(headerRow);
+        array.forEach(emp => {
+            let row = document.createElement('tr');
+            Object.values(emp).forEach(text => {
+                let cell = document.createElement('td');
+                let textNode = document.createTextNode(text);
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            })
+            
+            let btn = document.createElement("button");
+            btn.innerHTML = "Merge";
+            btn.className = "btn btn-info";
+            btn.value = emp[0]-1;            
+            btn.id = "button" + btn.value.toString();
+            btn.name = "tableButton"
+            btn.addEventListener('click', function(event) {                
+                //console.log("clicked : " + btn.value);
+                if (btn.className === "btn btn-info"){
+                    btn.className = "btn btn-info active";
+                    //確認前後重複+disable
+                    checkDuplicateDisable(btn, tokenID);
+                }else if (btn.className === "btn btn-info active"){
+                    btn.className = "btn btn-info";
+                    //目前有問題先註解
+                    //checkDuplicateAble(btn, tokenID);
+                }
+            });            
+            row.appendChild(btn);
+            table.appendChild(row);
+        });
+        myTable.appendChild(table);
+    }
+    
+    //判斷全選取消
+    function selectAll_cancelAll(){
+        var btn = document.getElementById("selectAll");
+        $("#selectAll").click(function(){
+            selectAllButton();
+        });
+        $("#cancelAll").click(function(){            
+            cancelAllButton();
+        });
+    }
+
+    //全選
+    function selectAllButton(){
+        var AllBtn = document.getElementsByClassName("btn btn-info");
+        len = AllBtn.length;
+        for (var i=0 ; i<len ; i++ ){
+            let targetNode = document.getElementById("button" + i.toString());
+            if (!targetNode.classList.contains("active")){
+                targetNode.click();
+            //    targetNode.classList.add('active');
+            }
+        }
+    }
+
+    //取消
+    function cancelAllButton(){
+        var AllBtn = document.getElementsByClassName("btn btn-info")
+        len = AllBtn.length;
+        for (var i=0 ; i<len ; i++ ){
+            let targetNode = document.getElementById("button" + i.toString());
+            if (targetNode.classList.contains("active")){   
+                targetNode.click();             
+            //    targetNode.classList.remove('active');
+            }
+            if (targetNode.disabled === true){
+                targetNode.disabled = false;
+            }
+        }
+    }
+
+    //確認前後重複+disable
+    function checkDuplicateDisable(btn, tokenID){
+        //console.log(btn.value);
+        //console.log(tokenID);
+        var first = tokenID[0];
+        var second = tokenID[1];
+        var index = parseInt(btn.value);
+        //先找到陣列值
+        if (first[index]){
+            tokenID1 = first[index];
+            tokenID2 = second[index];
+            console.log(tokenID1, tokenID2);
+            //如果前一筆資料存在 且 後面的id跟現在前面的一樣 就disable按鈕
+            if (second[index-1] && second[index-1] === first[index] ){
+                console.log("前一個disable");
+                disableBtn = document.getElementById("button" + (index-1).toString());
+                //若他不是被選中的
+                if (disableBtn.className === "btn btn-info active"){
+                    console.log("選到前面選中的了");
+                }
+                else{
+                    disableBtn.disabled = true;
+                }
+            }
+            
+            //如果後一筆資料存在 且 前面的id跟現在後面的一樣 就disable按鈕
+            if (first[index+1] && first[index+1] === second[index] ){                
+                console.log("後一個disable");
+                disableBtn = document.getElementById("button" + (index+1).toString());
+                //若他不是被選中的
+                if (disableBtn.className === "btn btn-info active"){
+                    console.log("選到後面選中的了");
+                }
+                else{
+                    disableBtn.disabled = true;
+                }
+            }
+        }
+    }
+
+    //確認前後重複+取消disable
+    function checkDuplicateAble(btn, tokenID){
+        //console.log(btn.value);
+        //console.log(tokenID);
+        var first = tokenID[0];
+        var second = tokenID[1];
+        var index = parseInt(btn.value);
+        //先找到陣列值
+        if (first[index]){
+            tokenID1 = first[index];
+            tokenID2 = second[index];
+            console.log(tokenID1, tokenID2);
+            //(如果前一筆資料存在 且 後面的id跟現在前面的一樣) 
+            //且(前兩筆沒使用到)就disable按鈕
+            if (second[index-1] && second[index-1] === first[index] ){
+                console.log("前一個able");
+                disableBtn = document.getElementById("button" + (index-1).toString());
+                disableBtn.disabled = false;
+            }
+            
+            //如果後一筆資料存在 且 前面的id跟現在後面的一樣 就disable按鈕
+            if (first[index+1] && first[index+1] === second[index] ){                
+                console.log("後一個able");
+                disableBtn = document.getElementById("button" + (index+1).toString());
+                disableBtn.disabled = false;
+            }
+        }
+    }
+</script> 

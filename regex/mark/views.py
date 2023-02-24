@@ -126,7 +126,7 @@ def getVocabularyByType(request):
             cursor = conn.cursor()
             #插入資料表
             if request.GET['tokenType'] == 'U':
-                query = 'select * from Vocabulary where tokenType=? order by tokenID DESC;'
+                query = 'select * from Vocabulary where tokenType=? and tokenID <= 152 order by tokenID DESC;'
             else:
                 query = 'select * from Vocabulary where tokenType=?;'
             args = [request.GET['tokenType']]
@@ -247,7 +247,42 @@ def insertVocabulary_U(request):
 
     #插入U資料
 @csrf_exempt
-def insertTextToken_U(request):
+def getTextToken(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        query = 'select * from [buildVocabulary ].[dbo].textToken as A inner join [buildVocabulary ].[dbo].textToken as B on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0 order by A.reportID, A.posStart;'
+        cursor.execute(query)
+        textTokenData = cursor.fetchall()
+        # print("textTokenData : ", textTokenData)
+        result['data'] = []
+        # print(textTokenData[0][0])
+        record = {}
+        for i in textTokenData:
+            # print(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7])          
+            result['status'] = '0'
+            record['reportID1'] = i[0]
+            record['posStart1'] = i[1]
+            record['posEnd1'] = i[2]
+            record['tokenID1'] = i[3]
+            record['reportID2'] = i[4]
+            record['posStart2'] = i[5]
+            record['posEnd2'] = i[6]
+            record['tokenID2'] = i[7]
+            # print(record)
+            result['data'].append(copy.deepcopy(record))
+
+        conn.commit()
+        conn.close()
+
     if request.method == 'POST':
         #取得資料
         result = {'status':'1'} #預設失敗
@@ -494,7 +529,7 @@ def getReportID(request):
         #插入資料表
         # query = 'SELECT * FROM analyseText where reportID = 120362328 or reportID = 126933368 or reportID = 126989974 or reportID = 127185348;'
         # query = 'SELECT * FROM analyseText;'
-        query = 'SELECT * FROM analyseText where reportID >= 130000000 and reportID <= 130050000;'
+        query = 'SELECT * FROM analyseText where reportID >= 130000000 and reportID <= 130060000;'
         
         cursor.execute(query)
         reportID = cursor.fetchall()
@@ -764,6 +799,61 @@ def insertExtractedValueFromToken(request):
     return JsonResponse(result)
 
 
+@csrf_exempt
+def getToken(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        # print("request: ", request.POST.getlist('tokenID[]'))
+
+        #取得資料
+        tokenID1 = request.GET.getlist('tokenID1[]')
+        tokenID2 = request.GET.getlist('tokenID2[]')
+        # print(tokenID1)        
+        # print(tokenID2)
+        token1 = []
+        token2 = []
+        for i in tokenID1:
+            # print(i)
+            query = 'select * from Vocabulary where tokenID = ?;'
+            args = [i]
+            cursor.execute(query, args)
+            token = cursor.fetchone()
+            # print(token.token)
+            token1.append(token.token)
+
+        for i in tokenID2:
+            # print(i)
+            query = 'select * from Vocabulary where tokenID = ?;'
+            args = [i]
+            cursor.execute(query, args)
+            token = cursor.fetchone()
+            # print(token.token)
+            token2.append(token.token)
+
+        # print(token1)
+        # print(token2)
+        result['data'] = []
+        record = {}
+        record['token1'] = token1
+        record['token2'] = token2
+        result['data'].append(record)
+        conn.commit()
+        conn.close()
+        result['status'] = '0'
+        # print(result)
+    return JsonResponse(result)
+
+
+
+
 
 class Home(ListView):
     model = Text
@@ -772,6 +862,10 @@ class Home(ListView):
 class Page2(ListView):
     model = Text
     template_name = 'Page2.html'
+
+class Merge(ListView):
+    model = Text
+    template_name = 'merge.html'
 
 
     

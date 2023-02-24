@@ -1,0 +1,48 @@
+<style>
+    #title {
+      user-select:none;
+    }
+  
+    #title1 {
+      user-select:none;
+      position:absolute;
+      left:200px;
+    }
+    
+  
+    #title2 {
+      user-select:none;
+      position:absolute;
+      left:400px;
+    }
+    
+
+    #result_data {
+        position:absolute;
+        left:100px;
+        top:100px;
+        width:500px;
+        height:700px;
+        overflow:auto;
+    }
+    
+    button[class*="btn btn-info"] {
+        width:130px;
+    }
+
+    #selectAll {
+        position:absolute;
+        left:310px;
+        top:60px;
+        width:100px;
+        height:40px;
+    }
+
+    #cancelAll {
+        position:absolute;
+        left:450px;
+        top:60px;
+        width:100px;
+        height:40px;
+    }
+</style>

@@ -425,7 +425,7 @@
             var tokenID = [];
             for (var i=0 ; i<array.length ; i++){
                 reportID[i] = array[i][0];
-                posStart[i] = array[i][1];
+                posStart[i] = array[i][1]+1;
                 posEnd[i] = array[i][2];
                 tokenID[i] = array[i][3];
             }
@@ -687,14 +687,13 @@
         $.ajax({
             async: false,
             type: 'POST',
-            url: '{% url 'insertTextToken_U' %}',                
+            url: '{% url 'getTextToken' %}',                
             data:{
                 'reportID[]' : reportID,
                 'posStart[]' : posStart,
                 'posEnd[]' : posEnd,
                 'tokenID[]' : tokenID,
             },
-            //成功存第三章表(每個array值會有一個tokenID.一次的match)
             success:function (response){
                 res = response;
             },

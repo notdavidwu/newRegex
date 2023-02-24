@@ -195,10 +195,16 @@
     user-select:none;
   }
   
-  #title2 {
+  #title1 {
     user-select:none;
     position:absolute;
     left:200px;
+  }
+
+  #title2 {
+    user-select:none;
+    position:absolute;
+    left:400px;
   }
   
   #Mode {
