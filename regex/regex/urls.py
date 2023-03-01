@@ -42,6 +42,7 @@ urlpatterns = [
     path('insertVocabulary_U/', insertVocabulary_U, name="insertVocabulary_U"),
     path('getTextToken/', getTextToken, name="getTextToken"),
     path('getToken/', getToken, name="getToken"),
+    path('insertTexttoken/', insertTexttoken, name="insertTexttoken"),
     
     path('', Home.as_view(),name="home"),
     path('Page2/', Page2.as_view(),name="Page2"),

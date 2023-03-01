@@ -180,21 +180,49 @@
     function merge(){
         $(event.target).toggleClass('active');
         if ($(event.target).attr('class') == "btn btn-info active" ){
-            let tokenID1 = $(event.target).parents('tr').find('.First')[0].getAttribute('value');
-            console.log("tokenID1 = ", tokenID1);
-            let tokenID2 = $(event.target).parents('tr').find('.Second')[0].getAttribute('value');
-            console.log("tokenID2 = ", tokenID2);
+            let token1 = $(event.target).parents('tr').find('.First')[0].getAttribute('value');
+            console.log("token1 = ", token1);
+            let token2 = $(event.target).parents('tr').find('.Second')[0].getAttribute('value');
+            console.log("token2 = ", token2);
             let times = $(event.target).parents('tr').find('.Times')[0].getAttribute('value');
             console.log("times = ", times);
-            var Token = tokenID1 + tokenID2;
+            var Token = token1 + token2;
             var lenOfToken = Token.length;
             var TokenType = document.getElementById("selectTokenType").value;
             console.log(Token, lenOfToken, TokenType);
-            //存新的volcabulary(a+b)
+            
             if (TokenType){
-                insertVocabulary_new(Token, lenOfToken, TokenType);
+                //存新的volcabulary(a+b)
+                response = insertVocabulary_new(Token, lenOfToken, TokenType);
+                if(response.status === '0'){
+                    console.log("tokenID : ", response.data[0].tokenID);
+                    newTokenID = response.data[0].tokenID;
+                    //取得被合併的兩個tokenID
+                    tokenIDArray = getTokenIDByName([token1,token2]);
+                    console.log("tokenIDArray : ", tokenIDArray);
+                    if (tokenIDArray.status === "0"){
+                        console.log("in");
+                        //取得textToken位置
+                        positionArray = getPositionOfTextToken(tokenIDArray.tokenID);
+                        console.log("positionArray : ", positionArray);
+                        if (positionArray.status === "0"){
+                            //將textToken原始資料*(-1)
+                            response = multiplyByMinusOne(tokenIDArray.tokenID);
+                            if (response.status === "0"){
+                                //存入新的tokenID到textToken
+                                response = insertNewTextToken(positionArray, newTokenID);
+                                if (response.status === "0"){
+                                    window.location.reload();
+                                }                            
+                            }
+
+                        }
+                    }
+                }
             }
-            //把原本的資料*(-1)
+            else{
+                console.log("choose a token type");
+            }
             //console.log("class : ", $(event.target).attr('class'));
         }
         else{            
@@ -215,11 +243,91 @@
                 "tokenType" : tokenType,
             },
             success:function (response){
-                console.log(response.data);
+                res = response;
                 //console.log("res : ", res);
             },
         });
         return res;
+    }
+    
+    //取得被合併的兩個tokenID
+    function getTokenIDByName(Name){
+        var res = [];
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'checkName' %}',
+            data:{
+                "Name[]" : Name,
+            },
+            success:function (response){
+                res = response;
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
+    
+    //取得textToken位置
+    function getPositionOfTextToken(tokenIDArray){
+        console.log("tokenIDArray : ", tokenIDArray);
+        var res = [];
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'insertTexttoken' %}',
+            data:{
+                "tokenID1" : tokenIDArray[0],
+                "tokenID2" : tokenIDArray[1],
+            },
+            success:function (response){
+                res = response;
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
+
+    //將textToken原始資料*(-1)
+    function multiplyByMinusOne(tokenIDArray){
+            var res = [];
+            $.ajax({
+                async: false,
+                type: 'PATCH',
+                url: '{% url 'getTextToken' %}',
+                data:JSON.stringify({
+                    "tokenID1" : tokenIDArray[0],
+                    "tokenID2" : tokenIDArray[1],
+                }),
+                success:function (response){
+                    res = response;
+                    console.log("res : ", res);
+                },
+            });
+            return res;
+    }
+
+    //存入新的tokenID到textToken
+    function insertNewTextToken(positionArray, newTokenID){
+            console.log("positionArray : ", positionArray.data);
+            console.log("newTokenID : ", newTokenID);
+            var res = [];
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: '{% url 'insertTexttoken' %}',
+                data:JSON.stringify({
+                    "positionArray[]" : positionArray.data,
+                    "newTokenID" : newTokenID,
+                }),
+                contentType: 'application/json',
+                dataType: 'json',
+                success:function (response){
+                    res = response;
+                    console.log("res : ", res);
+                },
+            });
+            return res;
     }
 
     //判斷全選取消
