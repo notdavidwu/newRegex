@@ -169,17 +169,19 @@ def insertVocabulary(request):
         record['nWord'] = request.POST.get('nWord')
         record['tokenType'] = request.POST.get('tokenType')
         #插入資料表
-        query = 'INSERT into Vocabulary (token,nWord,tokenType) OUTPUT [INSERTED].tokenID VALUES (?, ?, ?);'
+        query = 'INSERT into Vocabulary (token,nWord,tokenType) OUTPUT [INSERTED].tokenID,[INSERTED].token,[INSERTED].tokenType VALUES (?, ?, ?);'
         args = [request.POST.get('token'),int(request.POST.get('nWord')),request.POST.get('tokenType')]
         print(args)
         cursor.execute(query, args)
         tokenID = cursor.fetchall()
-        print(tokenID[0])
+        print(tokenID[0][0], tokenID[0][1], tokenID[0][2])
         result['status'] = '0'
-        record['tokenID'] = tokenID[0][0]            
+        record['tokenID'] = tokenID[0][0]
+        record['token'] = tokenID[0][1]
+        record['tokenType'] = tokenID[0][2]
         result['data'].append(record)
         print("data saved(Vocabulary)")
-        conn.commit()
+        # conn.commit()
         conn.close()
             
     return JsonResponse(result)
@@ -245,9 +247,10 @@ def insertVocabulary_U(request):
         conn.close()            
     return JsonResponse(result)
 
-    #插入U資料
+    
 @csrf_exempt
 def getTextToken(request):
+    #取得
     if request.method == 'GET':
         #取得資料
         result = {'status':'1'} #預設失敗
@@ -259,7 +262,7 @@ def getTextToken(request):
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
 
-        query = 'select * from [buildVocabulary ].[dbo].textToken as A inner join [buildVocabulary ].[dbo].textToken as B on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0 order by A.reportID, A.posStart;'
+        query = 'select /*c.tokenID,d.tokenID,*/c.token, d.token, count(*) as times from textToken as a inner join textToken as b on a.reportID=b.reportID and (a.posEnd+1)=b.posStart inner join Vocabulary as c on a.tokenID=c.tokenID inner join Vocabulary as d on b.tokenID=d.tokenID group by /*c.tokenID,d.tokenID,*/c.token, d.token order by times desc'
         cursor.execute(query)
         textTokenData = cursor.fetchall()
         # print("textTokenData : ", textTokenData)
@@ -267,22 +270,23 @@ def getTextToken(request):
         # print(textTokenData[0][0])
         record = {}
         for i in textTokenData:
+            print(i)
             # print(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7])          
             result['status'] = '0'
-            record['reportID1'] = i[0]
-            record['posStart1'] = i[1]
-            record['posEnd1'] = i[2]
-            record['tokenID1'] = i[3]
-            record['reportID2'] = i[4]
-            record['posStart2'] = i[5]
-            record['posEnd2'] = i[6]
-            record['tokenID2'] = i[7]
+            record['token1'] = i[0]
+            record['token2'] = i[1]
+            record['times'] = i[2]
+            # record['tokenID1'] = i[3]
+            # record['reportID2'] = i[4]
+            # record['posStart2'] = i[5]
+            # record['posEnd2'] = i[6]
+            # record['tokenID2'] = i[7]
             # print(record)
             result['data'].append(copy.deepcopy(record))
 
         conn.commit()
         conn.close()
-
+    #插入U資料
     if request.method == 'POST':
         #取得資料
         result = {'status':'1'} #預設失敗
@@ -314,7 +318,53 @@ def getTextToken(request):
 
         conn.commit()
         conn.close()
+    #把posStart posEnd *(-1)
+    if request.method == 'PATCH':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        raw = request.body.decode('utf-8')
+        body = json.loads(raw)
+        print(body)
+        # print( body['reportID1'])
+
+        tokenID1 = body['reportID1']
+        tokenID2 = body['reportID2']
+
+        
+        print(tokenID1, tokenID2)
+
+        query = '''
+        UPDATE A 
+        SET A.posStart = -1 * A.posStart, A.posEnd = -1 * A.posEnd FROM 
+        [buildVocabulary].[dbo].[textToken] AS A 
+        INNER JOIN 
+        [buildVocabulary].[dbo].[textToken] AS B 
+        on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0 
+        WHERE A.tokenID = ? AND B.tokenID = ?;
+
+        UPDATE B
+        SET B.posStart = -1 * B.posStart, B.posEnd = -1 * B.posEnd FROM 
+        [buildVocabulary].[dbo].[textToken] AS A 
+        INNER JOIN 
+        [buildVocabulary].[dbo].[textToken] AS B 
+        on A.reportID = B.reportID and B.posStart - A.posEnd*-1 = 1 and A.posStart*-1 > 0 and B.posStart > 0
+        WHERE A.tokenID = ? AND B.tokenID = ?;'''
+        args = [tokenID1, tokenID2, tokenID1, tokenID2]
+        cursor.execute(query, args)
+        result = {'status':'0'} #成功
+
+        conn.commit()
+        conn.close()
     return JsonResponse(result)
+    
 
 
 
@@ -801,7 +851,7 @@ def insertExtractedValueFromToken(request):
 
 @csrf_exempt
 def getToken(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         #取得資料
         result = {'status':'1'} #預設失敗
         #建立連線
@@ -814,8 +864,8 @@ def getToken(request):
         # print("request: ", request.POST.getlist('tokenID[]'))
 
         #取得資料
-        tokenID1 = request.GET.getlist('tokenID1[]')
-        tokenID2 = request.GET.getlist('tokenID2[]')
+        tokenID1 = request.POST.getlist('tokenID1[]')
+        tokenID2 = request.POST.getlist('tokenID2[]')
         # print(tokenID1)        
         # print(tokenID2)
         token1 = []

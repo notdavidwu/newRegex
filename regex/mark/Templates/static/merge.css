@@ -21,7 +21,7 @@
         position:absolute;
         left:100px;
         top:100px;
-        width:500px;
+        width:700px;
         height:700px;
         overflow:auto;
     }
@@ -44,5 +44,16 @@
         top:60px;
         width:100px;
         height:40px;
+    }
+
+    button:active {
+      background-color: red;
+    }
+
+    #selectTokenType {
+      position:absolute;
+      right:220px;
+      top:65px;
+      width:150px;
     }
 </style>

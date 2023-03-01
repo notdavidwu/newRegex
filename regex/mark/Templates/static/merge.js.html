@@ -17,17 +17,17 @@
 
         //處理成tokenID1[].tokenID2[]
         tokenID = seperateArray(response.data);
-        console.log(tokenID);
+        //console.log(tokenID);
         
         //取得字典的字
-        token = getDictionary(tokenID);
+        //token = getDictionary(tokenID);
         //token[0] = token1
         //token[1] = token2
         //console.log("token", token);
 
         //顯示結果表格
-        if (token){
-            let headers = ['No','First', 'Second', 'MergeCheck'];
+        if (tokenID){
+            let headers = ['No','First', 'Second', 'Times', 'MergeCheck'];
             var array = [];
             var temp = [];
             //token.forEach(function(tk){
@@ -36,8 +36,8 @@
             //        console.log("tk[i] = ", tk[i]);
             //    }
             //});
-            for(var i=0 ; i<token[0].length ; i++){
-                array.push([i+1, token[0][i], token[1][i]])
+            for(var i=0 ; i<tokenID[0].length ; i++){
+                array.push([i+1, tokenID[0][i], tokenID[1][i], tokenID[2][i]])
             }
             //console.log("array = ", array);
             showTable(headers, array, tokenID);
@@ -66,14 +66,16 @@
         var res = [];
         var firstTokenID = [];
         var secondTokenID = [];
+        var times = [];
         data.forEach(function(a){
             //console.log(a.tokenID1, a.tokenID2);
-            firstTokenID.push(a.tokenID1);
-            secondTokenID.push(a.tokenID2);
-
+            firstTokenID.push(a.token1);
+            secondTokenID.push(a.token2);
+            times.push(a.times);
         });
         res.push(firstTokenID);
         res.push(secondTokenID);
+        res.push(times);
         //console.log(res);
         return res;
     }
@@ -85,7 +87,7 @@
         var tokenID2 = tokenID[1];
         $.ajax({
             async: false,
-            type: 'GET',
+            type: 'POST',
             url: '{% url 'getToken' %}',
             data:{
                 "tokenID1[]" : tokenID1,
@@ -102,7 +104,10 @@
 
     //顯示結果表格
     function showTable(headers, array, tokenID){
-        //console.log("array : ",array);
+        console.log("array : ",array);
+        /*
+        //紀錄誰diable誰[按下button, 前面, 後面]
+        var disableArray = [];
         //創建表格元素
         let myTable = document.querySelector('#result_data');
         myTable.className = "table table-striped-columns";
@@ -131,12 +136,12 @@
             btn.value = emp[0]-1;            
             btn.id = "button" + btn.value.toString();
             btn.name = "tableButton"
-            btn.addEventListener('click', function(event) {                
+            btn.addEventListener('click', function(event, disableArray) {                
                 //console.log("clicked : " + btn.value);
                 if (btn.className === "btn btn-info"){
                     btn.className = "btn btn-info active";
                     //確認前後重複+disable
-                    checkDuplicateDisable(btn, tokenID);
+                    checkDuplicateDisable(btn, tokenID, disableArray);
                 }else if (btn.className === "btn btn-info active"){
                     btn.className = "btn btn-info";
                     //目前有問題先註解
@@ -147,8 +152,76 @@
             table.appendChild(row);
         });
         myTable.appendChild(table);
+        */
+        let object=`<table class="table table-striped-columns">
+            <thead>
+                <tr>
+                    <td>No</td>
+                    <td>First</td>
+                    <td>Second</td>
+                    <td>Times</td>
+                    <td>MergeCheck</td>
+                </tr>
+            </thead>
+            <tbody>`
+        for(let i=0;i<array.length;i++){
+            object += `<tr>
+                <td class='No' value="${array[i][0]}" >${array[i][0]}</td>
+                <td class='First' value="${array[i][1]}" >${array[i][1]}</td>
+                <td class='Second' value="${array[i][2]}" >${array[i][2]}</td>
+                <td class='Times' value="${array[i][3]}" >${array[i][3]}</td>
+                <td class='Mergecheck' ><button onclick="merge()" class="btn btn-info">Merge</button></td>
+            </tr>`
+        }
+        object +='</tbody></table>'
+        $('#result_data').append(object);
     }
-    
+
+    function merge(){
+        $(event.target).toggleClass('active');
+        if ($(event.target).attr('class') == "btn btn-info active" ){
+            let tokenID1 = $(event.target).parents('tr').find('.First')[0].getAttribute('value');
+            console.log("tokenID1 = ", tokenID1);
+            let tokenID2 = $(event.target).parents('tr').find('.Second')[0].getAttribute('value');
+            console.log("tokenID2 = ", tokenID2);
+            let times = $(event.target).parents('tr').find('.Times')[0].getAttribute('value');
+            console.log("times = ", times);
+            var Token = tokenID1 + tokenID2;
+            var lenOfToken = Token.length;
+            var TokenType = document.getElementById("selectTokenType").value;
+            console.log(Token, lenOfToken, TokenType);
+            //存新的volcabulary(a+b)
+            if (TokenType){
+                insertVocabulary_new(Token, lenOfToken, TokenType);
+            }
+            //把原本的資料*(-1)
+            //console.log("class : ", $(event.target).attr('class'));
+        }
+        else{            
+            //console.log("class : ", $(event.target).attr('class'));
+        }            
+    }
+
+    //存新的volcabulary(a+b)
+    function insertVocabulary_new(token, nWord, tokenType){
+        var res = [];
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'insertVocabulary' %}',
+            data:{
+                "token" : token,
+                "nWord" : nWord,
+                "tokenType" : tokenType,
+            },
+            success:function (response){
+                console.log(response.data);
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
+
     //判斷全選取消
     function selectAll_cancelAll(){
         var btn = document.getElementById("selectAll");
@@ -190,7 +263,7 @@
     }
 
     //確認前後重複+disable
-    function checkDuplicateDisable(btn, tokenID){
+    function checkDuplicateDisable(btn, tokenID, disableArray){
         //console.log(btn.value);
         //console.log(tokenID);
         var first = tokenID[0];
@@ -211,6 +284,17 @@
                 }
                 else{
                     disableBtn.disabled = true;
+                    
+                    console.log("disableArray : ", disableArray);
+
+                    if (disableArray[index] === 'undefined'){
+                        disableArray[index] = [];
+                        disableArray[index][0] = index;
+                        disableArray[index][1] = index + 1;
+                    }
+                    else{  
+                        disableArray[index][1] = index + 1;
+                    }
                 }
             }
             
@@ -227,6 +311,7 @@
                 }
             }
         }
+        console.log("disableArray : ", disableArray);
     }
 
     //確認前後重複+取消disable
