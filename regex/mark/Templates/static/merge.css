@@ -52,9 +52,16 @@
 
     #selectTokenType {
       position:absolute;
-      right:220px;
+      left:500px;
       top:65px;
-      width:150px;
+      width:200px;
+    }
+
+    #twoOrThree {
+          position:absolute;
+          left:100px;
+          top:65px;
+          width:200px;
     }
 
     .modalBackdrop{
@@ -64,5 +71,15 @@
       width:100vw;
       height:100vh;
       background-color:rgba(0,0,0,0.5);
+  }
+
+  #noInput {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
   }
 </style>

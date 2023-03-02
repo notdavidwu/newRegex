@@ -262,7 +262,15 @@ def getTextToken(request):
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
 
-        query = 'select /*c.tokenID,d.tokenID,*/c.token, d.token, count(*) as times from textToken as a inner join textToken as b on a.reportID=b.reportID and (a.posEnd+1)=b.posStart inner join Vocabulary as c on a.tokenID=c.tokenID inner join Vocabulary as d on b.tokenID=d.tokenID group by /*c.tokenID,d.tokenID,*/c.token, d.token order by times desc'
+        query = '''
+                select c.token, d.token, count(*) as times
+                from [buildVocabulary ].[dbo].[textToken] as a inner join [buildVocabulary ].[dbo].[textToken] as b 
+                on a.reportID=b.reportID and (a.posEnd+1)=b.posStart AND a.posStart>0 AND b.posStart>0
+                    inner join [buildVocabulary ].[dbo].Vocabulary as c on a.tokenID=c.tokenID
+                    inner join [buildVocabulary ].[dbo].Vocabulary as d on b.tokenID=d.tokenID
+                group by c.token, d.token
+                order by times desc;
+                '''
         cursor.execute(query)
         textTokenData = cursor.fetchall()
         # print("textTokenData : ", textTokenData)
@@ -407,6 +415,184 @@ def getTextToken(request):
         conn.commit()
         conn.close()
     return JsonResponse(result)
+
+@csrf_exempt
+def getTextToken_3(request):
+    #取得
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        query = '''
+                SELECT c.token, d.token, f.token, COUNT(*) AS times
+                FROM [buildVocabulary].[dbo].[textToken] AS a 
+                INNER JOIN [buildVocabulary].[dbo].[textToken] AS b ON a.reportID = b.reportID AND (a.posEnd + 1) = b.posStart AND a.posStart>0 AND b.posStart>0
+                INNER JOIN [buildVocabulary].[dbo].[textToken] AS e ON b.reportID = e.reportID AND (b.posEnd + 1) = e.posStart AND b.posStart>0 AND e.posStart>0
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS c ON a.tokenID = c.tokenID
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS d ON b.tokenID = d.tokenID
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS f ON e.tokenID = f.tokenID
+                GROUP BY c.token, d.token, f.token
+                ORDER BY times DESC;
+                '''
+        cursor.execute(query)
+        textTokenData = cursor.fetchall()
+        print("textTokenData : ", textTokenData)
+        result['data'] = []
+        # print(textTokenData[0][0])
+        record = {}
+        for i in textTokenData:
+            # print(i)
+            # print(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7])          
+            result['status'] = '0'
+            record['token1'] = i[0]
+            record['token2'] = i[1]
+            record['token3'] = i[2]
+            record['times'] = i[3]
+            # record['tokenID1'] = i[3]
+            # record['reportID2'] = i[4]
+            # record['posStart2'] = i[5]
+            # record['posEnd2'] = i[6]
+            # record['tokenID2'] = i[7]
+            print(record)
+            result['data'].append(copy.deepcopy(record))
+
+        conn.commit()
+        conn.close()
+
+
+    #把posStart posEnd *(-1)
+    if request.method == 'PATCH':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        raw = request.body.decode('utf-8')
+        body = json.loads(raw)
+        print(body)
+        # print( body['reportID1'])
+
+        tokenID1 = body['tokenID1']
+        tokenID2 = body['tokenID2']
+        tokenID3 = body['tokenID3']
+
+        
+        print(tokenID1, tokenID2, tokenID3)
+
+
+        query = '''
+                UPDATE A 
+                SET A.posStart = -1 * A.posStart, A.posEnd = -1 * A.posEnd        
+                OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
+                FROM 
+                [buildVocabulary].[dbo].[textToken] AS A 
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS B 
+                on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS C 
+                on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and B.posStart > 0 and C.posStart > 0
+                WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
+
+                '''
+        args = [tokenID1, tokenID2, tokenID3]
+        cursor.execute(query, args)
+        changed_texttoken1 = cursor.fetchall()
+        print("changed_texttoken first : ", changed_texttoken1)
+
+        
+
+
+        query = '''
+                UPDATE B
+                SET B.posStart = -1 * B.posStart, B.posEnd = -1 * B.posEnd        
+                OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
+                FROM 
+                [buildVocabulary].[dbo].[textToken] AS A 
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS B 
+                on A.reportID = B.reportID and B.posStart - A.posEnd*(-1) = 1 and A.posStart*(-1) > 0 and B.posStart > 0
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS C 
+                on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and B.posStart > 0 and C.posStart > 0
+                WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
+                '''
+        args = [tokenID1, tokenID2, tokenID3]
+        cursor.execute(query, args)
+        changed_texttoken2 = cursor.fetchall()
+        print("changed_texttoken second: ", changed_texttoken2)
+
+
+
+        query = '''
+                UPDATE C
+                SET C.posStart = -1 * C.posStart, C.posEnd = -1 * C.posEnd        
+                OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
+                FROM 
+                [buildVocabulary].[dbo].[textToken] AS A 
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS B 
+                on A.reportID = B.reportID and B.posStart*(-1) - A.posEnd*(-1) = 1 and A.posStart*(-1) > 0 and B.posStart*(-1) > 0
+                INNER JOIN 
+                [buildVocabulary].[dbo].[textToken] AS C 
+                on B.reportID = C.reportID and C.posStart - B.posEnd*(-1) = 1 and B.posStart*(-1) > 0 and C.posStart > 0
+                WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
+                '''
+        args = [tokenID1, tokenID2, tokenID3]
+        cursor.execute(query, args)
+        changed_texttoken3 = cursor.fetchall()
+        print("changed_texttoken Third: ", changed_texttoken3)
+
+        print("length of all data : ",  len(changed_texttoken1) + len(changed_texttoken2) + len(changed_texttoken3))
+
+
+
+        
+        result = {'status':'0'} #成功
+        result['data'] = []
+        record = {}
+
+        for i in changed_texttoken1:
+            print(i)
+            record['reportID'] = i[0]
+            record['posStart'] = i[1]
+            record['posEnd'] = i[2]
+            record['tokenID'] = i[3]
+            result['data'].append(copy.deepcopy(record))
+
+        for i in changed_texttoken2:
+            print(i)
+            record['reportID'] = i[0]
+            record['posStart'] = i[1]
+            record['posEnd'] = i[2]
+            record['tokenID'] = i[3]
+            result['data'].append(copy.deepcopy(record))
+
+        for i in changed_texttoken3:
+            print(i)
+            record['reportID'] = i[0]
+            record['posStart'] = i[1]
+            record['posEnd'] = i[2]
+            record['tokenID'] = i[3]
+            result['data'].append(copy.deepcopy(record))
+
+        
+
+        conn.commit()
+        conn.close()
+    return JsonResponse(result)
     
 
 
@@ -444,6 +630,93 @@ def insertTexttoken(request):
             record['reportID'] = i[0]
             record['posStart'] = i[1]
             record['posEnd'] = i[6]
+            result['data'].append(copy.deepcopy(record))
+        print(result)
+
+        result['status'] = '0'
+        conn.commit()
+        conn.close()
+
+
+
+    #插入新的textToken資料([1,1] + [2,2] = [1,2])
+    if request.method == 'POST':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        data = json.loads(request.body)
+        print("positionArray : ", data.get('positionArray[]'))
+        print("newTokenID : ", data.get('newTokenID'))
+
+        positionArray = data.get('positionArray[]')
+        newTokenID = data.get('newTokenID')
+
+        for i in positionArray:
+            # print(i)
+            # print( "data = ",i['reportID'] ,"position from ", i['posStart'], " to ", i['posEnd'], "ID = ", newTokenID)
+            query = '''
+                insert into [buildVocabulary ].[dbo].textToken
+                (reportID, posStart, posEnd, tokenID)
+                output [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
+                values(?, ?, ?, ?)
+                '''
+            args = [i['reportID'], i['posStart'], i['posEnd'], newTokenID]            
+            cursor.execute(query, args)
+            insertedResult = cursor.fetchone()
+            print("insertedResult : ", insertedResult)
+
+
+        result['status'] = '0'
+
+        conn.commit()
+        conn.close()
+    return JsonResponse(result)
+
+@csrf_exempt
+def insertTexttoken_3(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'newcomer' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()        
+
+        tokenID1 = request.GET['tokenID1']
+        tokenID2 = request.GET['tokenID2']
+        tokenID3 = request.GET['tokenID3']
+
+        query = '''
+                select * from [buildVocabulary ].[dbo].textToken as A
+                inner join
+                [buildVocabulary ].[dbo].textToken as B 
+                on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
+                inner join
+                [buildVocabulary ].[dbo].textToken as C 
+                on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and C.posStart > 0 and B.posStart > 0
+                where A.tokenID = ? and B.tokenID = ? and C.tokenID = ?
+                order by A.reportID, A.posStart
+                '''
+        args = [tokenID1, tokenID2, tokenID3]
+        cursor.execute(query, args)
+        position = cursor.fetchall()
+        result['data'] = []
+        record = {}
+        for i in position:
+            print( "reportID = ", i[0], "position from ", i[1], " to ", i[10])
+            record['reportID'] = i[0]
+            record['posStart'] = i[1]
+            record['posEnd'] = i[10]
             result['data'].append(copy.deepcopy(record))
         print(result)
 
