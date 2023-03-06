@@ -93,7 +93,7 @@ def getVocabulary(request):
         #測試拉資料
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -120,7 +120,7 @@ def getVocabularyByType(request):
             #建立連線
             server = '172.31.6.22' 
             database = 'buildVocabulary' 
-            username = 'newcomer' 
+            username = 'N824' 
             password = 'test81218' 
             conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
             cursor = conn.cursor()
@@ -157,7 +157,7 @@ def insertVocabulary(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -168,19 +168,35 @@ def insertVocabulary(request):
         record['token'] = request.POST.get('token')
         record['nWord'] = request.POST.get('nWord')
         record['tokenType'] = request.POST.get('tokenType')
-        #插入資料表
-        query = 'INSERT into Vocabulary (token,nWord,tokenType) OUTPUT [INSERTED].tokenID,[INSERTED].token,[INSERTED].tokenType VALUES (?, ?, ?);'
-        args = [request.POST.get('token'),int(request.POST.get('nWord')),request.POST.get('tokenType')]
-        print(args)
+
+
+        query = 'select * from Vocabulary where token = ? and nWord = ?;'
+        args = [request.POST.get('token'),int(request.POST.get('nWord'))]
         cursor.execute(query, args)
-        tokenID = cursor.fetchall()
-        print(tokenID[0][0], tokenID[0][1], tokenID[0][2])
-        result['status'] = '0'
-        record['tokenID'] = tokenID[0][0]
-        record['token'] = tokenID[0][1]
-        record['tokenType'] = tokenID[0][2]
-        result['data'].append(record)
-        print("data saved(Vocabulary)")
+        tokenID_original = cursor.fetchall()
+        print(tokenID_original)
+
+        
+        if tokenID_original == [] and request.POST.get('tokenType'):
+
+        #插入資料表
+            query = 'INSERT into Vocabulary (token,nWord,tokenType) OUTPUT [INSERTED].tokenID,[INSERTED].token,[INSERTED].tokenType VALUES (?, ?, ?);'
+            args = [request.POST.get('token'),int(request.POST.get('nWord')),request.POST.get('tokenType')]
+            print(args)
+            cursor.execute(query, args)
+            tokenID = cursor.fetchall()
+            print(tokenID[0][0], tokenID[0][1], tokenID[0][2])
+            if tokenID != []:
+                result['status'] = '0'
+                record['tokenID'] = tokenID[0][0]
+                record['token'] = tokenID[0][1]
+                record['tokenType'] = tokenID[0][2]
+                result['data'].append(record)
+
+        else:
+            result['status'] = 'already_exist'
+
+        # print("data saved(Vocabulary)")
         conn.commit()
         conn.close()
             
@@ -195,7 +211,7 @@ def insertVocabulary_U(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -215,7 +231,6 @@ def insertVocabulary_U(request):
         tokenID = []
         for i in range(len(token)):
             Token = token[i]
-            Token = Token.lower()
             print("Token : ", Token)
             #先查詢
             query = 'select * from Vocabulary where token = ?;'
@@ -257,7 +272,7 @@ def getTextToken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -301,7 +316,7 @@ def getTextToken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -334,7 +349,7 @@ def getTextToken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -425,7 +440,7 @@ def getTextToken_3(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -474,7 +489,7 @@ def getTextToken_3(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -604,7 +619,7 @@ def insertTexttoken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()        
@@ -646,7 +661,7 @@ def insertTexttoken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -687,7 +702,7 @@ def insertTexttoken_3(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()        
@@ -733,7 +748,7 @@ def insertTexttoken_3(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -778,7 +793,7 @@ def inserttokenRE(request):
             #建立連線
             server = '172.31.6.22' 
             database = 'buildVocabulary' 
-            username = 'newcomer' 
+            username = 'N824' 
             password = 'test81218' 
             conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
             cursor = conn.cursor()
@@ -818,7 +833,7 @@ def inserttokenREItem(request):
             #建立連線
             server = '172.31.6.22' 
             database = 'buildVocabulary' 
-            username = 'newcomer' 
+            username = 'N824' 
             password = 'test81218' 
             conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
             cursor = conn.cursor()
@@ -859,7 +874,7 @@ def checkName(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -898,7 +913,7 @@ def checkRE(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -939,7 +954,7 @@ def getAnalyseText(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -972,7 +987,7 @@ def getReportID(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1008,7 +1023,7 @@ def getReportText(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1040,7 +1055,7 @@ def getReportText(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1071,7 +1086,7 @@ def getReportText(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1111,7 +1126,7 @@ def getTokenREItemID(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer'
+        username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1195,7 +1210,7 @@ def insertExtractedValueFromToken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
@@ -1257,7 +1272,7 @@ def getToken(request):
         #建立連線
         server = '172.31.6.22' 
         database = 'buildVocabulary' 
-        username = 'newcomer' 
+        username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()

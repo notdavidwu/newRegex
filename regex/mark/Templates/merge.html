@@ -42,10 +42,9 @@
 
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectTokenType">
       <option selected value="">Select Type of Token</option>
-      <option value="G">English</option>
-      <option value="C">Chinese</option>
-      <option value="S">Sign</option>
-      <option value="N">Number</option>
+      <option value="T">Tag</option>
+      <option value="E">Extraction</option>
+      <option value="P">ProperNoun</option>
     </select>    
 
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="twoOrThree">
@@ -56,6 +55,10 @@
     
     <div class="alert alert-danger" role="alert" id="noInput">
       Please select a Type !!
+    </div>
+
+    <div class="alert alert-danger" role="alert" id="already_exist">
+      Vocabulary is already exist!!
     </div>
 
   </body>

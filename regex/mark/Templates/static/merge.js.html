@@ -321,17 +321,21 @@
                         console.log("positionArray : ", positionArray);
                         if (positionArray.status === "0"){
                             //將textToken原始資料*(-1)
-                            response = multiplyByMinusOne_3(tokenIDArray.tokenID);
-                            if (response.status === "0"){
+                            response1 = multiplyByMinusOne_3(tokenIDArray.tokenID);
+                            if (response1.status === "0"){
                                 //console.log("minus one response : ", response)
                                 //存入新的tokenID到textToken
-                                response = insertNewTextToken(positionArray, newTokenID);
-                                if (response.status === "0"){
+                                response1 = insertNewTextToken(positionArray, newTokenID);
+                                if (response1.status === "0"){
                                     window.location.reload();
-                                }                            
+                                }
                             }
                         }
                     }
+                }
+                else if (response.status === 'already_exist'){
+                    console.log("already_exist!!!");
+                    display_already_exist();
                 }
             }
             else{
@@ -354,6 +358,19 @@
             setTimeout(function() {
                 //your code to be executed after 1 second                    
                 document.getElementById("noInput").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+
+    //顯示已經存在
+    function display_already_exist(){
+        var x = document.getElementById("already_exist");
+        //console.log(x.style.visibility)
+        if (document.getElementById("already_exist").style.visibility != 'visible') {
+            document.getElementById("already_exist").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("already_exist").style.visibility = 'hidden';
             }, 1200);
         }
     }
