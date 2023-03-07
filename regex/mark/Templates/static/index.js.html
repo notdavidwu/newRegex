@@ -11,6 +11,7 @@
 <script >
 
     $(document).ready(function () {  
+
         //關閉按鈕顯示
         $('input[type=radio][id="flexRadioDefault1"]').change(function() {
             document.getElementById("returnbtn").style.visibility = 'hidden';
@@ -27,11 +28,18 @@
             Name.push(document.getElementById("regexName").value);
             //console.log(name);
             
-            $("#validText").text("Name is valid!");
-            $("#regexName").attr('class', 'form-control is-valid');
             //不為空檢查，否則顯示不可為空
             if (Name[0] != ""){
-                checkName(Name);
+                tokenTYPE = checkName(Name);
+                console.log("tokenTYPE :", tokenTYPE);
+                if (tokenTYPE[0] === 'T'){
+                    var option = document.getElementById("T");
+                    option.selected = true;
+                }
+                else{
+                    var option = document.getElementById("E");
+                    option.selected = true;
+                }
             }else{
                 $("#invalidText").text("Name CAN'T be null!");
                 $("#regexName").attr('class', 'form-control is-invalid');
@@ -51,25 +59,32 @@
 
     //確認名稱合法與否
     function checkName(Name){
+        var res;
         $.ajax({
+            async: false, 
             type: 'GET',
             url: '{% url 'checkName' %}',
             data:{
                 'Name[]': Name,
             },
             success:function (response){
-                //console.log("result : " + response.status)
+                res = response.tokenType;
+                const feedbackElement = document.querySelector('.warning-feedback');
                 if (response.status == '0'){                     
                     //有找到，報錯
-                    $("#invalidText").text("Duplicate name!");
-                    $("#regexName").attr('class', 'form-control is-invalid');
-                }else{
+                    feedbackElement.textContent = "Same Name detected, extract will append a new regex to it.";
+                    $("#regexName").attr('class', 'form-control is-warning');
+                }
+                else{
+                    feedbackElement.textContent = "";
                     //沒找到，正確
                     $("#validText").text("Name is valid!");
+                    $("#regexName").attr('class', 'form-control is-valid');
                     $("#regexName").attr('class', 'form-control is-valid');
                 }
             },
         })
+        return res;
     }
 
     //計算字串(含中文)長度
@@ -98,7 +113,7 @@
             },
             success:function (response){
                 console.log("result : " + response.status)
-                if (response.status == '0'){                    
+                if (response.status === '0' || response.status === 'already_exist'){                    
                     display_data_saved();
                 }else{
                     console.log("data not saved");
@@ -109,12 +124,10 @@
                 }
                 if (tokenType == 'T'){
                     BtnClicked_2(response);
-                }                
+                }
                 if (tokenType == 'U'){
                     BtnClicked_2(response);
                 }
-            },
-            fail:function (){         
             },
         });
     }
@@ -383,6 +396,5 @@
             }, 1200);
         }
      }
-     
 
 </script>

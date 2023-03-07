@@ -220,6 +220,11 @@
     top:65px;
     width:150px;
   }
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
+  }
    
   
 </style>

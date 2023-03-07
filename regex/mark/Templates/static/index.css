@@ -39,6 +39,21 @@
     user-select:none;
   }
 
+  #warningText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+    user-select:none;
+  }
+
+  .warning-feedback {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: .875em;
+    color: var(--bs-warning-text);
+}
+
   #check {
     position:absolute;
     top:225px;
@@ -212,5 +227,14 @@
     top:150px;
     left:600px;
     user-select:none;
+  }  
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
+  }
+
+  .is-warning {
+    border-color: #ffc107; /* set border color to yellow */
   }
 </style>

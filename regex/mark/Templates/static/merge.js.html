@@ -17,8 +17,10 @@
 
         //顯示資料
         printAllData();
-        //監聽選擇全部以及取消全選
-        selectAll_cancelAll(tokenID);
+
+        //顯示P資料
+        printAllPData();
+        
     });
 
     //顯示資料
@@ -79,6 +81,55 @@
             console.log("array = ", array);
             showTable_3(headers, array, tokenID);
         }
+    }
+
+    //顯示P資料
+    function printAllPData(){
+        response = getVocabularyData();
+        var tokenP = response.data;
+        console.log("response.data : ", response.data);
+//
+        ////處理成tokenID1[].tokenID2[]
+        //tokenID = seperateArray(response.data);
+        ////console.log(tokenID);
+//
+        ////顯示結果表格
+        if (tokenP != []){
+            let headers = ['No','ProperNoun'];
+            var array = [];
+            var temp = [];
+
+            //if (xxx.value === 2){
+            for(var i=0 ; i<tokenP.length ; i++){
+                array.push([i+1, tokenP[i].token])
+            }
+            //}
+            //else if (xxx.value === 3){
+            //    for(var i=0 ; i<tokenID[0].length ; i++){
+            //        array.push([i+1, tokenID[0][i], tokenID[1][i], tokenID[2][i], tokenID[3][i]])
+            //    }
+            //}
+            console.log("array = ", array);
+            showTableP(headers, array, tokenID);
+        }
+    }
+    
+    //取得P資料
+    function getVocabularyData(){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'getVocabularyByType' %}',
+            data:{
+                "tokenType" : "P",
+            },
+            success:function (response){
+                res = response;
+                //console.log("res : ", res);
+            },
+        });
+        return res;
     }
 
     //取得所有資料
@@ -182,7 +233,7 @@
     function showTable(headers, array, tokenID){
         console.log("array : ",array);
         let object=`<table class="table table-striped-columns">
-            <thead>
+            <thead style="user-select:none;">
                 <tr>
                     <td>No</td>
                     <td>First</td>
@@ -194,10 +245,10 @@
             <tbody>`
         for(let i=0;i<array.length;i++){
             object += `<tr>
-                <td class='No' value="${array[i][0]}" >${array[i][0]}</td>
+                <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
                 <td class='First' value="${array[i][1]}" >${array[i][1]}</td>
                 <td class='Second' value="${array[i][2]}" >${array[i][2]}</td>
-                <td class='Times' value="${array[i][3]}" >${array[i][3]}</td>
+                <td class='Times' value="${array[i][3]}" style="user-select:none;">${array[i][3]}</td>
                 <td class='Mergecheck' ><button onclick="merge()" class="btn btn-info">Merge</button></td>
             </tr>`
         }
@@ -223,17 +274,62 @@
             <tbody>`
         for(let i=0;i<array.length;i++){
             object += `<tr>
-                <td class='No' value="${array[i][0]}" >${array[i][0]}</td>
+                <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
                 <td class='First' value="${array[i][1]}" >${array[i][1]}</td>
                 <td class='Second' value="${array[i][2]}" >${array[i][2]}</td>
                 <td class='Third' value="${array[i][3]}" >${array[i][3]}</td>
-                <td class='Times' value="${array[i][4]}" >${array[i][4]}</td>
+                <td class='Times' value="${array[i][4]}" style="user-select:none;">${array[i][4]}</td>
                 <td class='Mergecheck' ><button onclick="merge_3()" class="btn btn-info">Merge</button></td>
             </tr>`
         }
         object +='</tbody></table>'
         $('#result_data').empty();
         $('#result_data').append(object);
+    }
+
+    //顯示結果表格P
+    function showTableP(headers, array, tokenID){
+        console.log("array : ",array);
+        let object=`<table class="table table-striped-columns">
+            <thead style="user-select:none;">
+                <tr>
+                    <td>No</td>
+                    <td>ProperNoun</td>
+                    <td>AddRE</td>
+                    <td>Undo</td>
+                </tr>
+            </thead>
+            <tbody>`
+        PNarray = checkPN(array);
+        for(let i=0;i<array.length;i++){
+            if (PNarray[i] === 0){
+                object += `<tr>
+                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
+                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
+                    <td class='UnMerge' ><button onclick="" class="btn btn-danger">UnMerge</button></td>
+                </tr>`
+            }
+            else if(PNarray[i] === 1){
+                object += `<tr>
+                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
+                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
+                    <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
+                </tr>`
+            }
+            else if(PNarray[i] === 2){
+                object += `<tr>
+                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
+                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
+                    <td class='Basic' value="Basic" style="user-select:none;">Basic ProperNoun</td>
+                </tr>`
+            }
+        }
+        object +='</tbody></table>'
+        $('#result_dataP').empty();
+        $('#result_dataP').append(object);
     }
 
     function merge(){
@@ -517,15 +613,27 @@
         return res;
     }
 
-    //判斷全選取消
-    function selectAll_cancelAll(){
-        var btn = document.getElementById("selectAll");
-        $("#selectAll").click(function(){
-            selectAllButton();
+    //取得是否為最後一代
+    function checkPN(array){
+        tokenArray = [];
+        for (var i=0 ; i<array.length ; i++){
+            tokenArray[i] = array[i][1];
+        }
+        console.log("checkPN : ", tokenArray);
+        var res = [];
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'getTokenIDCheckTextToken' %}',
+            data:{
+                "token[]" : tokenArray,
+            },
+            success:function (response){
+                res = response;
+                console.log("PNarray : ", res.data);
+            },
         });
-        $("#cancelAll").click(function(){            
-            cancelAllButton();
-        });
+        return res.data;
     }
 
     //全選
@@ -639,5 +747,45 @@
     }
 
 
+    //開啟網頁傳值
+    function changeSrc() {
+        // Get the iframe element
+        var iframe = document.getElementById("iframe");        
+        var overlay = document.querySelector('.overlay');
+
+        if(iframe.style.display == "block"){            
+            iframe.style.display = "none";
+            overlay.style.display = "none";
+        }
+        else{
+            document.addEventListener("click", function(event) {
+                // Check if the clicked element is inside the iframe or the button that opened the iframe
+                if (event.target !== iframe && !event.target.classList.contains("btn")) {
+                    // If it is not, hide the iframe
+                    iframe.style.display = "none";                  
+                    overlay.style.display = "none";
+                }
+            });
+            
+            overlay.style.display = "block";
+
+            iframe.style.display = "block";
+            
+        
+            var iframeDoc = iframe.contentWindow.document;
+            var navbar = iframeDoc.getElementById("navbar");
+            navbar.style.display = "none";
+            
+            var box = iframeDoc.getElementById("regexName");
+            var drop = iframeDoc.getElementById("dropdownbutton");
+            iframeDoc.getElementById("E").selected = true;
+
+            
+            var drop23 = document.getElementById("twoOrThree");
+            let Token = $(event.target).parents('tr').find('.ProperNoun')[0].getAttribute('value');
+
+            box.value = Token;
+        }
+    }
     
 </script> 

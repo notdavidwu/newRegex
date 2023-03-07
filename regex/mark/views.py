@@ -126,9 +126,9 @@ def getVocabularyByType(request):
             cursor = conn.cursor()
             #插入資料表
             if request.GET['tokenType'] == 'U':
-                query = 'select * from Vocabulary where tokenType=? and tokenID <= 152 order by tokenID DESC;'
+                query = 'select * from Vocabulary where (tokenType = ? and tokenID <= 152 and tokenID != 151) or tokenID = 7842 order by tokenID DESC;'
             else:
-                query = 'select * from Vocabulary where tokenType=?;'
+                query = 'select * from Vocabulary where tokenType = ?;'
             args = [request.GET['tokenType']]
             #print(args)
             cursor.execute(query, args)
@@ -174,7 +174,7 @@ def insertVocabulary(request):
         args = [request.POST.get('token'),int(request.POST.get('nWord'))]
         cursor.execute(query, args)
         tokenID_original = cursor.fetchall()
-        print(tokenID_original)
+        print("tokenID_original : ", tokenID_original)
 
         
         if tokenID_original == [] and request.POST.get('tokenType'):
@@ -195,6 +195,10 @@ def insertVocabulary(request):
 
         else:
             result['status'] = 'already_exist'
+            record['tokenID'] = tokenID_original[0][0]
+            record['token'] = tokenID_original[0][1]
+            record['tokenType'] = tokenID_original[0][2]
+            result['data'].append(record)
 
         # print("data saved(Vocabulary)")
         conn.commit()
@@ -1315,6 +1319,71 @@ def getToken(request):
         result['status'] = '0'
         # print(result)
     return JsonResponse(result)
+
+        #讀取tokenID再檢查textToken是否為正值
+@csrf_exempt
+def getTokenIDCheckTextToken(request):
+    if request.method == 'POST':
+        #取得資料
+        result = {'status':'1'} #預設沒找到
+        
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'N824'
+        password = 'test81218'
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+
+        token = request.POST.getlist('token[]')
+        # print(token)
+
+        PNarray = []
+        for i, t in enumerate(token):
+            pn = 0
+            print("Index:", i, "Token:", t)
+            query = 'SELECT * FROM Vocabulary where token = ?;'
+            args = [t]
+            # print(i)
+
+            
+            cursor.execute(query, args)
+            tokenID = cursor.fetchone()
+
+            # 有找到
+            if tokenID != None:
+                # print(tokenID.tokenID)
+                
+                query = 'SELECT * FROM textToken where tokenID = ?;'
+                args = [tokenID.tokenID]
+
+                cursor.execute(query, args)
+                textTokenData = cursor.fetchall()
+
+                if textTokenData != []:
+                    # print(textTokenData)
+                    result['status'] = '0'
+                    for jcount, j in enumerate(textTokenData) :
+                        result['status'] = '0'
+                        if (j[1] > 0 and j[2] > 0) == False:
+                            print("negative")
+                            PNarray.append(1)
+                            pn = 1      
+                            break
+                        print("jcount :", jcount, " len : ", len(textTokenData))
+                        if jcount == len(textTokenData)-1 and pn == 0:
+                            PNarray.append(0)
+                else:
+                    pn = 0      
+                    PNarray.append(2)
+        
+        result['data'] = PNarray
+        # print("PNarray : ", PNarray)
+        conn.commit()
+        conn.close()
+    return JsonResponse(result)
+
+
 
 
 

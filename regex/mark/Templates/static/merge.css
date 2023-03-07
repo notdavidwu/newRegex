@@ -25,6 +25,15 @@
       height:700px;
       overflow:auto;
     }
+
+    #result_dataP {
+      position:absolute;
+      right:100px;
+      top:100px;
+      width:700px;
+      height:700px;
+      overflow:auto;
+    }
     
     button[class*="btn btn-info"] {
       width:130px;
@@ -91,5 +100,32 @@
     left:420px;
     user-select:none;
     visibility:hidden;
+  }
+
+  #iframe {
+    height:750px;
+    width:1715px;
+    position:absolute;
+    top:65px;
+    left:15px;
+    user-select:none;
+    display:none;    
+    z-index: 2;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    display: none;
+  }
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
   }
 </style>

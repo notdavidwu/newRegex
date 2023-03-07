@@ -25,6 +25,7 @@
     <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
   </head>
   <body>
+    <div class="overlay"></div>
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
             <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}" id="title" >RegexBuilder</a>
@@ -39,12 +40,14 @@
     <div>
         <div id="result_data" class="table table-bordered" ></div>
     </div>
+    <div>
+        <div id="result_dataP" class="table table-bordered" ></div>
+    </div>
 
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectTokenType">
-      <option selected value="">Select Type of Token</option>
       <option value="T">Tag</option>
       <option value="E">Extraction</option>
-      <option value="P">ProperNoun</option>
+      <option selected value="P">ProperNoun</option>
     </select>    
 
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="twoOrThree">
@@ -60,6 +63,11 @@
     <div class="alert alert-danger" role="alert" id="already_exist">
       Vocabulary is already exist!!
     </div>
+
+    <iframe src="{% url 'home' %}" id="iframe">
+      你的瀏覽器不支援 iframe
+    </iframe>
+
 
   </body>
 </html>
