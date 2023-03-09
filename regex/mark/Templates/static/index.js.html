@@ -11,7 +11,6 @@
 <script >
 
     $(document).ready(function () {  
-
         //關閉按鈕顯示
         $('input[type=radio][id="flexRadioDefault1"]').change(function() {
             document.getElementById("returnbtn").style.visibility = 'hidden';
@@ -107,14 +106,12 @@
             url: '{% url 'insertVocabulary' %}',
             data:{
                 'token': token,
-                'nWord': count,
+                'nWord': token.length,
                 'tokenType': tokenType,                
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
             success:function (response){
                 console.log("result : " + response.status)
-                if (response.status === '0' || response.status === 'already_exist'){                    
-                    display_data_saved();
+                if (response.status === '0' || response.status === 'already_exist'){
                 }else{
                     console.log("data not saved");
                     display_data_not_saved();
@@ -133,10 +130,10 @@
     }
     //存檔到後端資料庫
     function BtnClicked_2(response,itemName){
-        //console.log("btnclicked_2" + response.data[0].token)
+        console.log("btnclicked_2 : " + response.data[0].tokenID)
         tokenID = response.data[0].tokenID;        
         regex = document.getElementById('regexText').value
-        console.log("tokenID" + tokenID);
+        console.log("tokenID : " + tokenID);
 
         $.ajax({
             type: 'POST',
@@ -144,12 +141,16 @@
             data:{
                 'tokenID': tokenID,
                 'RE': regex,               
-                'csrfmiddlewaretoken': window.CSRF_TOKEN
             },
-            success:function (response){    
-                console.log("btnclicked3")
-                if (tokenType == 'E'){
+            success:function (response){  
+                console.log("BtnClicked_2 : ", response)  
+                if (tokenType === 'E' && response.status === '0'){
+                    console.log("btnclicked3")
                     BtnClicked_3(response,itemName);
+                }
+                else if (response.status === 'already_exist'){
+                    console.log("already_exist activate");
+                    display_regexExsist();
                 }
             },
             fail:function (){              
@@ -158,7 +159,7 @@
     }
     //存檔到後端資料庫
     function BtnClicked_3(response,itemName){   
-        //console.log("btnclicked3_itemName " + itemName)  
+        console.log("btnclicked3_itemName " + itemName)  
         tokenREID = response.data[0].tokenREID;        
         console.log("btnclicked")
         for (var i=0 ; i< itemName.length ; i++){
@@ -170,10 +171,12 @@
                     'tokenREID': tokenREID,
                     'serialNo': i+1,
                     'itemName': itemName[i],               
-                    'csrfmiddlewaretoken': window.CSRF_TOKEN
                 },
                 success:function (response){
                     //BtnClicked_2(response);
+                    if (response.status === '0'){                        
+                        display_data_saved();
+                    }
                 },
                 fail:function (){              
                 },
@@ -393,6 +396,19 @@
             setTimeout(function() {
                 //your code to be executed after 1 second                    
                 document.getElementById("fail").style.visibility = 'hidden';
+            }, 1200);
+        }
+     }
+
+    //顯示儲存失敗
+    function display_regexExsist(){
+        var x = document.getElementById("regexExist");
+        //console.log(x.style.visibility)
+        if (document.getElementById("regexExist").style.visibility != 'visible') {
+            document.getElementById("regexExist").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("regexExist").style.visibility = 'hidden';
             }, 1200);
         }
      }

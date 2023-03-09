@@ -61,7 +61,14 @@
 
     #selectTokenType {
       position:absolute;
-      left:500px;
+      left:550px;
+      top:65px;
+      width:200px;
+    }
+
+    #filter {
+      position:absolute;
+      left:325px;
       top:65px;
       width:200px;
     }

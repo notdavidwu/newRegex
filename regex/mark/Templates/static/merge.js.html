@@ -1,11 +1,24 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.css">
+<script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
 <script>    
     $(document).ready(function () {
 
         //根據select顯示token
         $("#twoOrThree").on('change', function() {
+            value = document.getElementById('twoOrThree').value;
+            if (value === "2"){                
+                printAllData();
+            }
+            else if (value === "3"){
+                printAllData_3();
+            }
+        });
+
+        //根據filter顯示token
+        $("#filter").on('change', function() {
             value = document.getElementById('twoOrThree').value;
             if (value === "2"){                
                 printAllData();
@@ -101,7 +114,7 @@
 
             //if (xxx.value === 2){
             for(var i=0 ; i<tokenP.length ; i++){
-                array.push([i+1, tokenP[i].token])
+                array.push([i+1, tokenP[i].token, tokenP[i].tokenType])
             }
             //}
             //else if (xxx.value === 3){
@@ -135,11 +148,13 @@
     //取得所有資料
     function getTextTokenData(){
         var res;
+        var NS = document.getElementById("filter").value;
         $.ajax({
             async: false,
             type: 'GET',
             url: '{% url 'getTextToken' %}',
             data:{
+                "NoSign" : NS,
             },
             success:function (response){
                 res = response;
@@ -152,11 +167,13 @@
     //取得所有資料
     function getTextTokenData_3(){
         var res;
+        var NS = document.getElementById("filter").value;
         $.ajax({
             async: false,
             type: 'GET',
             url: '{% url 'getTextToken_3' %}',
             data:{
+                "NoSign" : NS,
             },
             success:function (response){
                 res = response;
@@ -294,7 +311,8 @@
             <thead style="user-select:none;">
                 <tr>
                     <td>No</td>
-                    <td>ProperNoun</td>
+                    <td>Token</td>
+                    <td>TokenType</td>
                     <td>AddRE</td>
                     <td>Undo</td>
                 </tr>
@@ -306,6 +324,7 @@
                 object += `<tr>
                     <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
                     <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
                     <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
                     <td class='UnMerge' ><button onclick="" class="btn btn-danger">UnMerge</button></td>
                 </tr>`
@@ -314,6 +333,7 @@
                 object += `<tr>
                     <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
                     <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
                     <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
                     <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
                 </tr>`
@@ -322,8 +342,9 @@
                 object += `<tr>
                     <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
                     <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
+                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
                     <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
-                    <td class='Basic' value="Basic" style="user-select:none;">Basic ProperNoun</td>
+                    <td class='Basic' value="Basic" style="user-select:none;"></td>
                 </tr>`
             }
         }
@@ -367,11 +388,15 @@
                                 //存入新的tokenID到textToken
                                 response = insertNewTextToken(positionArray, newTokenID);
                                 if (response.status === "0"){
-                                    window.location.reload();
+                                    printAllData();
                                 }                            
                             }
                         }
                     }
+                }
+                else if (response.status === 'already_exist'){
+                    console.log("already_exist!!!");
+                    display_already_exist();
                 }
             }
             else{
@@ -403,7 +428,8 @@
             
             if (TokenType){
                 //存新的volcabulary(a+b+c)
-                response = insertVocabulary_new(Token, lenOfToken, TokenType);
+                response_new = insertVocabulary_new(Token, lenOfToken, TokenType);
+                console.log("stauts : ", response_new);
                 if(response.status === '0'){
                     console.log("tokenID : ", response.data[0].tokenID);
                     newTokenID = response.data[0].tokenID;
@@ -423,7 +449,7 @@
                                 //存入新的tokenID到textToken
                                 response1 = insertNewTextToken(positionArray, newTokenID);
                                 if (response1.status === "0"){
-                                    window.location.reload();
+                                    printAllData();
                                 }
                             }
                         }
@@ -473,6 +499,7 @@
 
     //存新的volcabulary(a+b)
     function insertVocabulary_new(token, nWord, tokenType){
+        console.log("insertVocabulary_new : ", token, nWord, tokenType);
         var res = [];
         $.ajax({
             async: false,
@@ -485,7 +512,7 @@
             },
             success:function (response){
                 res = response;
-                //console.log("res : ", res);
+                console.log("res : ", res);
             },
         });
         return res;
@@ -752,6 +779,12 @@
         // Get the iframe element
         var iframe = document.getElementById("iframe");        
         var overlay = document.querySelector('.overlay');
+        var iframeDoc = iframe.contentWindow.document;
+        var feedbackElement = iframeDoc.querySelector('.warning-feedback');
+        feedbackElement.textContent = "";
+        console.log(" regexName : ", $("#regexName"));
+        var drop = iframeDoc.getElementById("regexName");
+        drop.classList.remove("is-warning");
 
         if(iframe.style.display == "block"){            
             iframe.style.display = "none";
@@ -772,7 +805,6 @@
             iframe.style.display = "block";
             
         
-            var iframeDoc = iframe.contentWindow.document;
             var navbar = iframeDoc.getElementById("navbar");
             navbar.style.display = "none";
             

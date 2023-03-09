@@ -193,6 +193,16 @@
     visibility:hidden;
   }
   
+  #regexExist {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;
+    visibility:hidden;
+  }
+  
   #table {
     width:400px;
     position:absolute;
