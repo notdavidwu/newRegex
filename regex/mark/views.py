@@ -93,12 +93,12 @@ def getVocabulary(request):
     if request.method == 'GET':
         #測試拉資料
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        result = cursor.execute("select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType != 'U' ")
+        result = cursor.execute("select * from [buildVocabulary ].[dbo].[Vocabulary] where tokenType != 'U' ")
         patient = cursor.fetchall()
         result = {}
         result['data'] = []
@@ -119,18 +119,18 @@ def getVocabularyByType(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
         if request.GET['tokenType'] == 'U':
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where (tokenType = ? and tokenID <= 152 and tokenID != 151) order by tokenID DESC;'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where (tokenType = ? and tokenID <= 152 and tokenID != 151) order by tokenID DESC;'
         elif request.GET['tokenType'] == 'P':
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
         else:
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? ;'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where tokenType = ? ;'
         args = [request.GET['tokenType']]
         # print(args)
         cursor.execute(query, args)
@@ -155,14 +155,14 @@ def getVocabularyByType_Ptable(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
         if request.GET['tokenType'] == 'P':
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where (tokenType = ? or tokenType != \'U\') and token != \'[NUM]\';'
         args = [request.GET['tokenType']]
         # print(args)
         cursor.execute(query, args)
@@ -170,6 +170,7 @@ def getVocabularyByType_Ptable(request):
         result['data'] = []
             
         for ind,i in enumerate(tokenID):
+            # print("i[0] : ",i[0])
             result['data'].append({
                 'No': ind+1,
                 'ProperNoun': i[0],
@@ -190,7 +191,7 @@ def insertVocabulary(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -204,7 +205,7 @@ def insertVocabulary(request):
         record['tokenType'] = request.POST.get('tokenType')
 
 
-        query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where token = ? and nWord = ?;'
+        query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where token = ? and nWord = ?;'
         args = [request.POST.get('token'),int(request.POST.get('nWord'))]
         cursor.execute(query, args)
         tokenID_original = cursor.fetchone()
@@ -214,7 +215,7 @@ def insertVocabulary(request):
         if tokenID_original == None and request.POST.get('tokenType'):
 
         #插入資料表
-            query = 'INSERT into Vocabulary (token,nWord,tokenType) OUTPUT [INSERTED].tokenID,[INSERTED].token,[INSERTED].tokenType VALUES (?, ?, ?);'
+            query = 'INSERT into [buildVocabulary ].[dbo].[Vocabulary] (token,nWord,tokenType) OUTPUT [INSERTED].tokenID,[INSERTED].token,[INSERTED].tokenType VALUES (?, ?, ?);'
             args = [request.POST.get('token'),int(request.POST.get('nWord')),request.POST.get('tokenType')]
             # print(args)
             cursor.execute(query, args)
@@ -249,7 +250,7 @@ def insertVocabulary_U(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -272,7 +273,7 @@ def insertVocabulary_U(request):
             Token = token[i]
             # print("Token : ", Token)
             #先查詢
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where token = ?;'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where token = ?;'
             args = [Token]
             cursor.execute(query, args)
             old_tokenID = cursor.fetchone()
@@ -310,7 +311,7 @@ def getTextToken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -359,7 +360,7 @@ def getTextToken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -378,7 +379,7 @@ def getTextToken(request):
             
             # print( reportID[i], posStart[i], posEnd[i], tokenID[i])
             #插入資料表
-            query = 'INSERT into [aicVocabulary(latest) ].[dbo].[textToken] (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+            query = 'INSERT into [buildVocabulary ].[dbo].[textToken] (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
             args = [int(reportID[i]), posStart[i], posEnd[i], int(tokenID[i])]
             # # print("args : ", args)
             cursor.execute(query, args)
@@ -392,7 +393,7 @@ def getTextToken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -415,9 +416,9 @@ def getTextToken(request):
                 SET A.posStart = -1 * A.posStart, A.posEnd = -1 * A.posEnd        
                 OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 FROM 
-                [aicVocabulary(latest)].[dbo].[textToken] AS A 
+                [buildVocabulary].[dbo].[textToken] AS A 
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS B 
+                [buildVocabulary].[dbo].[textToken] AS B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
                 WHERE A.tokenID = ? AND B.tokenID = ?;
 
@@ -435,9 +436,9 @@ def getTextToken(request):
                 SET B.posStart = -1 * B.posStart, B.posEnd = -1 * B.posEnd
                 OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 FROM 
-                [aicVocabulary(latest)].[dbo].[textToken] AS A 
+                [buildVocabulary].[dbo].[textToken] AS A 
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS B 
+                [buildVocabulary].[dbo].[textToken] AS B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd*-1 = 1 and A.posStart*-1 > 0 and B.posStart > 0
                 WHERE A.tokenID = ? AND B.tokenID = ?;
                 '''
@@ -483,7 +484,7 @@ def getTextToken_3(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -492,15 +493,15 @@ def getTextToken_3(request):
         query = '''
                 select a.* from (
                 SELECT c.token as token1, d.token as token2, f.token as token3, COUNT(*) AS times,c.token+d.token+f.token as mergeToken
-                FROM [aicVocabulary(latest)].[dbo].[textToken] AS a 
-                INNER JOIN [aicVocabulary(latest)].[dbo].[textToken] AS b ON a.reportID = b.reportID AND (a.posEnd + 1) = b.posStart AND a.posStart>0 AND b.posStart>0
-                INNER JOIN [aicVocabulary(latest)].[dbo].[textToken] AS e ON b.reportID = e.reportID AND (b.posEnd + 1) = e.posStart AND b.posStart>0 AND e.posStart>0
-                INNER JOIN [aicVocabulary(latest)].[dbo].Vocabulary AS c ON a.tokenID = c.tokenID
-                INNER JOIN [aicVocabulary(latest)].[dbo].Vocabulary AS d ON b.tokenID = d.tokenID
-                INNER JOIN [aicVocabulary(latest)].[dbo].Vocabulary AS f ON e.tokenID = f.tokenID
+                FROM [buildVocabulary].[dbo].[textToken] AS a 
+                INNER JOIN [buildVocabulary].[dbo].[textToken] AS b ON a.reportID = b.reportID AND (a.posEnd + 1) = b.posStart AND a.posStart>0 AND b.posStart>0
+                INNER JOIN [buildVocabulary].[dbo].[textToken] AS e ON b.reportID = e.reportID AND (b.posEnd + 1) = e.posStart AND b.posStart>0 AND e.posStart>0
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS c ON a.tokenID = c.tokenID
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS d ON b.tokenID = d.tokenID
+                INNER JOIN [buildVocabulary].[dbo].Vocabulary AS f ON e.tokenID = f.tokenID
                 GROUP BY c.token, d.token, f.token
                 ) as a
-                left join [aicVocabulary(latest)].[dbo].[Vocabulary] as b on a.mergeToken=b.token
+                left join [buildVocabulary].[dbo].[Vocabulary] as b on a.mergeToken=b.token
                 where b.tokenID is null 
                 order by times desc;
                 ''' 
@@ -548,7 +549,7 @@ def getTextToken_3(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -572,12 +573,12 @@ def getTextToken_3(request):
                 SET A.posStart = -1 * A.posStart, A.posEnd = -1 * A.posEnd        
                 OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 FROM 
-                [aicVocabulary(latest)].[dbo].[textToken] AS A 
+                [buildVocabulary].[dbo].[textToken] AS A 
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS B 
+                [buildVocabulary].[dbo].[textToken] AS B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS C 
+                [buildVocabulary].[dbo].[textToken] AS C 
                 on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and B.posStart > 0 and C.posStart > 0
                 WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
 
@@ -595,12 +596,12 @@ def getTextToken_3(request):
                 SET B.posStart = -1 * B.posStart, B.posEnd = -1 * B.posEnd        
                 OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 FROM 
-                [aicVocabulary(latest)].[dbo].[textToken] AS A 
+                [buildVocabulary].[dbo].[textToken] AS A 
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS B 
+                [buildVocabulary].[dbo].[textToken] AS B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd*(-1) = 1 and A.posStart*(-1) > 0 and B.posStart > 0
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS C 
+                [buildVocabulary].[dbo].[textToken] AS C 
                 on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and B.posStart > 0 and C.posStart > 0
                 WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
                 '''
@@ -616,12 +617,12 @@ def getTextToken_3(request):
                 SET C.posStart = -1 * C.posStart, C.posEnd = -1 * C.posEnd        
                 OUTPUT [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 FROM 
-                [aicVocabulary(latest)].[dbo].[textToken] AS A 
+                [buildVocabulary].[dbo].[textToken] AS A 
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS B 
+                [buildVocabulary].[dbo].[textToken] AS B 
                 on A.reportID = B.reportID and B.posStart*(-1) - A.posEnd*(-1) = 1 and A.posStart*(-1) > 0 and B.posStart*(-1) > 0
                 INNER JOIN 
-                [aicVocabulary(latest)].[dbo].[textToken] AS C 
+                [buildVocabulary].[dbo].[textToken] AS C 
                 on B.reportID = C.reportID and C.posStart - B.posEnd*(-1) = 1 and B.posStart*(-1) > 0 and C.posStart > 0
                 WHERE A.tokenID = ? AND B.tokenID = ? AND C.tokenID = ?;
                 '''
@@ -678,7 +679,7 @@ def insertTexttoken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -688,9 +689,9 @@ def insertTexttoken(request):
         tokenID2 = request.GET['tokenID2']
 
         query = '''
-                select * from [aicVocabulary(latest) ].[dbo].textToken as A
+                select * from [buildVocabulary ].[dbo].textToken as A
                 inner join
-                [aicVocabulary(latest) ].[dbo].textToken as B 
+                [buildVocabulary ].[dbo].textToken as B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
                 where A.tokenID = ? and B.tokenID = ?
                 order by A.reportID, A.posStart
@@ -720,7 +721,7 @@ def insertTexttoken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -737,7 +738,7 @@ def insertTexttoken(request):
             # # print(i)
             # # print( "data = ",i['reportID'] ,"position from ", i['posStart'], " to ", i['posEnd'], "ID = ", newTokenID)
             query = '''
-                insert into [aicVocabulary(latest) ].[dbo].textToken
+                insert into [buildVocabulary ].[dbo].textToken
                 (reportID, posStart, posEnd, tokenID)
                 output [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 values(?, ?, ?, ?)
@@ -761,7 +762,7 @@ def insertTexttoken_3(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -772,12 +773,12 @@ def insertTexttoken_3(request):
         tokenID3 = request.GET['tokenID3']
 
         query = '''
-                select * from [aicVocabulary(latest) ].[dbo].textToken as A
+                select * from [buildVocabulary ].[dbo].textToken as A
                 inner join
-                [aicVocabulary(latest) ].[dbo].textToken as B 
+                [buildVocabulary ].[dbo].textToken as B 
                 on A.reportID = B.reportID and B.posStart - A.posEnd = 1 and A.posStart > 0 and B.posStart > 0
                 inner join
-                [aicVocabulary(latest) ].[dbo].textToken as C 
+                [buildVocabulary ].[dbo].textToken as C 
                 on B.reportID = C.reportID and C.posStart - B.posEnd = 1 and C.posStart > 0 and B.posStart > 0
                 where A.tokenID = ? and B.tokenID = ? and C.tokenID = ?
                 order by A.reportID, A.posStart
@@ -807,7 +808,7 @@ def insertTexttoken_3(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -824,7 +825,7 @@ def insertTexttoken_3(request):
             # # print(i)
             # # print( "data = ",i['reportID'] ,"position from ", i['posStart'], " to ", i['posEnd'], "ID = ", newTokenID)
             query = '''
-                insert into [aicVocabulary(latest) ].[dbo].textToken
+                insert into [buildVocabulary ].[dbo].textToken
                 (reportID, posStart, posEnd, tokenID)
                 output [INSERTED].reportID, [INSERTED].posStart, [INSERTED].posEnd, [INSERTED].tokenID
                 values(?, ?, ?, ?)
@@ -851,12 +852,12 @@ def inserttokenRE(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
-        #result = cursor.execute("select * from [aicVocabulary(latest) ].[dbo].[Vocabulary]")
+        #result = cursor.execute("select * from [buildVocabulary ].[dbo].[Vocabulary]")
         #取得post資料
         result['data'] = []
         record = {}
@@ -864,14 +865,14 @@ def inserttokenRE(request):
         record['RE'] = request.POST.get('RE')
 
 
-        query = 'select * from [aicVocabulary(latest) ].[dbo].[tokenRE] where tokenID = ? and RE = ?;'
+        query = 'select * from [buildVocabulary ].[dbo].[tokenRE] where tokenID = ? and RE = ?;'
         args = [int(request.POST.get('tokenID')), request.POST.get('RE') ]
         cursor.execute(query, args)
         tokenREID_original = cursor.fetchall()
         # print("tokenREID_original : ", tokenREID_original)
         if tokenREID_original == []:
             #插入資料表
-            query = 'INSERT into [aicVocabulary(latest) ].[dbo].[tokenRE] (tokenID, RE) OUTPUT [INSERTED].tokenREID VALUES (?, ?);'
+            query = 'INSERT into [buildVocabulary ].[dbo].[tokenRE] (tokenID, RE) OUTPUT [INSERTED].tokenREID VALUES (?, ?);'
             args = [int(request.POST.get('tokenID')), request.POST.get('RE') ]
             # print(args)
             cursor.execute(query, args)
@@ -897,7 +898,7 @@ def inserttokenREItem(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -910,7 +911,7 @@ def inserttokenREItem(request):
         record['serialNo'] = request.POST.get('serialNo')
         record['itemName'] = request.POST.get('itemName')
         #插入資料表
-        query = 'INSERT into [aicVocabulary(latest)].[dbo].[tokenREItem] (tokenREID, serialNo, itemName) OUTPUT [INSERTED].tokenREID VALUES (?, ?, ?);'
+        query = 'INSERT into [buildVocabulary].[dbo].[tokenREItem] (tokenREID, serialNo, itemName) OUTPUT [INSERTED].tokenREID VALUES (?, ?, ?);'
         args = [int(request.POST.get('tokenREID')), request.POST.get('serialNo'), request.POST.get('itemName') ]
         # print(args)
         cursor.execute(query, args)
@@ -935,7 +936,7 @@ def checkName(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -945,7 +946,7 @@ def checkName(request):
         tokenType = []
 
         for i in range(len(Token)):
-            query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[Vocabulary] WHERE token = ?;'
+            query = 'SELECT * FROM [buildVocabulary ].[dbo].[Vocabulary] WHERE token = ?;'
             args = [Token[i]]
             cursor.execute(query, args)
             token = cursor.fetchone()
@@ -977,7 +978,7 @@ def checkRE(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -987,7 +988,7 @@ def checkRE(request):
         TokenREID = []
 
         for i in range(len(TokenID)):
-            query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[tokenRE] WHERE tokenID = ?;'
+            query = 'SELECT * FROM [buildVocabulary ].[dbo].[tokenRE] WHERE tokenID = ?;'
             args = [TokenID[i]]
             # # print(args)
             ## print(query)
@@ -1018,13 +1019,13 @@ def getAnalyseText(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
-        query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[analyseText];'
+        query = 'SELECT * FROM [buildVocabulary ].[dbo].[analyseText];'
         cursor.execute(query)
         reportText = cursor.fetchall()
 
@@ -1051,17 +1052,18 @@ def getReportID(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
-        query = 'SELECT * FROM [aicVocabulary(latest)].[dbo].[analyseText] where reportID = 10002;'
+        # query = 'SELECT * FROM [buildVocabulary].[dbo].[analyseText] where reportID = 10002;'
         # query = 'SELECT * FROM analyseText;'
-        # query = 'SELECT * FROM [aicVocabulary(latest)].[dbo].[analyseText] where reportID >= 5001 and reportID <= 10000'
+        query = 'SELECT * FROM [buildVocabulary].[dbo].[analyseText] where reportID >= ? and reportID <= ?'
+        args = [request.GET['reportID1'], request.GET['reportID2']]
         
-        cursor.execute(query)
+        cursor.execute(query, args)
         reportID = cursor.fetchall()
         # # print(reportID)
 
@@ -1069,11 +1071,15 @@ def getReportID(request):
         if reportID != None:
             result['status'] = '0'
             result['data'] = []
+            record = {}
             for item in reportID:
-                record = {}
-                record['reportID'] = item.reportID
-                result['data'].append(record)
+                if item.analysed == 0:
+                    record[str(item.reportID)] = item.reportText
+                else:
+                    record[str(item.reportID)] = item.residualText
+            result['data'].append(record)
         #     # print(token[0])
+        # print(result)
         
         conn.commit()
         conn.close()
@@ -1088,13 +1094,13 @@ def getReportText(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
-        query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[analyseText] where reportID = ?;'
+        query = 'SELECT * FROM [buildVocabulary ].[dbo].[analyseText] where reportID = ?;'
         args = [request.GET['reportID']]
         cursor.execute(query, args)
         reportID = cursor.fetchone()
@@ -1120,14 +1126,14 @@ def getReportText(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         # # print("patch in")
         #更新資料表
-        query = 'update [aicVocabulary(latest) ].[dbo].[analyseText]  set analysed = ?, residualText = ? output INSERTED.reportID,INSERTED.reportText,INSERTED.residualText where reportID = ?;'
+        query = 'update [buildVocabulary ].[dbo].[analyseText]  set analysed = ?, residualText = ? output INSERTED.reportID,INSERTED.reportText,INSERTED.residualText where reportID = ?;'
         raw = request.body.decode('utf-8')
         body = json.loads(raw)
         # # print('data : ' + data.getlist['residualText'])
@@ -1151,7 +1157,7 @@ def getReportText(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -1165,7 +1171,7 @@ def getReportText(request):
         # # print(reportID, posStart, posEnd, tokenID)
         for i in range(len(reportID)):
             # # print(reportID[i], posStart[i], posEnd[i], tokenID[i])
-            query = "select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where token = ?"
+            query = "select * from [buildVocabulary ].[dbo].[Vocabulary] where token = ?"
             args = [tokenID[i]]
             cursor.execute(query, args)
             id = cursor.fetchone()
@@ -1174,7 +1180,7 @@ def getReportText(request):
             if id.tokenType == 'U':
                 result = {'status':'U'}
             #插入資料表
-            query = 'INSERT into [aicVocabulary(latest) ].[dbo].[textToken] (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+            query = 'INSERT into [buildVocabulary ].[dbo].[textToken] (reportID, posStart, posEnd, tokenID) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
             args = [reportID[i], posStart[i], posEnd[i], id.tokenID]
             # # print("args : ", args)
             cursor.execute(query, args)
@@ -1191,7 +1197,7 @@ def getTokenREItemID(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -1220,7 +1226,7 @@ def getTokenREItemID(request):
             # # print("data[i] : ", data[i])
             if data[i]['tokenID']:
                 #查詢tokenType
-                query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenID = ?;'
+                query = 'SELECT * FROM [buildVocabulary ].[dbo].[Vocabulary] where tokenID = ?;'
                 args = [data[i]['tokenID']]
                 cursor.execute(query, args)
                 tokenType = cursor.fetchone()
@@ -1232,7 +1238,7 @@ def getTokenREItemID(request):
                 if tokenType.tokenType != 'T' or tokenType.tokenType != 'U':
                     #查詢tokenREID
                     # print("tokentype is not T or U")
-                    query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[tokenRE] where tokenID = ?;'
+                    query = 'SELECT * FROM [buildVocabulary ].[dbo].[tokenRE] where tokenID = ?;'
                     args = [data[i]['tokenID']]
                     cursor.execute(query, args)
                     tokenREID = cursor.fetchone()
@@ -1243,7 +1249,7 @@ def getTokenREItemID(request):
                         if tokenType.tokenType != 'T' or tokenType.tokenType != 'U':
                             # # print(j)
                             #查詢tokenREItemID
-                            query = 'SELECT * FROM [aicVocabulary(latest)].[dbo].[tokenREItem] where tokenREID = ? and itemName = ?;'
+                            query = 'SELECT * FROM [buildVocabulary].[dbo].[tokenREItem] where tokenREID = ? and itemName = ?;'
                             args = [tokenREID.tokenREID, list(data[i].keys())[j]]
                             cursor.execute(query, args)
                             tokenREItemID = cursor.fetchone()
@@ -1276,7 +1282,7 @@ def insertExtractedValueFromToken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -1319,7 +1325,7 @@ def insertExtractedValueFromToken(request):
                     # # print("j : ", j)
                     # # print(tokenType[i])
                     # # print(reportID[i], posStart[i], tokenREItemID[i][j], Value[i][j])
-                    query = 'INSERT into [aicVocabulary(latest) ].[dbo].[extractedValueFromToken] (reportID, posStart, tokenREItemID, extractedValue) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
+                    query = 'INSERT into [buildVocabulary ].[dbo].[extractedValueFromToken] (reportID, posStart, tokenREItemID, extractedValue) OUTPUT [INSERTED].reportID, [INSERTED].posStart VALUES (?, ?, ?, ?);'
                     Value[tokenREItemIDIndex][j] = Value[tokenREItemIDIndex][j].replace("|", ",")
                     args = [reportID[i], posStart[i], tokenREItemID[tokenREItemIDIndex][j], Value[tokenREItemIDIndex][j]]
                     # print(args)
@@ -1340,7 +1346,7 @@ def getToken(request):
         result = {'status':'1'} #預設失敗
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824' 
         password = 'test81218' 
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -1356,7 +1362,7 @@ def getToken(request):
         token2 = []
         for i in tokenID1:
             # # print(i)
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenID = ?;'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where tokenID = ?;'
             args = [i]
             cursor.execute(query, args)
             token = cursor.fetchone()
@@ -1365,7 +1371,7 @@ def getToken(request):
 
         for i in tokenID2:
             # # print(i)
-            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenID = ?;'
+            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where tokenID = ?;'
             args = [i]
             cursor.execute(query, args)
             token = cursor.fetchone()
@@ -1394,7 +1400,7 @@ def getTokenIDCheckTextToken(request):
         
         #建立連線
         server = '172.31.6.22' 
-        database = 'aicVocabulary(latest)' 
+        database = 'buildVocabulary' 
         username = 'N824'
         password = 'test81218'
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
@@ -1407,7 +1413,7 @@ def getTokenIDCheckTextToken(request):
         for i, t in enumerate(token):
             pn = 0
             # print("Index:", i, "Token:", t)
-            query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[Vocabulary] where token = ?;'
+            query = 'SELECT * FROM [buildVocabulary ].[dbo].[Vocabulary] where token = ?;'
             args = [t]
             # # print(i)
 
@@ -1419,7 +1425,7 @@ def getTokenIDCheckTextToken(request):
             if tokenID != None:
                 # # print(tokenID.tokenID)
                 
-                query = 'SELECT * FROM [aicVocabulary(latest) ].[dbo].[textToken] where tokenID = ?;'
+                query = 'SELECT * FROM [buildVocabulary ].[dbo].[textToken] where tokenID = ?;'
                 args = [tokenID.tokenID]
 
                 cursor.execute(query, args)
@@ -1450,7 +1456,47 @@ def getTokenIDCheckTextToken(request):
 
 
 
+@csrf_exempt
+def getNextWord(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設沒找到
+        
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'buildVocabulary' 
+        username = 'N824'
+        password = 'test81218'
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
 
+        token = request.POST.getlist('token[]')
+        # # print(token)
+
+        pn = 0
+        # print("Index:", i, "Token:", t)
+        query = '''
+                select a.* from (
+                select c.token as token1, d.token as token2, count(*) as times,c.token+d.token as mergeToken
+                from [buildVocabulary ].[dbo].[textToken] as a inner join [buildVocabulary ].[dbo].[textToken] as b 
+                on a.reportID=b.reportID and (a.posEnd+1)=b.posStart AND a.posStart>0 AND b.posStart>0
+                inner join [buildVocabulary ].[dbo].Vocabulary as c on a.tokenID=c.tokenID
+                inner join [buildVocabulary ].[dbo].Vocabulary as d on b.tokenID=d.tokenID
+
+                group by c.token, d.token
+                ) as a
+                left join [buildVocabulary ].[dbo].[Vocabulary] as b on a.mergeToken=b.token
+                where b.tokenID is null
+                order by times desc;
+                '''
+        
+        cursor.execute(query)
+        texttoken = cursor.fetchall()
+        print("texttoken : ", texttoken)
+        # # print("PNarray : ", PNarray)
+        conn.commit()
+        conn.close()
+    return JsonResponse(result)
 
 
 

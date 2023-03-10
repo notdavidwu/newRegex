@@ -71,8 +71,8 @@
 
   #select {
     position:absolute;
-    top:100px;
-    right:100px;
+    top:200px;
+    left:40px;
     height:200px;
     width:280px;
   }
@@ -112,7 +112,7 @@
 
   #page2ExecuteAll {    
     position:absolute;
-    right:480px;
+    left:400px;
     top:430px;
   }
 
@@ -144,7 +144,7 @@
 
   #result_data {
     position:absolute;
-    left:300px;
+    right:300px;
     top:100px;
     width:380px;
     height:700px;
@@ -153,8 +153,8 @@
 
   #selectRegexType {
     position:absolute;
-    right:220px;
-    top:65px;
+    left:50px;
+    top:150px;
     width:150px;
   }
 
@@ -229,9 +229,33 @@
   #Total {
     position:absolute;
     top:110px;
-    left:155px;
+    left:600px;
     font-size:20px;
     user-select:none; 
+  }
+  
+  #reportIDinput {
+    position:absolute;
+    top:100px;
+    left:50px;
+    width: 500px;
+  }
+  .spinner {
+    margin: 100px auto;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 5px solid #ddd;
+    border-top-color: #333;
+    animation: spin 1s ease-in-out infinite;
+    position:absolute;
+    top:0px;
+    left:750px;
+    display:none;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
    
   

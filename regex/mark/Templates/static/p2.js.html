@@ -3,45 +3,6 @@
 <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
 <script>    
     $(document).ready(function () {
-        const excel_file = document.getElementById('excel_file'); 
-        var text;   
-        excel_file.addEventListener('change', async(event) => {    
-            
-            if(!['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'].includes(event.target.files[0].type)){
-                document.getElementById('excel_data').innerHTML = '<div class="alert alert-danger">Only .xlsx or .xls file format are allowed</div>';    
-                excel_file.value = '';    
-                return false;
-            }    
-            var reader = new FileReader();    
-            reader.readAsArrayBuffer(event.target.files[0]);
-            reader.onload = function(event){   
-                var data = new Uint8Array(reader.result);    
-                var work_book = XLSX.read(data, {type:'array'});    
-                var sheet_name = work_book.SheetNames;    
-                var sheet_data = XLSX.utils.sheet_to_json(work_book.Sheets[sheet_name[0]], {header:1});    
-                if(sheet_data.length > 0){
-                    //console.log("sheet_data : " + sheet_data);
-                    var table_output = '<table class="table table-striped table-bordered" id="excelTable" style="width:650px; height:405px; display: block; overflow: auto; " >';    
-                    for(var row = 0; row < sheet_data.length; row++){
-                        table_output += '<tr style="user-select:none;">';    
-                        for(var cell = 0; cell < sheet_data[row].length; cell++){
-                            if(row == 0){    
-                                table_output += '<th>'+sheet_data[row][cell]+'</th>';    
-                            }else{    
-                                table_output += '<td><div class="btndiv" id="btn" style="height: 50px; overflow:hidden;"><button type="button" class="btn btn-light">'+sheet_data[row][cell]+'</button></div></td>';    
-                            }    
-                        }    
-                        table_output += '</tr>';    
-                    }    
-                    table_output += '</table>';    
-                    document.getElementById('excel_data').innerHTML = table_output;
-                }    
-                excel_file.value = '';
-                //取得產生excel的按鈕內容
-                getTableElement();  
-            }
-        });
-
         //取得token + 顯示(RE名字)
         getTokenByTypeP2();
 
@@ -54,217 +15,57 @@
                 getTokenP2();
             }
         });
-
-        //按下執行按鈕
-        $("#page2Execute").click(function(){
-            //已選擇的reportID
-            var currentReportID = document.getElementById("selectOutput").value
-            //console.log("currentReportID : " + currentReportID);
-            //取得已選擇的textarea
-            var valueText = document.getElementById('id' + currentReportID);
-            //console.log("valueText : " + valueText);
-            //取得已選取的regex
-            var selected = getAllSelectedRegex();
-            //console.log("selected : " + selected);
-            if (selected.length == 0){
-                display_noRegex();
-                return;
-            }
-            //console.log("valuetext :" + valueText.value);
-            if (!valueText){
-                display_noInput();
-                return;
-            }
-            BatchProcessingExtract(selected,valueText,currentReportID);
-        });
-
+        //console.log("start : ",start);
         //按下執行全部按鈕
         $("#page2ExecuteAll").click(function(){
+            document.querySelector('.spinner').style.display = 'block';
+            start = new Date().getTime();
             //取得已選取的regex
             var selected = getAllSelectedRegex();
             if (selected.length === 0){
                 display_noRegex();
                 return;
             }
-            //console.log("selected : " + selected);            
-            //取得已選取的按鈕
-            activeButton = document.getElementsByClassName("btn btn-light active");
-            //console.log("activebutton : ", activeButton);
-            if (activeButton.length === 0){
-                display_noInput();
-                return;
-            }        
+            //console.log("selected : " + selected);
+            
+
+            //取得報告剩餘文字
+            var reportIDfrom = document.getElementById('reportIDfrom').value;
+            var reportIDto = document.getElementById('reportIDto').value;
+            report = createReportButton(reportIDfrom, reportIDto);
+            console.log("report : ", report);
+
             var Value = [];
             console.log("Value : ", Value);
             var lengthOfArray = 0;
-            for (var i=0 ; i<activeButton.length ; i++){
-                //console.log("activeButton : " + activeButton[i].innerHTML);                
-                //取得所有已選擇的textarea
-                var valueText = document.getElementById("id" + activeButton[i].innerHTML);
-                //console.log("valueText : " + valueText.innerHTML);    
-                var currentReportID = activeButton[i].innerHTML;
-                
-                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID);
-                //console.log("lengthOfArray : ", lengthOfArray);
-            }
-        });
-
-        //按下清除所有按鈕
-        $("#page2ClearALL").click(function(){
-            //console.log("ClearALL!!!");
-            document.getElementById('floatingTextarea2').value = '';
-        });
-
-        //根據select顯示Excel Or DB
-        $("#selectExcelDB").on('change', function() {
-            value = document.getElementById('selectExcelDB').value;
-            if (value == "Excel"){
-                document.getElementById('excelSelector').style.visibility = 'visible';
-            }else{
-                document.getElementById('excelSelector').style.visibility = 'hidden';
-                createReportButton();
-            }
-        });
-        //產生報告按鈕.監聽
-        createReportButton();
-        //console.log("x : " + document.getElementsByName("reportButton")[0].value);
-        
-        //根據select顯示哪個textarea
-        $("#selectOutput").on('change', function() {
-            id = document.getElementById('selectOutput').value;            
-            //隱藏所有textarea
-            var textArea = document.getElementsByClassName('text');
-            for (var i=0 ; i<textArea.length ; i++){
-                if (textArea[i].style.display != "none"){
-                    textArea[i].style.display = "none";
-                    //console.log("break " + i);
-                    break;
-                }
-            }
-            //被選取的textarea顯示
-            //console.log("id : " + id);
-            document.getElementById("id"+id).style.display = "block";
-            //選中的文章按鈕加邊框 前任刪邊框
-            selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
-            //console.log("selected BUTTON :" + selectedButton);
-            if (selectedButton[0]){
-                selectedButton[0].classList.remove('border','border-primary');
-            }               
-            document.getElementById(id).className += " " + "border border-primary";
-            
-            //傳入button.id調整table位置
-            trigger(id);
-        });
-
-        //快速鍵
-        document.onkeydown = function (e) {            
-            //取得現在的文章ID
-            selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
-            //取得已選擇文章按鈕
-            activeButton = document.getElementsByClassName("btn btn-light active");
-
-            if ((e.key === "PageUp") && (selectedButton[0])){
-                pageUp(selectedButton, activeButton);
-            }
-
-            if (e.key === "PageDown" && (selectedButton[0])){
-                pageDown(selectedButton, activeButton);
-            }
-        };
-
-        //選擇全部按鈕
-        $('#page2SelectALL').click(function(){
-            //x = $("button.btn btn-light").not(".active");
-            //.addclass("active");
-            
-            //activeButton = document.getElementsByClassName("btn btn-light active");
-            //for (var i=0 ; i<activeButton.length ; i++){
-            //    activeButton[i].classList.remove('active');
+            //for (var i=0 ; i<Object.keys(report[0]).length ; i++){
+            //    //取得所有已選擇的textarea
+            //    var valueText 
+            //    //console.log("valueText : " + valueText.innerHTML);    
+            //    var currentReportID = activeButton[i].innerHTML;
+            //    
+            //    lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID);
+            //    //console.log("lengthOfArray : ", lengthOfArray);
             //}
             
-            Button = document.getElementsByClassName("btn btn-light");
-            for (var i=0 ; i<Button.length ; i++){
-                //Button[i].classList.add('active');.
-                Button[i].click();
+            for (const [key, value] of Object.entries(report[0])) {
+                var valueText = value;
+                var currentReportID = key;
+                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report[0]);
+                console.log("currentReportID : ", currentReportID);
+                console.log("valueText : ", valueText);
             }
-            //x = $(".btn btn-light");
-            //console.log("x : ", x);
+            
+            end = new Date().getTime();
+            document.getElementById("Total").innerHTML = "Execute Time : " + ((end - start) / 1000).toString() + " seconds";            
+            document.querySelector('.spinner').style.display = 'none';
         });
+        //產生報告按鈕.監聽
+        //var reportIDfrom = document.getElementById('reportIDfrom').value;
+        //var reportIDto = document.getElementById('reportIDto').value;
+        //report = createReportButton(reportIDfrom, reportIDto);
+        //console.log("report : ", Object.keys(report[0]).length);
     });
-
-    //PageUp
-    function pageUp(selectedButton, activeButton){
-        //console.log("PageUp");
-        ID = selectedButton[0].value;
-        //console.log("length : " + activeButton.length);
-        //取得按鈕在第幾個位置
-        for (var i=0 ; i<activeButton.length ; i++){
-            if (ID == activeButton[i].value){
-                if(i != 0){
-                    positionOfButton = i;
-                    //console.log("position : " + i);
-                    //移除現在的框選按鈕
-                    selectedButton[0].classList.remove('border','border-primary');
-                    //取得上一按鈕id並且框選
-                    document.getElementById(activeButton[i-1].value).className += " " + "border border-primary";
-                    id = activeButton[i-1].value;
-                }
-                else{
-                    //移除現在的框選按鈕
-                    selectedButton[0].classList.remove('border','border-primary');                            
-                    //取得最後按鈕id並且框選
-                    i = activeButton.length-1;
-                    //console.log("i : " + i);
-                    //console.log("activeButton : " + activeButton[i].value);
-                    document.getElementById(activeButton[i].value).className += " " + "border border-primary";
-                    id = activeButton[i].value;
-                }
-                //傳入button.id調整table位置
-                trigger(id);
-                changePrint(id);
-                break;
-            }
-        }
-    }
-
-    //PageDown
-    function pageDown(selectedButton, activeButton){
-        //console.log("PageDown");
-        ID = selectedButton[0].value;
-        //console.log("length : " + activeButton.length);
-        //取得按鈕在第幾個位置
-        for (var i=0 ; i<activeButton.length ; i++){
-            if (ID == activeButton[i].value){
-                if(i == activeButton.length-1){
-                    //移除現在的框選按鈕
-                    selectedButton[0].classList.remove('border','border-primary');                            
-                    //取得第一按鈕id並且框選
-                    i = 0;
-                    //console.log("i : " + i);
-                    //console.log("activeButton : " + activeButton[i]);
-                    document.getElementById(activeButton[i].value).className += " " + "border border-primary";
-                    id = activeButton[i].value;
-                }
-                else{
-                    positionOfButton = i;
-                    //console.log("position : " + i);
-                    //移除現在的框選按鈕
-                    selectedButton[0].classList.remove('border','border-primary');
-                    //取得下一按鈕id並且框選
-                    document.getElementById(activeButton[i+1].value).className += " " + "border border-primary";
-                    id = activeButton[i+1].value;
-                    //onsole.log("i : " + (i+1));
-                    //onsole.log("activeButton.length : " + (activeButton.length));
-                }
-                //else{
-                //}
-                //傳入button.id調整table位置
-                changePrint(id);
-                trigger(id);
-                break;
-            }
-        }
-    }
 
     //傳入id選擇選項以及顯示文章
     function changePrint(id){        
@@ -354,24 +155,6 @@
         })
     }
 
-    //取得產生excel的按鈕內容 
-    function getTableElement(){
-        //test get button
-        let buttons = document.querySelector('#excelTable');  //步驟1
-        var text = document.getElementById('floatingTextarea2').innerHTML;
-        //console.log(buttons);
-        buttons.addEventListener('click', (e) => { //步驟2
-            if (e.target.nodeName === 'BUTTON') { //步驟3
-                //console.log('Click! ' + e.target.innerText);
-                //prepend寫法
-                //document.getElementById('floatingTextarea2').insertAdjacentHTML("afterbegin", e.target.innerText + '\n\n');
-                //append寫法                
-                document.getElementById('floatingTextarea2').value += e.target.innerText + '\n\n';
-                document.getElementById('floatingTextarea2').innerHTML += e.target.innerText + '\n\n';
-            }
-        });        
-    }
-
     //取得被選取的regex
     function getAllSelectedRegex(){
         var array = [];
@@ -383,7 +166,10 @@
     }
 
     //萃取全部(需要iter的是文章id 取得文章內容)
-    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID){
+    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report){
+        console.log("report Batch :", report);
+        console.log("valueText", valueText);
+        console.log("currentReportID", currentReportID);
         //console.log("selected : " + selected);
         var Value = [];
         //萃取模式
@@ -401,7 +187,7 @@
             //console.log("tokenType: " + TokenType);
 
             //處理textArea並且回傳找到值的陣列
-            result = getMatchData(REGEX, valueText, TokenID, currentReportID, selected, resultTokenType);
+            result = getMatchData(REGEX, valueText, TokenID, currentReportID, selected, resultTokenType, report);
             var array = result[0];
             var matchArray = result[1];
             var tokenIDForU = result[2];
@@ -436,7 +222,7 @@
             
             console.log("matchArray : " , matchArray);
             if (matchArray.length != 0){
-                response = updateAnalyseText(currentReportID, valueText.innerHTML);
+                response = updateAnalyseText(currentReportID, report[currentReportID]);
                 if (response && response.status === '0' ){
                     //取得select 值
                     var selectVal = document.getElementById("selectRegexType").value;
@@ -548,7 +334,8 @@
     }
 
     //處理textArea以及產生要儲存的陣列(看能不能拆)
-    function getMatchData(REGEX, valueText, TokenID, currentReportID, selected, TokenType){
+    function getMatchData(REGEX, valueText, TokenID, currentReportID, selected, TokenType, report){
+        console.log("get match data report", report);
         //取出的資料總數
         var start_end_count = 0;
         //用來決定第i個selected從哪開始填入陣列(不然會被洗掉)
@@ -576,64 +363,58 @@
             }
             //將處理好的regex文本定義為新的regex物件
             let pattern = new RegExp(`${textToSearch}`,"g");
-            //若是選擇DB就存起來
-            var selectExcelDB = document.getElementById("selectExcelDB");
-            if (selectExcelDB.value === "DB"){
-                paragraph = valueText.innerHTML;
-                //無符合配對20230213之後修
-                //if (valueText.innerHTML == paragraph){                            
-                //    display_noMatch(textToSearch);
-                //    return;
-                //}
-                patternArray[i] = pattern;
-                //console.log("paragraph : " + paragraph.length);
-                var length = 0;
-                while (match = pattern.exec(paragraph)) {
-                    //console.log(match.index + ' ' + pattern.lastIndex);
-                    start[start_end_count] = match.index;
-                    end[start_end_count] = pattern.lastIndex;
-                    start_end_count += 1;
-                    //console.log("match : " + match);
-                    if (match.groups){
-                        match.groups['tokenID'] = TokenID[i];
-                        matchArray.push(match.groups);
-                        //console.log("wholeString : ", getLength(match.groups['wholeString']));
-                        //含中文的長度
-                        length = getLength(match.groups['wholeString']);
-                        //字串內長度
-                        origin_length = match.groups['wholeString'].length;
-
-                        token.push(match.groups['wholeString']);
-                        nword.push(match.groups['wholeString'].length);
-                        tokentype.push(resOftokenType[i]);
-
-                        var blank = "";
-                        for (var b=0 ; b<(origin_length) ; b++){
-                            blank += " ";
-                        }
-                        //console.log("length", length);
-                        //console.log("origin_length", origin_length);
-                        //將輸出文本與regex物件有符合的地方取代為空白
-                        //console.log("match.index", match.index);
-                        valueText.innerHTML = replaceCharacter(valueText.innerHTML, match.index, pattern.lastIndex, blank);
+            paragraph = valueText;
+            //無符合配對20230213之後修
+            //if (valueText.innerHTML == paragraph){                            
+            //    display_noMatch(textToSearch);
+            //    return;
+            //}
+            patternArray[i] = pattern;
+            //console.log("paragraph : " + paragraph.length);
+            var length = 0;
+            while (match = pattern.exec(paragraph)) {
+                //console.log(match.index + ' ' + pattern.lastIndex);
+                start[start_end_count] = match.index;
+                end[start_end_count] = pattern.lastIndex;
+                start_end_count += 1;
+                //console.log("match : " + match);
+                if (match.groups){
+                    match.groups['tokenID'] = TokenID[i];
+                    matchArray.push(match.groups);
+                    //console.log("wholeString : ", getLength(match.groups['wholeString']));
+                    //含中文的長度
+                    length = getLength(match.groups['wholeString']);
+                    //字串內長度
+                    origin_length = match.groups['wholeString'].length;
+                    token.push(match.groups['wholeString']);
+                    nword.push(match.groups['wholeString'].length);
+                    tokentype.push(resOftokenType[i]);
+                    var blank = "";
+                    for (var b=0 ; b<(origin_length) ; b++){
+                        blank += " ";
                     }
-                    //else{
-                    //    console.log("push!!!");
-                    //    var nomatch = {};
-                    //    nomatch['tokenID'] = TokenID[i];
-                    //    matchArray.push(nomatch);
-                    //}
-
-                    //console.log("match : ", match[0]);
-                    //console.log("length : ", length);
+                    //console.log("length", length);
+                    //console.log("origin_length", origin_length);
+                    //將輸出文本與regex物件有符合的地方取代為空白
+                    //console.log("match.index", match.index);
+                    console.log("report['currentReportID'] : ", report[currentReportID]);
+                    report[currentReportID] = replaceCharacter(report[currentReportID], match.index, pattern.lastIndex, blank);
                 }
-                //console.log("matchArray : " , matchArray);
-                for(var j=origin ; j<start_end_count ; j++){
-                    //console.log("j : " + j);
-                    array[j] = [currentReportID,start[j], end[j], selected[i]];
-                }
-                origin = start_end_count;
+                //else{
+                //    console.log("push!!!");
+                //    var nomatch = {};
+                //    nomatch['tokenID'] = TokenID[i];
+                //    matchArray.push(nomatch);
+                //}
+                //console.log("match : ", match[0]);
+                //console.log("length : ", length);
             }
+            //console.log("matchArray : " , matchArray);
+            for(var j=origin ; j<start_end_count ; j++){
+                //console.log("j : " + j);
+                array[j] = [currentReportID,start[j], end[j], selected[i]];
+            }
+            origin = start_end_count;
             //console.log(pattern);
         }
         
@@ -880,21 +661,6 @@
             }, 1200);
         }
     }
-    
-    //顯示無符合項目
-    function display_noMatch(regexName){
-        var x = document.getElementById("noMatch");
-        //console.log(x.style.visibility)
-        document.getElementById("noMatch").innerHTML += regexName;
-        if (document.getElementById("noMatch").style.visibility != 'visible') {
-            document.getElementById("noMatch").style.visibility = 'visible';
-            document.getElementById("noMatch").innerHTML = "No match"
-            setTimeout(function() {
-                //your code to be executed after 1 second                    
-                document.getElementById("noMatch").style.visibility = 'hidden';
-            }, 1200);
-        }
-    }
 
     //顯示儲存成功
     function display_dataSaved(){
@@ -910,61 +676,22 @@
     }
 
     //產生表格.按鈕 + 監聽按鈕
-    function createReportButton(){
+    function createReportButton(reportIDfrom, reportIDto){
+        var res;
         $.ajax({
+            async:false,
             type: 'GET',
             url: '{% url 'getReportID' %}',
             data:{
+                "reportID1": reportIDfrom,
+                "reportID2": reportIDto,
             },
             success:async function (response){
-                array = [];
-                for (var i=0 ; i<response.data.length ; i++){
-                    array[0] = ["Report"];
-                    array.push([response.data[i].reportID]);
-                }
-                //console.log(array);
-                if(array.length > 0){                    
-                    document.getElementById("Total").innerHTML = array.length.toString()-1 + " Reports";
-                    //console.log("sheet_data : " + array[0]);
-                    var table_output = '<table class="table table-striped table-bordered" id="reportTable" style="width:200px; height:600px; display: block; overflow: auto; " >';    
-                    for(var row = 0; row < array.length; row++){
-                        table_output += '<tr style="user-select:none;">';    
-                        for(var cell = 0; cell < array[row].length; cell++){
-                            if(row == 0){    
-                                table_output += '<th>'+array[row][cell]+'</th>';    
-                            }else{    
-                                table_output += '<td><div class="btndiv" id="reportbtn" style="height: 50px; overflow:hidden;"><button type="button"  class="btn btn-light" name="reportButton" id="' + array[row][cell] + '" value="' + array[row][cell] + '">'+array[row][cell]+'</button></div></td>';    
-                            }    
-                        }    
-                        table_output += '</tr>';
-                    }    
-                    table_output += '</table>';
-                    document.getElementById('reportText').innerHTML = table_output;
-                }
-                getTableElementOfReport();
+                res = response.data;
+                console.log("reportID : ", response.data);
             },
         })
-    }
-
-    //取得表格ID
-    function getTableElementOfReport(){
-        //test get button
-        var text = document.getElementById('floatingTextarea2').innerHTML;
-        var button = document.getElementsByName("reportButton");
-        for (var i=0 ; i<button.length ; i++){
-            button[i].addEventListener('click', function(event) {                
-                //console.log("clicked : " + $(this)[0].value);
-                getReport($(this)[0].value);
-                //console.log("class : " + $(this)[0].className);
-                if ($(this)[0].className === "btn btn-light"){
-                    $(this)[0].className = "btn btn-light active";
-                    //console.log("class : " + $(this)[0].className);
-                }else if ($(this)[0].className === "btn btn-light active"){
-                    $(this)[0].className = "btn btn-light";
-                    //console.log("class : " + $(this)[0].className);
-                }
-            });
-        }
+        return res;
     }
 
     //用按鈕value丟到後端取得reportText
@@ -976,9 +703,6 @@
                 'reportID': reportID,
             },
             success:async function (response){
-                //console.log(response.reportText);
-                //document.getElementById('floatingTextarea2').value += response.reportText + '\n\n';
-                //document.getElementById('floatingTextarea2').innerHTML += response.reportText + '\n\n';
                 //產生
 
                 //Button toggle
@@ -990,8 +714,6 @@
                     option.class = "selectOption";
                     option.text = reportID;
                     option.value = reportID;
-                    var select = document.getElementById("selectOutput");
-                    select.appendChild(option);
                     //取消選取所有option
                     var OP = document.getElementsByClassName('selectOption');
                     for (var i=0 ; i<OP.length ; i++){
@@ -1026,14 +748,6 @@
                     document.getElementById(reportID).className += " " + "border border-primary"; 
                 }
                 else if (btn.className === "btn btn-light"){
-                    //刪除選項
-                    var selectobject = document.getElementById("selectOutput");
-                    for (var i=0; i<selectobject.length; i++) {
-                        if (selectobject.options[i].value == reportID){
-                            selectobject.remove(i);
-                            break;
-                        }
-                    }
                     //console.log("selected :" + selectobject.value);
                     //隱藏所有textarea
                     var textArea = document.getElementsByClassName('text');

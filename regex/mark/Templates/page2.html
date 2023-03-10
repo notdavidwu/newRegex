@@ -70,27 +70,14 @@
     </div>
     <div>
       <div id="table" class="tabletable-bordered" ></div>
-    </div>
-    <button type="button" class="btn btn-secondary" id="page2Execute" >Execute</button>    
-    <button type="button" class="btn btn-secondary" id="page2ExecuteAll" >ExecuteALL</button>    
-    <button type="button" class="btn btn-danger" id="page2ClearALL" >ClearALL</button>
-    <button type="button" class="btn btn-secondary" id="page2SelectALL" >SelectALL</button>
-        
-    <div class="form-floating" id="textAreaDiv">
-      <textarea class="text"  id="floatingTextarea2" ></textarea>
-    </div>
+    </div> 
+    <button type="button" class="btn btn-secondary" id="page2ExecuteAll" >ExecuteALL</button>
     <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectRegexType">
       <option  >Select Type</option>
       <option value="T">Tag</option>
       <option value="E">Extraction</option>
       <option value="P">ProperNoun</option>
       <option selected value="U">Undefined</option>
-    </select>    
-    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectExcelDB">
-      <option selected value="DB">DB</option>
-      <option value="Excel">Excel</option>
-    </select>
-    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectOutput">
     </select>
     <div class="alert alert-danger" role="alert" id="noRegex">
       Please select a Regex !!
@@ -105,7 +92,16 @@
       Extracted Data Saved !!
     </div>
 
-    <p id="Total" >Reports</p>
+
+    <div class="input-group" id="reportIDinput">
+      <span class="input-group-text">ReportID from </span>
+      <input type="text" aria-label="First name" class="form-control" id="reportIDfrom" value="1">
+      <span class="input-group-text">to</span>
+      <input type="text" aria-label="Last name" class="form-control" id="reportIDto" value="100">
+    </div>
+
+    <p id="Total" >Execute Time: </p>
+    <div class="spinner"></div>
   </body>
 </html>
     

@@ -6,6 +6,7 @@
 <script>    
     $(document).ready(function () {
 
+
         //根據select顯示token
         $("#twoOrThree").on('change', function() {
             value = document.getElementById('twoOrThree').value;
@@ -113,30 +114,6 @@
             }],
             data:response.data
         })
-
-        //處理成tokenID1[].tokenID2[]
-        //tokenID = seperateArray_3(response.data);
-        ////console.log(tokenID);
-//
-        ////顯示結果表格
-        //if (tokenID){
-        //    let headers = ['No','First', 'Second', 'Times', 'MergeCheck'];
-        //    var array = [];
-        //    var temp = [];
-//
-        //    //if (xxx.value === 2){
-        //        for(var i=0 ; i<tokenID[0].length ; i++){
-        //            array.push([i+1, tokenID[0][i], tokenID[1][i], tokenID[2][i], tokenID[3][i]])
-        //        }
-        //    //}
-        //    //else if (xxx.value === 3){
-        //    //    for(var i=0 ; i<tokenID[0].length ; i++){
-        //    //        array.push([i+1, tokenID[0][i], tokenID[1][i], tokenID[2][i], tokenID[3][i]])
-        //    //    }
-        //    //}
-        //    console.log("array = ", array);
-        //    showTable_3(headers, array, tokenID);
-        //}
     }
 
     //顯示P資料
@@ -280,63 +257,14 @@
         return res;
     }
 
-    //顯示結果表格P
-    function showTableP(headers, array, tokenID){
-        console.log("array : ",array);
-        let object=`<table class="table table-striped-columns">
-            <thead style="user-select:none;">
-                <tr>
-                    <td>No</td>
-                    <td>Token</td>
-                    <td>TokenType</td>
-                    <td>AddRE</td>
-                    <td>Undo</td>
-                </tr>
-            </thead>
-            <tbody>`
-        PNarray = checkPN(array);
-        for(let i=0;i<array.length;i++){
-            if (PNarray[i] === 0){
-                object += `<tr>
-                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
-                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
-                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
-                    <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
-                    <td class='UnMerge' ><button onclick="" class="btn btn-danger">UnMerge</button></td>
-                </tr>`
-            }
-            else if(PNarray[i] === 1){
-                object += `<tr>
-                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
-                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
-                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
-                    <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
-                    <td class='Merged' value="Merged" style="user-select:none;">Merged</td>
-                </tr>`
-            }
-            else if(PNarray[i] === 2){
-                object += `<tr>
-                    <td class='No' value="${array[i][0]}" style="user-select:none;">${array[i][0]}</td>
-                    <td class='ProperNoun' value="${array[i][1]}" >${array[i][1]}</td>
-                    <td class='tokenType' value="${array[i][2]}" >${array[i][2]}</td>
-                    <td class='NewRE' ><button onclick="changeSrc()" class="btn btn-secondary">NewRE</button></td>
-                    <td class='Basic' value="Basic" style="user-select:none;"></td>
-                </tr>`
-            }
-        }
-        object +='</tbody></table>'
-        $('#result_dataP').empty();
-        $('#result_dataP').append(object);
-    }
-
     function merge(){
         $(event.target).toggleClass('active');
         if ($(event.target).attr('class') == "btn btn-info active" ){
-            let token1 = $(event.target).parents('tr').find('.First')[0].getAttribute('value');
+            let token1 = $(event.target).parents('tr').children('td').eq(1).html();
             console.log("token1 = ", token1);
-            let token2 = $(event.target).parents('tr').find('.Second')[0].getAttribute('value');
+            let token2 = $(event.target).parents('tr').children('td').eq(2).html();
             console.log("token2 = ", token2);
-            let times = $(event.target).parents('tr').find('.Times')[0].getAttribute('value');
+            let times = $(event.target).parents('tr').children('td').eq(3).html();
             console.log("times = ", times);
             var Token = token1 + token2;
             var lenOfToken = Token.length;
@@ -366,6 +294,7 @@
                                 if (response.status === "0"){                                    
                                     $('#result_data').empty();
                                     printAllData();
+                                    printAllPData();
                                 }                            
                             }
                         }
@@ -390,13 +319,13 @@
     function merge_3(){
         $(event.target).toggleClass('active');
         if ($(event.target).attr('class') == "btn btn-info active" ){
-            let token1 = $(event.target).parents('tr').find('.First')[0].getAttribute('value');
+            let token1 = $(event.target).parents('tr').children('td').eq(1).html();
             console.log("token1 = ", token1);
-            let token2 = $(event.target).parents('tr').find('.Second')[0].getAttribute('value');
+            let token2 = $(event.target).parents('tr').children('td').eq(2).html();
             console.log("token2 = ", token2);
-            let token3 = $(event.target).parents('tr').find('.Third')[0].getAttribute('value');
+            let token3 = $(event.target).parents('tr').children('td').eq(3).html();
             console.log("token3 = ", token3);
-            let times = $(event.target).parents('tr').find('.Times')[0].getAttribute('value');
+            let times = $(event.target).parents('tr').children('td').eq(4).html();
             console.log("times = ", times);
             var Token = token1 + token2 + token3;
             var lenOfToken = Token.length;
@@ -428,6 +357,7 @@
                                 if (response1.status === "0"){
                                     $('#result_data').empty();
                                     printAllData();
+                                    printAllPData();
                                 }
                             }
                         }
