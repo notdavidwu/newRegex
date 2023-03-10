@@ -117,36 +117,66 @@ def getVocabularyByType(request):
     if request.method == 'GET':
         #取得資料
         result = {'status':'1'} #預設失敗
-        try:
-            #建立連線
-            server = '172.31.6.22' 
-            database = 'aicVocabulary(latest)' 
-            username = 'N824' 
-            password = 'test81218' 
-            conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
-            cursor = conn.cursor()
-            #插入資料表
-            if request.GET['tokenType'] == 'U':
-                query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where (tokenType = ? and tokenID <= 152 and tokenID != 151) order by tokenID DESC;'
-            elif request.GET['tokenType'] == 'P':
-                query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
-            else:
-                query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? ;'
-            args = [request.GET['tokenType']]
-            # print(args)
-            cursor.execute(query, args)
-            tokenID = cursor.fetchall()
-            ## print(tokenID[0])
-            result['status'] = '0'            
-            result['data'] = []
-            for i in tokenID:
-                record = {}
-                record['token'] = i.token 
-                record['tokenType'] = i.tokenType     
-                ## print("token: " + str(i.token))
-                result['data'].append(record)
-        except:
-            result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'aicVocabulary(latest)' 
+        username = 'N824' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        #插入資料表
+        if request.GET['tokenType'] == 'U':
+            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where (tokenType = ? and tokenID <= 152 and tokenID != 151) order by tokenID DESC;'
+        elif request.GET['tokenType'] == 'P':
+            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
+        else:
+            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? ;'
+        args = [request.GET['tokenType']]
+        # print(args)
+        cursor.execute(query, args)
+        tokenID = cursor.fetchall()
+        ## print(tokenID[0])
+        result['status'] = '0'            
+        result['data'] = []
+        for i in tokenID:
+            record = {}
+            record['token'] = i.token 
+            record['tokenType'] = i.tokenType     
+            ## print("token: " + str(i.token))
+            result['data'].append(record)
+    
+        conn.commit()
+        conn.close()
+    return JsonResponse(result)
+@csrf_exempt
+def getVocabularyByType_Ptable(request):
+    if request.method == 'GET':
+        #取得資料
+        result = {'status':'1'} #預設失敗
+        #建立連線
+        server = '172.31.6.22' 
+        database = 'aicVocabulary(latest)' 
+        username = 'N824' 
+        password = 'test81218' 
+        conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        cursor = conn.cursor()
+        #插入資料表
+        if request.GET['tokenType'] == 'P':
+            query = 'select * from [aicVocabulary(latest) ].[dbo].[Vocabulary] where tokenType = ? or tokenType != \'U\';'
+        args = [request.GET['tokenType']]
+        # print(args)
+        cursor.execute(query, args)
+        tokenID = cursor.fetchall()
+        result['data'] = []
+            
+        for ind,i in enumerate(tokenID):
+            result['data'].append({
+                'No': ind+1,
+                'ProperNoun': i[0],
+                'tokenType': i[3],
+                'NewRE': '<button onclick="changeSrc()" class="btn btn-secondary">NewRE</button>',
+                'UnMerge':'<button onclick="" class="btn btn-danger">UnMerge</button>',
+            })
     
         conn.commit()
         conn.close()
@@ -295,33 +325,34 @@ def getTextToken(request):
         result['data'] = []
         # # print(textTokenData[0][0])
         record = {}
-        
-        RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n]{1})') 
-        for i in textTokenData:
 
-   
-            # # print(i)
-            # # print(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7])          
-            result['status'] = '0'
-            record['token1'] = i[0]
-            record['token2'] = i[1]
-            record['times'] = i[2]
-            # record['tokenID1'] = i[3]
-            # record['reportID2'] = i[4]
-            # record['posStart2'] = i[5]
-            # record['posEnd2'] = i[6]
-            # record['tokenID2'] = i[7]
-            # # print(record)
+        RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n]{1})') 
+        for ind,i in enumerate(textTokenData):
+
             if request.GET['NoSign'] == 'NS':
                 first = RE.findall(i[0])
                 second = RE.findall(i[1])
                 if first == [] and second == [] :
-                    result['data'].append(copy.deepcopy(record))
+                    result['data'].append({
+                        'No': ind+1,
+                        'First': i[0],
+                        'Second': i[1],
+                        'Times': i[2],
+                        'Mergecheck':'<button onclick="merge()" class="btn btn-info">Merge</button>',
+                    })
+                    
             else:                   
-                result['data'].append(copy.deepcopy(record))
+                result['data'].append({
+                        'No': ind+1,
+                        'First': i[0],
+                        'Second': i[1],
+                        'Times': i[2],
+                        'Mergecheck':'<button onclick="merge()" class="btn btn-info">Merge</button>',
+                    })
 
         conn.commit()
         conn.close()
+
     #插入U資料
     if request.method == 'POST':
         #取得資料
@@ -459,7 +490,8 @@ def getTextToken_3(request):
         cursor = conn.cursor()
 
         query = '''
-                SELECT c.token, d.token, f.token, COUNT(*) AS times
+                select a.* from (
+                SELECT c.token as token1, d.token as token2, f.token as token3, COUNT(*) AS times,c.token+d.token+f.token as mergeToken
                 FROM [aicVocabulary(latest)].[dbo].[textToken] AS a 
                 INNER JOIN [aicVocabulary(latest)].[dbo].[textToken] AS b ON a.reportID = b.reportID AND (a.posEnd + 1) = b.posStart AND a.posStart>0 AND b.posStart>0
                 INNER JOIN [aicVocabulary(latest)].[dbo].[textToken] AS e ON b.reportID = e.reportID AND (b.posEnd + 1) = e.posStart AND b.posStart>0 AND e.posStart>0
@@ -467,7 +499,10 @@ def getTextToken_3(request):
                 INNER JOIN [aicVocabulary(latest)].[dbo].Vocabulary AS d ON b.tokenID = d.tokenID
                 INNER JOIN [aicVocabulary(latest)].[dbo].Vocabulary AS f ON e.tokenID = f.tokenID
                 GROUP BY c.token, d.token, f.token
-                ORDER BY times DESC;
+                ) as a
+                left join [aicVocabulary(latest)].[dbo].[Vocabulary] as b on a.mergeToken=b.token
+                where b.tokenID is null 
+                order by times desc;
                 ''' 
         cursor.execute(query)
         textTokenData = cursor.fetchall()
@@ -477,39 +512,31 @@ def getTextToken_3(request):
         record = {}
 
         RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n]{1})') 
+        
+        for ind,i in enumerate(textTokenData):
 
-        for i in textTokenData:
-
-            query = '''
-                SELECT * FROM [aicVocabulary(latest)].[dbo].[Vocabulary] where token = ?;
-                '''
-            args = [i[0] + i[1] + i[2]]
-            cursor.execute(query, args)
-            token = cursor.fetchone()
-            # # print(token)
-            # # print("args : ", args)
-            # # print(i)
-            # # print(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7])    
-            if token == None:
-                result['status'] = '0'
-                record['token1'] = i[0]
-                record['token2'] = i[1]
-                record['token3'] = i[2]
-                record['times'] = i[3]
-                # record['tokenID1'] = i[3]
-                # record['reportID2'] = i[4]
-                # record['posStart2'] = i[5]
-                # record['posEnd2'] = i[6]
-                # record['tokenID2'] = i[7]
-                # # print(record)
-                if request.GET['NoSign'] == 'NS':
-                    first = RE.findall(i[0])
-                    second = RE.findall(i[1])
-                    third = RE.findall(i[2])
-                    if first == [] and second == [] and third == []:
-                        result['data'].append(copy.deepcopy(record))
-                else:                   
-                    result['data'].append(copy.deepcopy(record))
+            if request.GET['NoSign'] == 'NS':
+                first = RE.findall(i[0])
+                second = RE.findall(i[1])
+                if first == [] and second == [] :
+                    result['data'].append({
+                        'No': ind+1,
+                        'First': i[0],
+                        'Second': i[1],
+                        'third': i[2],
+                        'Times': i[3],
+                        'Mergecheck':'<button onclick="merge_3()" class="btn btn-info">Merge</button>',
+                    })
+                    
+            else:                   
+                result['data'].append({
+                        'No': ind+1,
+                        'First': i[0],
+                        'Second': i[1],
+                        'third': i[2],
+                        'Times': i[3],
+                        'Mergecheck':'<button onclick="merge_3()" class="btn btn-info">Merge</button>',
+                    })
 
         conn.commit()
         conn.close()
