@@ -1470,29 +1470,82 @@ def getNextWord(request):
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
 
-        token = request.POST.getlist('token[]')
+        num = int(request.GET['word'])
         # # print(token)
 
-        pn = 0
-        # print("Index:", i, "Token:", t)
-        query = '''
-                select a.* from (
-                select c.token as token1, d.token as token2, count(*) as times,c.token+d.token as mergeToken
-                from [buildVocabulary ].[dbo].[textToken] as a inner join [buildVocabulary ].[dbo].[textToken] as b 
-                on a.reportID=b.reportID and (a.posEnd+1)=b.posStart AND a.posStart>0 AND b.posStart>0
-                inner join [buildVocabulary ].[dbo].Vocabulary as c on a.tokenID=c.tokenID
-                inner join [buildVocabulary ].[dbo].Vocabulary as d on b.tokenID=d.tokenID
+        token = ''
+        mergetoken = ''
+        innerjoinpos = ''
+        innerjointoken = ''
+        groupby = ''
+        #如果>=3就遞迴增加
+        if num >= 3:
+            for i in range(num-2):
+                token += f', c{i+5}.token as token{i+5}'
+                mergetoken += f' + c{i+5}.token'
+                if i == 0:
+                    innerjoinpos += f' inner join [buildVocabulary ].[dbo].[textToken] as b{i+4} on a1.reportID = b{i+4}.reportID and (a1.posEnd + 1) = b{i+4}.posStart and a1.posStart > 0 and b{i+4}.posStart > 0'
+                else:
+                    innerjoinpos += f' inner join [buildVocabulary ].[dbo].[textToken] as b{i+4} on a1.reportID = b{i+4}.reportID and (b{i+3}.posEnd + 1) = b{i+4}.posStart and b{i+3}.posStart > 0 and b{i+4}.posStart > 0'
 
-                group by c.token, d.token
-                ) as a
-                left join [buildVocabulary ].[dbo].[Vocabulary] as b on a.mergeToken=b.token
-                where b.tokenID is null
+                innerjointoken += f' inner join [buildVocabulary ].[dbo].[Vocabulary] as c{i+5} on b{i+4}.tokenID = c{i+5}.tokenID'
+                groupby += f' , c{i+5}.token'
+                text = innerjoinpos
+        #如果<3就固定抓三個字
+        else:
+            token = f''' , a5.token as token3'''
+            mergetoken = f''' + a5.token'''
+            innerjoinpos = f''' inner join [buildVocabulary ].[dbo].[textToken] as a4 on a1.reportID = a4.reportID and (a1.posEnd + 1) = a4.posStart and a1.posStart > 0 and a4.posStart > 0'''
+            innerjointoken = f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a5 on a4.tokenID = a5.tokenID'''
+            groupby = f''' , a5.token'''
+            text = innerjoinpos
+
+        query = f'''
+                select textTokenData.* from (
+                '''
+        query +=f'''
+                 select a2.token as token1, a3.token as token2
+                '''
+        # query +=f''' , a{num+2}.token as token{num}'''
+        query += token
+
+        query +=f''' , COUNT(*) as times, a2.token + a3.token'''
+
+        # query +=f''' + a{num+2}.token'''
+        query += mergetoken
+
+        query +=f''' as mergeToken
+                from [buildVocabulary ].[dbo].[textToken] as a0
+                inner join [buildVocabulary ].[dbo].[textToken] as a1 on a0.reportID = a1.reportID and (a0.posEnd + 1) = a1.posStart and a0.posStart > 0 and a1.posStart > 0
+                '''
+        # query +=f''' inner join [buildVocabulary ].[dbo].[textToken] as a4 on a1.reportID = a{num+1}.reportID and (a1.posEnd + 1) = a{num+1}.posStart and a1.posStart > 0 and a{num+1}.posStart > 0'''
+        query += innerjoinpos
+        query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a2 on a0.tokenID = a2.tokenID
+                inner join [buildVocabulary ].[dbo].[Vocabulary] as a3 on a1.tokenID = a3.tokenID
+                '''
+        # query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a{num+2} on a{num+1}.tokenID = a{num+2}.tokenID'''
+        query += innerjointoken
+        query +=f''' group by a2.token, a3.token
+                '''
+        # query +=f''' , a{num+2}.token'''
+        query += groupby
+        
+        query +=f'''
+                ) as textTokenData
+                left join [buildVocabulary ].[dbo].[Vocabulary] as word on textTokenData.mergeToken = word.token
+                where word.tokenID is null
                 order by times desc;
                 '''
+        print("query : ", query)
+        print("text : ", text)
+        
         
         cursor.execute(query)
         texttoken = cursor.fetchall()
-        print("texttoken : ", texttoken)
+        # print("texttoken : ", texttoken)
+        # for i in texttoken:
+        #     print("texttoken : ", i)
+
         # # print("PNarray : ", PNarray)
         conn.commit()
         conn.close()

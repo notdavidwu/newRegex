@@ -5,8 +5,9 @@
 <script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
 <script>    
     $(document).ready(function () {
-
-
+        //測試根據變數查詢資料
+        getNext();
+        
         //根據select顯示token
         $("#twoOrThree").on('change', function() {
             value = document.getElementById('twoOrThree').value;
@@ -36,6 +37,24 @@
         printAllPData();
         
     });
+    
+    //取得P資料
+    function getNext(){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'getNextWord' %}',
+            data:{
+                "word" : 5,
+            },
+            success:function (response){
+                res = response;
+                //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
 
     //顯示資料
     function printAllData(){
@@ -153,30 +172,6 @@
             ],
             data:response.data
         })
-//
-        ////處理成tokenID1[].tokenID2[]
-        //tokenID = seperateArray(response.data);
-        //////console.log(tokenID);
-////
-        //////顯示結果表格
-        //if (tokenP != []){
-        //    let headers = ['No','ProperNoun'];
-        //    var array = [];
-        //    var temp = [];
-//
-        //    //if (xxx.value === 2){
-        //    for(var i=0 ; i<tokenP.length ; i++){
-        //        array.push([i+1, tokenP[i].token, tokenP[i].tokenType])
-        //    }
-        //    //}
-        //    //else if (xxx.value === 3){
-        //    //    for(var i=0 ; i<tokenID[0].length ; i++){
-        //    //        array.push([i+1, tokenID[0][i], tokenID[1][i], tokenID[2][i], tokenID[3][i]])
-        //    //    }
-        //    //}
-        //    console.log("array = ", array);
-        //    showTableP(headers, array, tokenID);
-        //}
     }
     
     //取得P資料
