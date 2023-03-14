@@ -24,19 +24,19 @@
         //刪除選項
         //removeOptions(document.getElementById('dropdownbutton'));
         //get_vocabularies();
-        console.log("document.ready")
+        //console.log("document.ready")
 
         //確認名稱
         $("#check").click(function(){
-            //console.log("check clicked");
+            ////console.log("check clicked");
             Name = [];
             Name.push(document.getElementById("regexName").value);
-            //console.log(name);
+            ////console.log(name);
             
             //不為空檢查，否則顯示不可為空
             if (Name[0] != ""){
                 tokenTYPE = checkName(Name);
-                console.log("tokenTYPE :", tokenTYPE);
+                //console.log("tokenTYPE :", tokenTYPE);
                 if (tokenTYPE[0] === 'T'){
                     var option = document.getElementById("T");
                     option.selected = true;
@@ -66,7 +66,7 @@
             var modal = document.getElementById("modal-content");            
             res = printAdjacentData();
             var data = document.getElementById("result_data");
-            console.log("Data : ", data);
+            //console.log("Data : ", data);
             if (res != false){
                 showModal();
             }
@@ -91,11 +91,11 @@
         var res;
         var firstWord = document.getElementById("firstWordValue").value;
         var wordNumber = document.getElementById("wordNumberValue").value;
-        //console.log("firstWord : ", firstWord, wordNumber);
+        ////console.log("firstWord : ", firstWord, wordNumber);
 
         var pattern = /[^0-9]/g;
         var result = wordNumber.match(pattern);
-        //console.log("result : ", result);        
+        ////console.log("result : ", result);        
         var pattern = /[ ]/g;
         var resultBlank = wordNumber.match(pattern);
 
@@ -187,7 +187,7 @@
                         data:response.data
                     })                    
                     $('.loading-text').hide();
-                    //console.log("res : ", res);
+                    ////console.log("res : ", res);
                 },
             });            
             return res;
@@ -232,14 +232,14 @@
 
     //存檔到後端資料庫
     function BtnClicked_1(itemName){
-        //console.log("execute in")
-        //console.log(itemName)
+        ////console.log("execute in")
+        ////console.log(itemName)
 
         token = document.getElementById('regexName').value
         tokenType = document.getElementById('dropdownbutton').value
-        console.log("tokenType : " + tokenType)
+        //console.log("tokenType : " + tokenType)
         count = getLength(token);
-        //console.log(input,regex)
+        ////console.log(input,regex)
         $.ajax({
             type: 'POST',
             url: '{% url 'insertVocabulary' %}',
@@ -249,10 +249,10 @@
                 'tokenType': tokenType,                
             },
             success:function (response){
-                console.log("result : " + response.status)
+                //console.log("result : " + response.status)
                 if (response.status === '0' || response.status === 'already_exist'){
                 }else{
-                    console.log("data not saved");
+                    //console.log("data not saved");
                     display_data_not_saved();
                 }
                 if (tokenType == 'E'){
@@ -269,10 +269,10 @@
     }
     //存檔到後端資料庫
     function BtnClicked_2(response,itemName){
-        console.log("btnclicked_2 : " + response.data[0].tokenID)
+        //console.log("btnclicked_2 : " + response.data[0].tokenID)
         tokenID = response.data[0].tokenID;        
         regex = document.getElementById('regexText').value
-        console.log("tokenID : " + tokenID);
+        //console.log("tokenID : " + tokenID);
 
         $.ajax({
             type: 'POST',
@@ -282,13 +282,13 @@
                 'RE': regex,               
             },
             success:function (response){  
-                console.log("BtnClicked_2 : ", response)  
+                //console.log("BtnClicked_2 : ", response)  
                 if (tokenType === 'E' && response.status === '0'){
-                    console.log("btnclicked3")
+                    //console.log("btnclicked3")
                     BtnClicked_3(response,itemName);
                 }
                 else if (response.status === 'already_exist'){
-                    console.log("already_exist activate");
+                    //console.log("already_exist activate");
                     display_regexExsist();
                 }
             },
@@ -298,11 +298,11 @@
     }
     //存檔到後端資料庫
     function BtnClicked_3(response,itemName){   
-        console.log("btnclicked3_itemName " + itemName)  
+        //console.log("btnclicked3_itemName " + itemName)  
         tokenREID = response.data[0].tokenREID;        
-        console.log("btnclicked")
+        //console.log("btnclicked")
         for (var i=0 ; i< itemName.length ; i++){
-            console.log("btnclicked :" + (i+1) + "times")
+            //console.log("btnclicked :" + (i+1) + "times")
             $.ajax({
                 type: 'POST',
                 url: '{% url 'inserttokenREItem' %}',
@@ -356,11 +356,11 @@
                 paragraph = text.value
                 //處理輸入的regex文本
                 textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
-                //console.log(textToSearch)
-                //console.log(paragraph)
+                ////console.log(textToSearch)
+                ////console.log(paragraph)
                 //將處理好的regex文本定義為新的regex物件
                 let pattern = new RegExp(`${textToSearch}`,"gi");
-                //console.log(pattern)
+                ////console.log(pattern)
                 
                 
                 //將輸出文本與regex物件有符合的地方加上<mark>標籤，然後丟到輸出欄位       
@@ -386,16 +386,16 @@
             paragraph = text.value
             //處理輸入的regex文本
             textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
-            //console.log(textToSearch)
-            //console.log(paragraph)
+            ////console.log(textToSearch)
+            ////console.log(paragraph)
             //將處理好的regex文本定義為新的regex物件
             let pattern = new RegExp(`${textToSearch}`,"gi");
-            //console.log(pattern)
+            ////console.log(pattern)
             
             
             //將輸出文本與regex物件有符合的地方取代為空白      
             document.getElementById("result").innerHTML = paragraph.replace(pattern, " ");
-            //console.log(text.value.match(pattern))
+            ////console.log(text.value.match(pattern))
             //抓出被取代的資料 + 排版
             extractedArray = text.value.match(pattern);
 
@@ -418,20 +418,20 @@
                 //開始建立表格
                 //解析輸入的regex
                 let dateFormat = new RegExp(`${textToSearch}`,"gi");
-                //console.log("dateFormat: "+ dateFormat);          
+                ////console.log("dateFormat: "+ dateFormat);          
                 result_array = []
                 //迴圈執行exec()取得回傳的groups 原本exec只會找一筆所以要回圈 match回傳值沒有groups所以不能用
                 while(null != (g = dateFormat.exec(paragraph))) {
-                    //console.log("groups: " + g.groups);  // ouput: "a"
-                    //console.log("pattern: " + g);
+                    ////console.log("groups: " + g.groups);  // ouput: "a"
+                    ////console.log("pattern: " + g);
                     result_array.push(g.groups);
                 }
                 //如果有用named capture groups
                 if (result_array[0] != null){
-                    //console.log(result_array);
+                    ////console.log(result_array);
                     //創建表格元素
                     let myTable = document.querySelector('#table');
-                    //console.log(Object.keys(result_array[0]));
+                    ////console.log(Object.keys(result_array[0]));
                     let headers = Object.keys(result_array[0]);
                     let table = document.createElement('table');
                     let headerRow = document.createElement('tr');
@@ -456,20 +456,20 @@
                 }
                 var tokenType = document.getElementById('dropdownbutton').value;
                 if (tokenType === "E"){
-                    console.log("result_array :" + Object.keys(result_array[0]));
-                    console.log("save pressed E");
+                    //console.log("result_array :" + Object.keys(result_array[0]));
+                    //console.log("save pressed E");
                     //資料到後端儲存
                     BtnClicked_1(Object.keys(result_array[0]));
                     document.getElementById("returnbtn").style.visibility = 'visible';
                 }
                 if (tokenType === "T"){
-                    //console.log("result_array :" + Object.keys(result_array[0]));
-                    console.log("save pressed T " + extractedArray.length);
+                    ////console.log("result_array :" + Object.keys(result_array[0]));
+                    //console.log("save pressed T " + extractedArray.length);
                     BtnClicked_1();
                     //document.getElementById("returnbtn").style.visibility = 'visible';
                 }
                 if (tokenType === "U"){
-                    //console.log("result_array :" + Object.keys(result_array[0]));
+                    ////console.log("result_array :" + Object.keys(result_array[0]));
                     BtnClicked_1();
                     //document.getElementById("returnbtn").style.visibility = 'visible';
                 }
@@ -481,7 +481,7 @@
     //顯示請輸入文字
       function diaplay_please_input_something() {
         var x = document.getElementById("inuptNothing");        
-        //console.log(x.style.visibility)
+        ////console.log(x.style.visibility)
         if (document.getElementById("inuptNothing").style.visibility != 'visible') {
             document.getElementById("inuptNothing").style.visibility = 'visible';
             setTimeout(function() {
@@ -494,7 +494,7 @@
     //顯示無輸出文字
     function diaplay_output_nothing() {
     var x = document.getElementById("outputNothing");
-    //console.log(x.style.visibility)
+    ////console.log(x.style.visibility)
     if (document.getElementById("outputNothing").style.visibility != 'visible') {
         document.getElementById("outputNothing").style.visibility = 'visible';
         setTimeout(function() {
@@ -516,7 +516,7 @@
     //顯示已儲存
     function display_data_saved(){
        var x = document.getElementById("alertBlock");
-       //console.log(x.style.visibility)
+       ////console.log(x.style.visibility)
        if (document.getElementById("alertBlock").style.visibility != 'visible') {
            document.getElementById("alertBlock").style.visibility = 'visible';
            setTimeout(function() {
@@ -529,7 +529,7 @@
     //顯示儲存失敗
     function display_data_not_saved(){
         var x = document.getElementById("fail");
-        //console.log(x.style.visibility)
+        ////console.log(x.style.visibility)
         if (document.getElementById("fail").style.visibility != 'visible') {
             document.getElementById("fail").style.visibility = 'visible';
             setTimeout(function() {
@@ -542,7 +542,7 @@
     //顯示儲存失敗
     function display_regexExsist(){
         var x = document.getElementById("regexExist");
-        //console.log(x.style.visibility)
+        ////console.log(x.style.visibility)
         if (document.getElementById("regexExist").style.visibility != 'visible') {
             document.getElementById("regexExist").style.visibility = 'visible';
             setTimeout(function() {
