@@ -234,7 +234,7 @@
   
   #Mode {
     position:absolute;
-    top:150px;
+    top:220px;
     left:600px;
     user-select:none;
   }  
@@ -247,4 +247,64 @@
   .is-warning {
     border-color: #ffc107; /* set border color to yellow */
   }
+  
+  #firstWord {
+    position:absolute;
+    top:20px;
+    left:400px;
+    width:300px;
+  }
+  
+  #wordNumber {
+    position:absolute;
+    top:80px;
+    left:400px;
+    width:300px;
+  }
+  
+  #search {
+    position:absolute;
+    top:20px;
+    left:720px;
+    width:150px;
+    height:100px;
+    align:center;
+  }
+  
+  #result_data {
+    align:center;
+    z-index: 10;
+    opacity: 1;
+  }
+  
+  .modal {
+    display: none; /* Hide the modal by default */
+    position: fixed; /* Position the modal */
+    z-index: 1; /* Set the z-index to ensure the modal is on top of other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scrolling if needed */
+    background-color: rgba(0,0,0,0.4); /* Create a semi-transparent background */
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Center the modal content */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    animation-name: modal-anim;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    overflow:auto;
+  }
+
+  /* Define the modal animation */
+		@keyframes modal-anim {
+			from {opacity: 0; transform: translateY(-100px);}
+			to {opacity: 1; transform: translateY(0);}
+		}
 </style>

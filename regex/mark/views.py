@@ -161,23 +161,42 @@ def getVocabularyByType_Ptable(request):
         conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
         cursor = conn.cursor()
         #插入資料表
-        if request.GET['tokenType'] == 'P':
-            query = 'select * from [buildVocabulary ].[dbo].[Vocabulary] where (tokenType = ? or tokenType != \'U\') and token != \'[NUM]\';'
-        args = [request.GET['tokenType']]
+        query = '''SELECT * FROM(
+                SELECT a.*, b.token, b.tokenType, ROW_NUMBER() OVER (PARTITION BY a.tokenID ORDER BY reportID, posStart) AS rowID2
+                --a.reportID, a.tokenID, b.token, a.posStart, a.posEnd
+                FROM (
+                 SELECT *, ROW_NUMBER() OVER (PARTITION BY reportID, tokenID ORDER BY reportID, posStart) AS rowID
+                 FROM textToken
+                ) AS a
+                 inner join Vocabulary AS b ON (a.tokenID = b.tokenID) and ( b.tokenType != 'U')
+                ) AS res
+                WHERE res.rowID=1 and res.rowID2=1
+                ORDER BY  tokenID, posStart,reportID
+                '''
         # print(args)
-        cursor.execute(query, args)
+        cursor.execute(query)
         tokenID = cursor.fetchall()
         result['data'] = []
             
         for ind,i in enumerate(tokenID):
             # print("i[0] : ",i[0])
-            result['data'].append({
-                'No': ind+1,
-                'ProperNoun': i[0],
-                'tokenType': i[3],
-                'NewRE': '<button onclick="changeSrc()" class="btn btn-secondary">NewRE</button>',
-                'UnMerge':'<button onclick="" class="btn btn-danger">UnMerge</button>',
-            })
+            print("i : ", i)
+            if i[1]>0 and i[2]>0:
+                result['data'].append({
+                    'No': ind+1,
+                    'ProperNoun': i[5],
+                    'tokenType': i[6],
+                    'NewRE': '<button onclick="changeSrc()" class="btn btn-secondary">NewRE</button>',
+                    'UnMerge':'<button onclick="" class="btn btn-danger">UnMerge</button>',
+                })
+            else:
+                result['data'].append({
+                    'No': ind+1,
+                    'ProperNoun': i[5],
+                    'tokenType': i[6],
+                    'NewRE': '',
+                    'UnMerge':'',
+                })
     
         conn.commit()
         conn.close()
@@ -209,7 +228,7 @@ def insertVocabulary(request):
         args = [request.POST.get('token'),int(request.POST.get('nWord'))]
         cursor.execute(query, args)
         tokenID_original = cursor.fetchone()
-        # print("tokenID_original : ", tokenID_original)
+        print("tokenID_original : ", tokenID_original)
 
         
         if tokenID_original == None and request.POST.get('tokenType'):
@@ -220,7 +239,7 @@ def insertVocabulary(request):
             # print(args)
             cursor.execute(query, args)
             tokenID = cursor.fetchall()
-            # print(tokenID[0][0], tokenID[0][1], tokenID[0][2])
+            print(tokenID[0][0], tokenID[0][1], tokenID[0][2])
             if tokenID != []:
                 result['status'] = '0'
                 record['tokenID'] = tokenID[0][0]
@@ -515,6 +534,7 @@ def getTextToken_3(request):
         RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n]{1})') 
         
         for ind,i in enumerate(textTokenData):
+            print(i)
 
             if request.GET['NoSign'] == 'NS':
                 first = RE.findall(i[0])
@@ -524,7 +544,7 @@ def getTextToken_3(request):
                         'No': ind+1,
                         'First': i[0],
                         'Second': i[1],
-                        'third': i[2],
+                        'Third': i[2],
                         'Times': i[3],
                         'Mergecheck':'<button onclick="merge_3()" class="btn btn-info">Merge</button>',
                     })
@@ -534,7 +554,7 @@ def getTextToken_3(request):
                         'No': ind+1,
                         'First': i[0],
                         'Second': i[1],
-                        'third': i[2],
+                        'Third': i[2],
                         'Times': i[3],
                         'Mergecheck':'<button onclick="merge_3()" class="btn btn-info">Merge</button>',
                     })
@@ -1471,6 +1491,8 @@ def getNextWord(request):
         cursor = conn.cursor()
 
         num = int(request.GET['word'])
+        firstToken = request.GET['firstToken']
+        print(firstToken)
         # # print(token)
 
         token = ''
@@ -1520,9 +1542,15 @@ def getNextWord(request):
                 '''
         # query +=f''' inner join [buildVocabulary ].[dbo].[textToken] as a4 on a1.reportID = a{num+1}.reportID and (a1.posEnd + 1) = a{num+1}.posStart and a1.posStart > 0 and a{num+1}.posStart > 0'''
         query += innerjoinpos
-        query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a2 on a0.tokenID = a2.tokenID
-                inner join [buildVocabulary ].[dbo].[Vocabulary] as a3 on a1.tokenID = a3.tokenID
-                '''
+        # 找第一個字
+        if firstToken != "":
+            query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a2 on a0.tokenID = a2.tokenID and a2.token = '{firstToken}'
+                    inner join [buildVocabulary ].[dbo].[Vocabulary] as a3 on a1.tokenID = a3.tokenID
+                    '''
+        else:
+            query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a2 on a0.tokenID = a2.tokenID
+                    inner join [buildVocabulary ].[dbo].[Vocabulary] as a3 on a1.tokenID = a3.tokenID
+                    '''
         # query +=f''' inner join [buildVocabulary ].[dbo].[Vocabulary] as a{num+2} on a{num+1}.tokenID = a{num+2}.tokenID'''
         query += innerjointoken
         query +=f''' group by a2.token, a3.token
@@ -1542,11 +1570,26 @@ def getNextWord(request):
         
         cursor.execute(query)
         texttoken = cursor.fetchall()
-        # print("texttoken : ", texttoken)
+        print("texttoken : ", texttoken)
         # for i in texttoken:
+        #     # if i[0] == '[NUM]':
         #     print("texttoken : ", i)
+        result['data'] = []
+        record = {}
+        if texttoken != []:
+            record['reportID'] = texttoken[0][num + 1]
 
-        # # print("PNarray : ", PNarray)
+            for ind,i in enumerate(texttoken):
+                # print("i[0] : ",i[0])
+                result['data'].append({
+                    'No': ind+1,
+                    '1': i[0],
+                    '2': i[1],
+                    '3': i[2],
+                    'times': i[num],
+                })
+
+        # print("PNarray : ", PNarray)
         conn.commit()
         conn.close()
     return JsonResponse(result)

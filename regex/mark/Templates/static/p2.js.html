@@ -48,10 +48,19 @@
             //    //console.log("lengthOfArray : ", lengthOfArray);
             //}
             
+
+            //取得RE
+            resultTokenType = getRegularExpression(selected);
+            //console.log("result : ", result);
+            var TokenID = resultTokenType[0];
+            var REGEX = resultTokenType[1];
+            var TokenType = resultTokenType[2];
+            var ItemName = resultTokenType[3];
+
             for (const [key, value] of Object.entries(report[0])) {
                 var valueText = value;
                 var currentReportID = key;
-                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report[0]);
+                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report[0], TokenID, REGEX, TokenType, ItemName, resultTokenType);
                 console.log("currentReportID : ", currentReportID);
                 console.log("valueText : ", valueText);
             }
@@ -166,7 +175,7 @@
     }
 
     //萃取全部(需要iter的是文章id 取得文章內容)
-    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report){
+    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report, TokenID, REGEX, TokenType, ItemName, resultTokenType){
         console.log("report Batch :", report);
         console.log("valueText", valueText);
         console.log("currentReportID", currentReportID);
@@ -174,14 +183,6 @@
         var Value = [];
         //萃取模式
         if ((selected.length != 0) && (valueText != "")) {
-
-            //取得RE
-            resultTokenType = getRegularExpression(selected);
-            //console.log("result : ", result);
-            var TokenID = resultTokenType[0];
-            var REGEX = resultTokenType[1];
-            var TokenType = resultTokenType[2];
-            var ItemName = resultTokenType[3];
 
             //console.log("tokenID: " + TokenID);
             //console.log("tokenType: " + TokenType);

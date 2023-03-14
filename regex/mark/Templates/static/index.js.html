@@ -6,6 +6,7 @@
 <!-- Textillate.js v0.4.0 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/textillate/0.4.0/jquery.textillate.min.js"></script>
 <script src="http://jschr.github.io/textillate/jquery.textillate.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
 
 
 <script >
@@ -53,8 +54,112 @@
         //返回按鈕
         $("#returnbtn").click(function(){
             output_to_input();
+        });        
+        
+        //搜尋按鈕
+        $("#search").click(function(){
+            var modal = document.getElementById("modal-content");            
+            printAdjacentData();
+            var data = document.getElementById("result_data");
+            console.log("Data : ", data);
+            showModal();
+            
+            window.onclick = function(event) {
+                var modal = document.getElementById("modal");
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
         });
     });
+
+    
+    function showModal() {
+		var modal = document.getElementById("modal");
+        modal.style.display = "block";
+    }
+
+    //搜尋按鈕
+    function printAdjacentData(){
+        var res;
+        var firstWord = document.getElementById("firstWordValue").value;
+        var wordNumber = document.getElementById("wordNumberValue").value;
+        console.log("firstWord : ", firstWord, wordNumber);
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'getNextWord' %}',
+            data:{
+                "word" : wordNumber,//最多14字[('組', '織', '來', '源', ':', 'C', '[NUM]', '-', '[NUM]', ',', 'C', '[NUM]', '-', '[NUM]', 1, '組織來源:C[NUM]-[NUM],C[NUM]-[NUM]')]
+                "firstToken" : firstWord,
+            },
+            success:function (response){
+                res = response;
+                $('#result_data').empty();
+                $('#result_data').append(`<table id='sortTable' class="table table-striped" data-toggle="table"  data-search="true">
+                </table>`);
+                var columnsOfTable = [{
+                    field: 'No',
+                    title: 'No',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable:true,
+                }]
+                if (parseInt(wordNumber)>=3){
+                    for (var i=0 ; i<parseInt(wordNumber) ; i++){
+                        columnsOfTable.push({
+                            field: i+1,
+                            title: i+1,
+                            sortable:true,
+                        });
+                    }
+                    columnsOfTable.push({
+                        field: "times",
+                        title: "Times",
+                        sortable:true,                    
+                    });
+                }
+                else{
+                    columnsOfTable = [
+                    {
+                        field: 'No',
+                        title: 'No',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable:true,
+                    },
+                    {
+                        field: '1',
+                        title: '1',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable:true,
+                    },
+                    {
+                        field: '2',
+                        title: '2',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable:true,
+                    },
+                    {
+                        field: '3',
+                        title: '3',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable:true,
+                    },
+                    ]
+                }
+                $('#sortTable').bootstrapTable({
+                    columns: columnsOfTable,
+                    data:response.data
+                })
+                        //console.log("res : ", res);
+            },
+        });
+        return res;
+    }
 
     //確認名稱合法與否
     function checkName(Name){

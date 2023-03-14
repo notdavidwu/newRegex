@@ -3,6 +3,7 @@
 <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.css">
 <script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>    
     $(document).ready(function () {
         //測試根據變數查詢資料
@@ -35,6 +36,10 @@
 
         //顯示P資料
         printAllPData();
+
+        document.getElementById("demo1").addEventListener("click",function(){
+            swal("Good job!", "You clicked the button!", "error");
+        });
         
     });
     
@@ -46,7 +51,8 @@
             type: 'GET',
             url: '{% url 'getNextWord' %}',
             data:{
-                "word" : 5,
+                "word" : 5,//最多14字[('組', '織', '來', '源', ':', 'C', '[NUM]', '-', '[NUM]', ',', 'C', '[NUM]', '-', '[NUM]', 1, '組織來源:C[NUM]-[NUM],C[NUM]-[NUM]')]
+                "firstToken" : "來",
             },
             success:function (response){
                 res = response;
@@ -286,10 +292,12 @@
                             if (response.status === "0"){
                                 //存入新的tokenID到textToken
                                 response = insertNewTextToken(positionArray, newTokenID);
-                                if (response.status === "0"){                                    
+                                if (response.status === "0"){
                                     $('#result_data').empty();
+                                    $('#sortTable').empty();
                                     printAllData();
                                     printAllPData();
+                                    swal("Merged!", token1 + token2 + " has been merged!", "success");
                                 }                            
                             }
                         }
@@ -351,8 +359,10 @@
                                 response1 = insertNewTextToken(positionArray, newTokenID);
                                 if (response1.status === "0"){
                                     $('#result_data').empty();
+                                    $('#sortTable').empty();
                                     printAllData();
                                     printAllPData();
+                                    swal("Merged!", token1 + token2 + " has been merged!", "success");
                                 }
                             }
                         }
@@ -715,11 +725,11 @@
             var drop = iframeDoc.getElementById("dropdownbutton");
             iframeDoc.getElementById("E").selected = true;
 
-            
-            var drop23 = document.getElementById("twoOrThree");
-            let Token = $(event.target).parents('tr').find('.ProperNoun')[0].getAttribute('value');
+            let Token = $(event.target).parents('tr').children('td').eq(1).html();
 
             box.value = Token;
+            var firstWord = iframeDoc.getElementById("firstWordValue");
+            firstWord.value = Token;
         }
     }
     
