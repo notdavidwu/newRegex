@@ -730,6 +730,17 @@
             box.value = Token;
             var firstWord = iframeDoc.getElementById("firstWordValue");
             firstWord.value = Token;
+            box.readOnly = true;
+            var firstWordValue = iframeDoc.getElementById("firstWordValue");
+            firstWordValue.readOnly = true;
+            firstWordValue.style.userSelect = "none";
+            var regexName = iframeDoc.getElementById("regexName");
+            firstWordValue.readOnly = true;
+            regexName.style.userSelect = "none";
+            
+            iframeDoc.getElementById("search").style.display = "";
+            iframeDoc.getElementById("wordNumber").style.display = "";
+            iframeDoc.getElementById("firstWord").style.display = "";
         }
     }
     

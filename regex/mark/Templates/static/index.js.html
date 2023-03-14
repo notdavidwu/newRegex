@@ -7,11 +7,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/textillate/0.4.0/jquery.textillate.min.js"></script>
 <script src="http://jschr.github.io/textillate/jquery.textillate.js"></script>
 <script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 
 <script >
 
-    $(document).ready(function () {  
+    $(document).ready(function () {
+        document.getElementById("search").style.display = "none";
+        document.getElementById("wordNumber").style.display = "none";
+        document.getElementById("firstWord").style.display = "none";
+          
         //關閉按鈕顯示
         $('input[type=radio][id="flexRadioDefault1"]').change(function() {
             document.getElementById("returnbtn").style.visibility = 'hidden';
@@ -59,10 +64,12 @@
         //搜尋按鈕
         $("#search").click(function(){
             var modal = document.getElementById("modal-content");            
-            printAdjacentData();
+            res = printAdjacentData();
             var data = document.getElementById("result_data");
             console.log("Data : ", data);
-            showModal();
+            if (res != false){
+                showModal();
+            }
             
             window.onclick = function(event) {
                 var modal = document.getElementById("modal");
@@ -84,81 +91,108 @@
         var res;
         var firstWord = document.getElementById("firstWordValue").value;
         var wordNumber = document.getElementById("wordNumberValue").value;
-        console.log("firstWord : ", firstWord, wordNumber);
-        $.ajax({
-            async: false,
-            type: 'GET',
-            url: '{% url 'getNextWord' %}',
-            data:{
-                "word" : wordNumber,//最多14字[('組', '織', '來', '源', ':', 'C', '[NUM]', '-', '[NUM]', ',', 'C', '[NUM]', '-', '[NUM]', 1, '組織來源:C[NUM]-[NUM],C[NUM]-[NUM]')]
-                "firstToken" : firstWord,
-            },
-            success:function (response){
-                res = response;
-                $('#result_data').empty();
-                $('#result_data').append(`<table id='sortTable' class="table table-striped" data-toggle="table"  data-search="true">
-                </table>`);
-                var columnsOfTable = [{
-                    field: 'No',
-                    title: 'No',
-                    align: 'center',
-                    valign: 'middle',
-                    sortable:true,
-                }]
-                if (parseInt(wordNumber)>=3){
-                    for (var i=0 ; i<parseInt(wordNumber) ; i++){
-                        columnsOfTable.push({
-                            field: i+1,
-                            title: i+1,
-                            sortable:true,
-                        });
-                    }
-                    columnsOfTable.push({
-                        field: "times",
-                        title: "Times",
-                        sortable:true,                    
-                    });
-                }
-                else{
-                    columnsOfTable = [
-                    {
+        //console.log("firstWord : ", firstWord, wordNumber);
+
+        var pattern = /[^0-9]/g;
+        var result = wordNumber.match(pattern);
+        //console.log("result : ", result);        
+        var pattern = /[ ]/g;
+        var resultBlank = wordNumber.match(pattern);
+
+        if (result != null || wordNumber == ""){
+            swal("Error!", "Length is not a number!", "error");
+            return false;
+        }
+        //else if(resultBlank != null){
+        //    swal("Error!", "No blanks allowed in length!", "error");
+        //    return false;
+        //}
+        else if(parseInt(wordNumber)>10){
+            swal("Too many columns!", "Please input a Length that LESS THAN 10!", "error");
+            return false;
+        }
+        else{
+            $.ajax({
+                async: false,
+                type: 'GET',
+                url: '{% url 'getNextWord' %}',
+                data:{
+                    "word" : wordNumber,//最多14字[('組', '織', '來', '源', ':', 'C', '[NUM]', '-', '[NUM]', ',', 'C', '[NUM]', '-', '[NUM]', 1, '組織來源:C[NUM]-[NUM],C[NUM]-[NUM]')]
+                    "firstToken" : firstWord,
+                },
+                success:function (response){
+                    res = response;
+                    $('#result_data').empty();
+                    $('#result_data').append(`<table id='sortTable' class="table table-striped" data-toggle="table"  data-search="true">
+                    </table>`);
+                    var columnsOfTable = [{
                         field: 'No',
                         title: 'No',
                         align: 'center',
                         valign: 'middle',
                         sortable:true,
-                    },
-                    {
-                        field: '1',
-                        title: '1',
-                        align: 'center',
-                        valign: 'middle',
-                        sortable:true,
-                    },
-                    {
-                        field: '2',
-                        title: '2',
-                        align: 'center',
-                        valign: 'middle',
-                        sortable:true,
-                    },
-                    {
-                        field: '3',
-                        title: '3',
-                        align: 'center',
-                        valign: 'middle',
-                        sortable:true,
-                    },
-                    ]
-                }
-                $('#sortTable').bootstrapTable({
-                    columns: columnsOfTable,
-                    data:response.data
-                })
-                        //console.log("res : ", res);
-            },
-        });
-        return res;
+                    }]
+                    if (parseInt(wordNumber)>=3){
+                        for (var i=0 ; i<parseInt(wordNumber) ; i++){
+                            columnsOfTable.push({
+                                field: i+1,
+                                title: i+1,
+                                sortable:true,
+                            });
+                        }
+                        columnsOfTable.push({
+                            field: "times",
+                            title: "Times",
+                            sortable:true,                    
+                        });
+                    }
+                    else{
+                        columnsOfTable = [
+                        {
+                            field: 'No',
+                            title: 'No',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '1',
+                            title: '1',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '2',
+                            title: '2',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '3',
+                            title: '3',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },{
+                            field: "times",
+                            title: "Times",
+                            sortable:true,                    
+                        },
+                        ]
+                    }
+                    $('#sortTable').bootstrapTable({
+                        columns: columnsOfTable,
+                        data:response.data
+                    })                    
+                    $('.loading-text').hide();
+                    //console.log("res : ", res);
+                },
+            });            
+            return res;
+
+        }
     }
 
     //確認名稱合法與否

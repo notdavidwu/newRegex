@@ -48,6 +48,7 @@ urlpatterns = [
     path('getTokenIDCheckTextToken/', getTokenIDCheckTextToken, name="getTokenIDCheckTextToken"),
     path('getVocabularyByType_Ptable/', getVocabularyByType_Ptable, name="getVocabularyByType_Ptable"),
     path('getNextWord/', getNextWord, name="getNextWord"),
+    path('getNextWordReport/', getNextWordReport, name="getNextWordReport"),
     
     path('', Home.as_view(),name="home"),
     path('Page2/', Page2.as_view(),name="Page2"),
