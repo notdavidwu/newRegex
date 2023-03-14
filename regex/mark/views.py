@@ -180,7 +180,7 @@ def getVocabularyByType_Ptable(request):
             
         for ind,i in enumerate(tokenID):
             # print("i[0] : ",i[0])
-            print("i : ", i)
+            # print("i : ", i)
             if i[1]>0 and i[2]>0:
                 result['data'].append({
                     'No': ind+1,
@@ -345,30 +345,40 @@ def getTextToken(request):
         result['data'] = []
         # # print(textTokenData[0][0])
         record = {}
-
-        RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n]{1})') 
+        RE = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z \n\u00A0\u200B\u2014\r]{1})') 
+        RE1 = re.compile(r'([^\u4e00-\u9fa50-9a-zA-Z\(\)\:\[\]\{\}\-\/]{1})')
+        number = 1
         for ind,i in enumerate(textTokenData):
 
             if request.GET['NoSign'] == 'NS':
                 first = RE.findall(i[0])
                 second = RE.findall(i[1])
+                print("first : ", first)
+                print("second : ", first)
                 if first == [] and second == [] :
                     result['data'].append({
-                        'No': ind+1,
+                        'No': number,
                         'First': i[0],
                         'Second': i[1],
                         'Times': i[2],
                         'Mergecheck':'<button onclick="merge()" class="btn btn-info">Merge</button>',
                     })
+                    number += 1 
                     
             else:                   
-                result['data'].append({
-                        'No': ind+1,
-                        'First': i[0],
-                        'Second': i[1],
-                        'Times': i[2],
-                        'Mergecheck':'<button onclick="merge()" class="btn btn-info">Merge</button>',
-                    })
+                first = RE1.findall(i[0])
+                second = RE1.findall(i[1])
+                print("first : ", first)
+                print("second : ", first)
+                if first == [] and second == [] :
+                    result['data'].append({
+                            'No': number,
+                            'First': i[0],
+                            'Second': i[1],
+                            'Times': i[2],
+                            'Mergecheck':'<button onclick="merge()" class="btn btn-info">Merge</button>',
+                        })
+                    number += 1 
 
         conn.commit()
         conn.close()
@@ -964,12 +974,14 @@ def checkName(request):
         Token = request.GET.getlist('Name[]')
         tokenID = []
         tokenType = []
+        print("Token : ", Token)
 
         for i in range(len(Token)):
             query = 'SELECT * FROM [buildVocabulary ].[dbo].[Vocabulary] WHERE token = ?;'
             args = [Token[i]]
             cursor.execute(query, args)
             token = cursor.fetchone()
+            print("token : ", token)
             if token:
                 tokenID.append(token.tokenID)
                 if token.token == '[NUM]':
@@ -985,6 +997,7 @@ def checkName(request):
             result['tokenID'] = tokenID
             result['tokenType'] = tokenType
         
+        print("result : ", result)
         conn.commit()
         conn.close()
     return JsonResponse(result)

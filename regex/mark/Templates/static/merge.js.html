@@ -36,11 +36,6 @@
 
         //顯示P資料
         printAllPData();
-
-        document.getElementById("demo1").addEventListener("click",function(){
-            swal("Good job!", "You clicked the button!", "error");
-        });
-        
     });
     
     //取得P資料
@@ -443,7 +438,7 @@
             },
             success:function (response){
                 res = response;
-                //console.log("res : ", res);
+                console.log("res : ", res);
             },
         });
         return res;
