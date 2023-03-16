@@ -1,0 +1,262 @@
+<style>
+  #title {
+    user-select:none;
+  }
+
+  #title1 {
+    user-select:none;
+    position:absolute;
+    left:200px;
+  }
+  
+
+  #title2 {
+    user-select:none;
+    position:absolute;
+    left:400px;
+  }
+
+  .card {
+    position:absolute;
+    top:100px;
+    left:50px;
+    user-select:none;
+  }
+
+  .mt-5 {
+    position:absolute;
+    top:200px;
+    left:50px;
+  }
+
+  #loadingAnimation {
+    user-select:none;
+    visibility:hidden;
+  }
+
+  .placeholder-glow1 {
+    position:absolute;
+    top:250px;
+    left:50px;
+    width:400px;
+  }
+
+  .placeholder-glow2 {
+    position:absolute;
+    top:290px;
+    left:50px;
+    width:400px;
+  }
+
+  .placeholder-glow3 {
+    position:absolute;
+    top:330px;
+    left:50px;
+    width:400px;
+  }
+
+  .placeholder-glow4 {
+    position:absolute;
+    top:370px;
+    left:50px;
+    width:400px;
+  }
+
+  .placeholder-glow5 {
+    position:absolute;
+    top:410px;
+    left:50px;
+    width:400px;
+  }
+
+  #select {
+    position:absolute;
+    top:200px;
+    left:40px;
+    height:200px;
+    width:280px;
+  }
+
+  #selectRegex {
+    position:absolute;
+    height:55px;
+    width:280px;
+    user-select:none;
+  }
+  
+  #tokenContainer {
+    position:absolute;
+    top:55px;
+    height:500px;
+    width:280px;
+    display:block;
+    overflow:auto;
+  }
+  
+  .tabletable-bordered {
+    height:0px;
+    width:0px;
+    position:absolute;
+    top:155px;
+    left:1300px;
+    user-select:none;
+    overflow:auto;
+    display:block;
+  }
+
+  #page2Execute {    
+    position:absolute;
+    right:635px;
+    top:430px;
+  }
+
+  #page2ExecuteAll {    
+    position:absolute;
+    left:400px;
+    top:430px;
+  }
+
+  #page2ClearALL {
+    position:absolute;
+    right:780px;
+    top:430px;
+  }
+
+  #page2SelectALL {
+    position:absolute;
+    left:50px;
+    top:100px;
+  }
+  
+  .form-floating {
+    width:600px;
+    position:absolute;
+    right:400px;
+    top:100px;
+  }
+
+  #floatingTextarea2 {
+    width:600px;
+    height:300px;
+    display:block;
+    overflow:auto;
+  }
+
+  #result_data {
+    position:absolute;
+    right:300px;
+    top:100px;
+    width:380px;
+    height:700px;
+    overflow:auto;
+  }
+
+  #selectRegexType {
+    position:absolute;
+    left:50px;
+    top:150px;
+    width:150px;
+  }
+
+  #noRegex {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #noInput {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #noMatch {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #dataSaved {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #selectExcelDB {
+    position:absolute;
+    left:50px;
+    top:65px;
+    width:150px;
+  }
+
+  #excelSelector {
+    visibility:hidden;
+  }
+
+  #reportText {
+    position:absolute;
+    top:100px;
+  }
+
+  #selectOutput {
+    position:absolute;
+    right:850px;
+    top:65px;
+    width:150px;
+  }
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
+  }
+  
+  #Total {
+    position:absolute;
+    top:110px;
+    left:600px;
+    font-size:20px;
+    user-select:none; 
+  }
+  
+  #reportIDinput {
+    position:absolute;
+    top:100px;
+    left:50px;
+    width: 500px;
+  }
+  .spinner {
+    margin: 100px auto;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 5px solid #ddd;
+    border-top-color: #333;
+    animation: spin 1s ease-in-out infinite;
+    position:absolute;
+    top:0px;
+    left:750px;
+    display:none;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+   
+  
+</style>

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from pickle import FALSE, TRUE
+import pymssql
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 
@@ -46,27 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'demo.apps.DemoConfig',
-    'DICOM.apps.DicomConfig',
-    'Upload.apps.UploadConfig',
-    'pool.apps.poolConfig',
-    'confirm.apps.confirmConfig',
-    'LabNLP.apps.LabNLPConfig',
-    'tube.apps.TubeConfig',
-    'tube2.apps.Tube2Config',
-    'administrator.apps.AdministratorConfig',
-    'Classify.apps.ClassifyConfig',
-    'Search.apps.SearchConfig',
-    'categorize.apps.categorizeConfig',
-    'eventDefinition.apps.eventDefinitionConfig',
-    'warehousing.apps.warehousingConfig',
-    'django_plotly_dash.apps.DjangoPlotlyDashConfig',
-    'channels',
-    'channels_redis',
-    'MEWS.apps.MEWSConfig',
-    'subjectPatientDecide.apps.subjectPatientDecideConfig',
-    'appeal.apps.appealConfig',
-    'warehousing_eventDefinitions.apps.warehousing_eventDefinitionsConfig',
-    'PowerBI.apps.PowerBIConfig',
+    'eventDefinition',
+    'rest_framework',
+    'django_filters',
+    'mark',
+
 
 ]
 X_FRAME_OPTIONS = 'SAMEORIGIN'
@@ -120,10 +105,10 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 
 DATABASES = {
         'default': {
-            "ENGINE": "mssql",
-            'NAME': 'Django',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
+            "ENGINE": 'mssql',
+            'NAME': 'miniDB',
+            'USER': 'N824',
+            'PASSWORD': 'test81218',
             'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
@@ -131,131 +116,20 @@ DATABASES = {
                 'MARS_Connection': True,
             },
         },
-        'TUBE': {
-            'ENGINE': 'mssql',
-            'NAME': 'Tube',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.157',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-        'AIC_Infection': {
-            'ENGINE': 'mssql',
-            'NAME': 'AIC_Infection',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
+        'miniDB': {
+            "ENGINE": 'mssql',
+            'NAME': 'miniDB',
 
-        'MEWS': {
-            'ENGINE': 'mssql',
-            'NAME': 'MEWS',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
+            'USER': 'N824',
+            'PASSWORD': 'test81218',
             'HOST': '172.31.6.22',
             'PORT': '1433',
             'OPTIONS': {
                 'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
                 'MARS_Connection': True,
             },
-        },
-        'HealthData': {
-            'ENGINE': 'mssql',
-            'NAME': 'HealthData',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-
-
-
-        'dbDesigning': {
-            'ENGINE': 'mssql',
-            'NAME': 'dbDesigning',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': { 
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-        'coreDB': {
-            'ENGINE': 'mssql',
-            'NAME': 'coreDB',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': { 
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-        'AIC': {
-            'ENGINE': 'mssql',
-            'NAME': 'AIC',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': { 
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-        'practiceDB': {
-            'ENGINE': 'mssql',
-            'NAME': 'practiceDB',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': { 
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
+        }    
         
-        'AIC_Infection2': {
-            'ENGINE': 'mssql',
-            'NAME': 'AIC_Infection',
-            'USER': 'Lex',
-            'PASSWORD': 'lexlex5284',
-            'HOST': '172.31.6.157',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
-        'NursingRecord': {
-            'ENGINE': 'mssql',
-            'NAME': 'NursingRecord',
-            'USER': 'TEST',
-            'PASSWORD': '81218',
-            'HOST': '172.31.6.22',
-            'PORT': '1433',
-            'OPTIONS': {
-                'driver': 'ODBC Driver 17 for SQL Server',  # ODBC連線應用驅動
-                'MARS_Connection': True,
-            },
-        },
     }
 DATABASE_CONNECTION_POOLING  =  False
 

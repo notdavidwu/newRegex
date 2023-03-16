@@ -1,0 +1,156 @@
+{% load static%}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Regex</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    {% include 'mark/index.js.html' %}
+    {% include 'mark/index.css' %}
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+      <symbol id="check-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+      </symbol>
+    </svg>
+    <meta name="viewport" maximum-scale=1.0, user-scalable=0 content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css_js/font-awesome.min.css' %}">
+
+
+    <link rel="stylesheet" href="{% static 'css_js/bootstrap-5.0.2-dist/css/bootstrap.css' %}">
+
+    <link rel="stylesheet" href="{% static 'css_js/loaders.css-master/loaders.css' %}">
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'css_js/jquery-3.5.1.slim.min.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/bootstrap-5.0.2-dist/js/bootstrap.js' %}"></script>
+    <script src="{% static 'css_js/key_forbidden.js' %}"></script>
+    <script src="{% static 'css_js/popper.min.js' %}"></script>
+    <script src="{% static 'css_js/loaders.css-master/loaders.css.js' %}"></script>
+    <script type="text/javascript" src="{% static 'css_js/jquery-3.6.0.min.js' %}"></script>
+  </head>
+  
+  <body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" id="navbar">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="{% url 'mark:home' %}" id="title">RegexBuilder</a>
+          <a class="navbar-brand" href="{% url 'mark:Page2' %}"  id="title1">Batch Process</a>          
+          <a class="navbar-brand" href="{% url 'mark:Merge' %}" id="title2">Merge</a>
+        </div>
+    </nav>
+  </br>
+    <div id="Mode">
+      <div class="form-check" >
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1"checked>
+        <label class="form-check-label" for="flexRadioDefault1">
+          Highlight Mode
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" >
+        <label class="form-check-label" for="flexRadioDefault2">
+          Extract Mode
+        </label>
+      </div>
+    </div>
+  </div>
+    
+    <select class="form-select" id="dropdownbutton" aria-label="Default select example" >
+      <option selected>Select regexType</option>
+      <option value="T" id="T">Tag</option>
+      <option value="E" id="E">Extration</option>
+      <option value="U" id="U">Undefined</option>
+    </select>
+
+    <form class="rowg-3needs-validation" novalidate>
+      <input type="text" class="form-control" placeholder="Name your Regex here" id="regexName" required></input>
+      <div class="valid-feedback" id="validText" >
+      </div>
+      <div class="invalid-feedback" id="invalidText">
+      </div>
+      <div class="warning-feedback" id="warningText">
+      </div>
+    </form> 
+
+    <button type="button" class="btn btn-outline-info" id="check">Check</button>
+    
+    <textarea class="form-control" placeholder="Type a Regex here" id="regexText" ></textarea>
+    
+    <a class='btn btn-secondary' id="executebtn"  >Execute</a>
+    
+    <a class='btn btn-secondary' id="returnbtn" >Return</a>
+    
+    <textarea class="form-control" placeholder="Paste your text here" id="inputText" ></textarea>
+    
+    <p class="form-control" placeholder="Your output will show up here" id="result"  >Your output will show up here</p>
+    
+    <textarea class="form-control" placeholder="Extracted String(s)" id="ExtractOutput"  ></textarea>
+    
+    <p id="Total" >Total</p>
+    
+    <div class="alert alert-success d-flex align-items-center" id="alertBlock" role="alert" >
+      <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Success:" id="alertBlock1" ><use xlink:href="#check-circle-fill"/></svg>
+      <div id="alertBlock2" >
+        Extracted data saved!
+      </div>
+    </div>
+    
+    <div class="alert alert-danger d-flex align-items-center" id="fail" role="alert" >
+      <svg xmlns="http://www.w3.org/2000/svg" class="bibi-exclamation-triangle-fillflex-shrink-0me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:" >
+        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+      </svg>
+      <div id="alertBlock3" >
+        Oops, something went WRONG!!
+      </div>
+    </div>
+    
+    <div class="alert alert-info" role="alert" id="inuptNothing">
+      Please input something!!
+    </div>
+    
+    <div class="alert alert-info" role="alert" id="outputNothing">
+      There's nothing left!!
+    </div>
+
+    
+    <div class="alert alert-info" role="alert" id="regexExist">
+      Regex already Exsist!!
+    </div>
+    
+    <div>
+      <div id="table" class="table table-bordered" ></div>
+    </div>
+
+    <div class="input-group mb-3" id="firstWord">
+      <span class="input-group-text" id="inputGroup-sizing-default">FirstWord</span>
+      <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" id="firstWordValue" >
+    </div>
+    
+
+    <div class="input-group mb-3" id="wordNumber">
+      <span class="input-group-text" id="inputGroup-sizing-default">Length  </span>
+      <input type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" id="wordNumberValue" value="3">
+    </div>
+
+    <button type="button" class="btn btn-outline-info" id="search">Search Adjacent words</button>
+    
+
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <div>
+          <div id="result_data" class="table table-bordered" ></div>
+        </div>
+      </div>
+    </div>
+
+    {% block content %}
+    {% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  </body>
+</html>

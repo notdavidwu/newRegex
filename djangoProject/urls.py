@@ -17,26 +17,10 @@ from django.contrib import admin
 from django.urls import path,include
 from demo import views
 urlpatterns = [
+    path('', views.index, name="base"),
     path('admin/', admin.site.urls),
     path('demo/', include('demo.urls', namespace='demo')),
-    path('DICOM/', include('DICOM.urls', namespace='DICOM')),
-    path('Upload/', include('Upload.urls', namespace='Upload')),
-    path('pool/', include('pool.urls', namespace='pool')),
-    path('confirm/', include('confirm.urls', namespace='confirm')),
-    path('tube/', include('tube.urls', namespace='tube')),
-    path('tube2/', include('tube2.urls', namespace='tube2')),
-    path('LabNLP/', include('LabNLP.urls', namespace='LabNLP')),
-    path('administrator/', include('administrator.urls', namespace='administrator')),
-    path('Classify/', include('Classify.urls', namespace='Classify')),
-    path('Search/', include('Search.urls', namespace='Search')),
-    path('categorize/', include('categorize.urls', namespace='categorize')),
     path('eventDefinition/', include('eventDefinition.urls', namespace='eventDefinition')),
-    path('warehousing/', include('warehousing.urls', namespace='warehousing')),
-    path('', views.index, name="base"),
-    path('django_plotly_dash/', include('django_plotly_dash.urls')),
-    #path('MEWS/', include('MEWS.urls', namespace='MEWS')),
-    path('subjectPatientDecide/', include('subjectPatientDecide.urls', namespace='subjectPatientDecide')),
-    path('appeal/', include('appeal.urls', namespace='appeal')),
     path('warehousing_eventDefinitions/', include('warehousing_eventDefinitions.urls', namespace='warehousing_eventDefinitions')),
-    path('PowerBI/', include('PowerBI.urls', namespace='PowerBI')),
+    path('mark/', include('mark.urls', namespace='mark')),
 ]

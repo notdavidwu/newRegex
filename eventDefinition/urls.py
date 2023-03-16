@@ -18,6 +18,7 @@ from django.urls import path
 from eventDefinition import views
 app_name='eventDefinition'
 urlpatterns = [
+    path('connsql/',views.connsql,name = 'connsql'),
     path('', views.confirm,name='confirm'),
     path('confirmpat/', views.confirmpat,name='confirmpat'),
     path('confirmpat2/',views.confirmpat2,name='confirmpat2'),

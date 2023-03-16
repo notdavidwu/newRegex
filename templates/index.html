@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<body>
+    <table border = '1'>
+        <tr>
+            <th>
+                aicNo
+            </th>
+            <th>
+                birthDay
+            </th>
+            <th>
+                sex
+            </th>
+        </tr>
+        {% for datadisplay in Patientinfo %}
+        <tr>
+            <td>
+                {{datadisplay.aicNo}}
+            </td>
+            <td>
+                {{datadisplay.birthDay}}
+            </td>
+            <td>
+                {{datadisplay.sex}}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>

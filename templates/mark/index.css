@@ -1,0 +1,310 @@
+<style>
+  #dropdownbutton {
+    width:200px;
+    position:absolute;
+    left:80px;
+  }
+
+  .rowg-3needs-validation {
+    height:0px;
+    width:0px;
+    position:absolute;
+    top:0px;
+    left:0px;
+  }
+
+  #regexName {
+    height:50px;
+    width:300px;
+    position:absolute;
+    top:220px;
+    left:80px;
+    user-select:none;
+    resize:none;
+  }
+  
+  #validText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+    user-select:none;
+  }
+
+  #invalidText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+    user-select:none;
+  }
+
+  #warningText {
+    position:absolute;
+    top:265px;
+    left:90px;
+    width:300px;
+    user-select:none;
+  }
+
+  .warning-feedback {
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: .875em;
+    color: var(--bs-warning-text);
+}
+
+  #check {
+    position:absolute;
+    top:225px;
+    left:400px;
+    user-select:none; 
+  }
+
+  #regexText {
+    height:100px;
+    width:700px;
+    position:absolute;
+    top:310px; left:80px;
+    user-select:none;
+    resize:none;
+  }
+
+  #executebtn {
+    width:90px;
+    position:absolute;
+    top:350px;
+    left:845px;
+    user-select:none;
+  }
+
+  #returnbtn {
+    width:90px;
+    position:absolute;
+    top:550px;
+    left:845px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #inputText {
+    height:300px;
+    width:700px;
+    position:absolute;
+    top:450px;
+    left:80px;
+    user-select:none;
+    overflow-y:scroll;
+    resize:none;
+  }
+  
+  #result {
+    height:300px;
+    width:700px;
+    position:absolute;
+    top:450px;
+    left:1000px;
+    user-select:none;
+    white-space:pre-wrap;
+    overflow-y: scroll;
+  }
+  
+  #ExtractOutput {
+    height:200px;
+    width:250px;
+    position:absolute;
+    top:220px;
+    left:1000px;
+    user-select:none;
+    resize:none;
+  }
+  
+  #Total {
+    position:absolute;
+    top:150px;
+    left:1000px;
+    font-size:40px;
+    user-select:none; 
+  }
+  
+  #alertBlock {
+    position:absolute;
+    top:100px;
+    left:1150px;
+    height:50px;
+    width:320px;
+    visibility:hidden; 
+  }
+  
+  #alertBlock1 {
+    position:absolute;
+    top:15px;
+    right:130px;
+    height:20px; 
+  }
+  
+  #alertBlock2 {
+    user-select:none;
+    position:absolute;
+    top:13px;
+    left:50px;
+  }
+  
+  #fail {
+    position:absolute;
+    top:100px;
+    left:1150px;
+    height:50px;
+    width:320px;
+    visibility:hidden;
+  }
+  
+  .bibi-exclamation-triangle-fillflex-shrink-0me-2 {
+    position:absolute;
+    top:15px;
+    left:20px;
+    height:20px; 
+  }
+  
+  #alertBlock3 {
+    user-select:none;
+    position:absolute;
+    top:13px;
+    left:50px;
+  }
+  
+  #inuptNothing {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;    
+    visibility:hidden;
+  }
+  
+  #outputNothing {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;
+    visibility:hidden;
+  }
+  
+  #regexExist {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:80px;
+    user-select:none;
+    visibility:hidden;
+  }
+  
+  #table {
+    width:400px;
+    position:absolute;
+    top:155px;
+    left:1300px;
+    user-select:none;
+    height:265px;
+    overflow:auto;
+    display:block;
+  }
+  
+  #title.relative {
+    position:relative;
+    left: 30px;
+    user-select:none;
+  }
+  
+  #title1 {
+    user-select:none;
+    position:absolute;
+    left:200px;
+  }
+
+  #title2 {
+    user-select:none;
+    position:absolute;
+    left:400px;
+  }
+  
+  #Mode {
+    position:absolute;
+    top:220px;
+    left:600px;
+    user-select:none;
+  }  
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
+  }
+
+  .is-warning {
+    border-color: #ffc107; /* set border color to yellow */
+  }
+  
+  #firstWord {
+    position:absolute;
+    top:20px;
+    left:400px;
+    width:300px;
+  }
+  
+  #wordNumber {
+    position:absolute;
+    top:80px;
+    left:400px;
+    width:300px;
+  }
+  
+  #search {
+    position:absolute;
+    top:20px;
+    left:720px;
+    width:150px;
+    height:100px;
+    align:center;
+  }
+  
+  #result_data {
+    align:center;
+    z-index: 10;
+    opacity: 1;
+  }
+  
+  .modal {
+    display: none; /* Hide the modal by default */
+    position: fixed; /* Position the modal */
+    z-index: 1; /* Set the z-index to ensure the modal is on top of other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scrolling if needed */
+    background-color: rgba(0,0,0,0.4); /* Create a semi-transparent background */
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Center the modal content */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    animation-name: modal-anim;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    overflow:auto;
+  }
+
+  /* Define the modal animation */
+		@keyframes modal-anim {
+			from {opacity: 0; transform: translateY(-100px);}
+			to {opacity: 1; transform: translateY(0);}
+		}
+</style>

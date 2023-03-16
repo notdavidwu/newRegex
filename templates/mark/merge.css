@@ -1,0 +1,175 @@
+<style>
+    #title {
+      user-select:none;
+    }
+  
+    #title1 {
+      user-select:none;
+      position:absolute;
+      left:200px;
+    }
+    
+  
+    #title2 {
+      user-select:none;
+      position:absolute;
+      left:400px;
+    }
+    
+
+    #result_data {
+      position:absolute;
+      left:100px;
+      top:100px;
+      width:750px;
+      height:700px;
+      overflow:auto;
+    }
+
+    #result_dataP {
+      position:absolute;
+      right:100px;
+      top:100px;
+      width:700px;
+      height:700px;
+      overflow:auto;
+    }
+    
+    button[class*="btn btn-info"] {
+      width:130px;
+    }
+
+    #selectAll {
+      position:absolute;
+      left:310px;
+      top:60px;
+      width:100px;
+      height:40px;
+    }
+
+    #cancelAll {
+      position:absolute;
+      left:450px;
+      top:60px;
+      width:100px;
+      height:40px;
+    }
+
+    button:active {
+      background-color: red;
+    }
+
+    #selectTokenType {
+      position:absolute;
+      left:550px;
+      top:65px;
+      width:200px;
+    }
+
+    #filter {
+      position:absolute;
+      left:325px;
+      top:65px;
+      width:200px;
+    }
+
+    #twoOrThree {
+      position:absolute;
+      left:100px;
+      top:65px;
+      width:200px;
+    }
+
+  .modalBackdrop{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    background-color:rgba(0,0,0,0.5);
+  }
+
+  #noInput {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #already_exist {
+    height:60px;
+    width:300px;
+    position:absolute;
+    top:120px;
+    left:420px;
+    user-select:none;
+    visibility:hidden;
+  }
+
+  #iframe {
+    height:750px;
+    width:1715px;
+    position:absolute;
+    top:65px;
+    left:15px;
+    user-select:none;
+    display:none;    
+    z-index: 2;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    display: none;
+  }
+
+  ::selection {
+    background-color: #c6e2ff;
+    color: #8cbed6;
+  }
+
+  #define {
+    position:absolute;
+    top:70px;
+    right:800px;
+  }  
+  
+  .modal {
+    display: none; /* Hide the modal by default */
+    position: fixed; /* Position the modal */
+    z-index: 1; /* Set the z-index to ensure the modal is on top of other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Enable scrolling if needed */
+    background-color: rgba(0,0,0,0.4); /* Create a semi-transparent background */
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* Center the modal content */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    animation-name: modal-anim;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+    overflow:auto;
+  }
+
+  /* Define the modal animation */
+		@keyframes modal-anim {
+			from {opacity: 0; transform: translateY(-100px);}
+			to {opacity: 1; transform: translateY(0);}
+		}
+</style>

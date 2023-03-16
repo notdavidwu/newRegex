@@ -1,0 +1,556 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<!-- Animate.css v3.5.2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" rel="stylesheet" />
+<!-- lettering.js v0.7.0 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lettering.js/0.7.0/jquery.lettering.min.js"></script>
+<!-- Textillate.js v0.4.0 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/textillate/0.4.0/jquery.textillate.min.js"></script>
+<script src="http://jschr.github.io/textillate/jquery.textillate.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.21.3/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+
+<script >
+
+    $(document).ready(function () {
+        document.getElementById("search").style.display = "none";
+        document.getElementById("wordNumber").style.display = "none";
+        document.getElementById("firstWord").style.display = "none";
+          
+        //關閉按鈕顯示
+        $('input[type=radio][id="flexRadioDefault1"]').change(function() {
+            document.getElementById("returnbtn").style.visibility = 'hidden';
+        });
+        //刪除選項
+        //removeOptions(document.getElementById('dropdownbutton'));
+        //get_vocabularies();
+        //console.log("document.ready")
+
+        //確認名稱
+        $("#check").click(function(){
+            ////console.log("check clicked");
+            Name = [];
+            Name.push(document.getElementById("regexName").value);
+            ////console.log(name);
+            
+            //不為空檢查，否則顯示不可為空
+            if (Name[0] != ""){
+                tokenTYPE = checkName(Name);
+                //console.log("tokenTYPE :", tokenTYPE);
+                if (tokenTYPE[0] === 'T'){
+                    var option = document.getElementById("T");
+                    option.selected = true;
+                }
+                else{
+                    var option = document.getElementById("E");
+                    option.selected = true;
+                }
+            }else{
+                $("#invalidText").text("Name CAN'T be null!");
+                $("#regexName").attr('class', 'form-control is-invalid');
+            }
+        });
+
+        //執行按鈕
+        $("#executebtn").click(function(){
+            Highlight_Extract();
+        });
+        
+        //返回按鈕
+        $("#returnbtn").click(function(){
+            output_to_input();
+        });        
+        
+        //搜尋按鈕
+        $("#search").click(function(){
+            var modal = document.getElementById("modal-content");
+            res = printAdjacentData();
+            var data = document.getElementById("result_data");
+            //console.log("Data : ", data);
+            if (res != false){
+                showModal();
+            }
+            
+            window.onclick = function(event) {
+                var modal = document.getElementById("modal");
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+        });
+    });
+
+    
+    function showModal() {
+		var modal = document.getElementById("modal");
+        modal.style.display = "block";
+    }
+
+    //搜尋按鈕
+    function printAdjacentData(){
+        var res;
+        var firstWord = document.getElementById("firstWordValue").value;
+        var wordNumber = document.getElementById("wordNumberValue").value;
+        ////console.log("firstWord : ", firstWord, wordNumber);
+
+        var pattern = /[^0-9]/g;
+        var result = wordNumber.match(pattern);
+        ////console.log("result : ", result);        
+        var pattern = /[ ]/g;
+        var resultBlank = wordNumber.match(pattern);
+
+        if (result != null || wordNumber == ""){
+            swal("Error!", "Length is not a number!", "error");
+            return false;
+        }
+        //else if(resultBlank != null){
+        //    swal("Error!", "No blanks allowed in length!", "error");
+        //    return false;
+        //}
+        else if(parseInt(wordNumber)>10){
+            swal("Too many columns!", "Please input a Length that LESS THAN 10!", "error");
+            return false;
+        }
+        else{
+            $.ajax({
+                async: false,
+                type: 'GET',
+                url: '{% url "mark:getNextWord" %}',
+                data:{
+                    "word" : wordNumber,//最多14字[('組', '織', '來', '源', ':', 'C', '[NUM]', '-', '[NUM]', ',', 'C', '[NUM]', '-', '[NUM]', 1, '組織來源:C[NUM]-[NUM],C[NUM]-[NUM]')]
+                    "firstToken" : firstWord,
+                },
+                success:function (response){
+                    res = response;
+                    $('#result_data').empty();
+                    $('#result_data').append(`<table id='sortTable' class="table table-striped" data-toggle="table"  data-search="true">
+                    </table>`);
+                    var columnsOfTable = [{
+                        field: 'No',
+                        title: 'No',
+                        align: 'center',
+                        valign: 'middle',
+                        sortable:true,
+                    }]
+                    if (parseInt(wordNumber)>=3){
+                        for (var i=0 ; i<parseInt(wordNumber) ; i++){
+                            columnsOfTable.push({
+                                field: i+1,
+                                title: i+1,
+                                sortable:true,
+                            });
+                        }
+                        columnsOfTable.push({
+                            field: "times",
+                            title: "Times",
+                            sortable:true,                    
+                        });
+                    }
+                    else{
+                        columnsOfTable = [
+                        {
+                            field: 'No',
+                            title: 'No',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '1',
+                            title: '1',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '2',
+                            title: '2',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: '3',
+                            title: '3',
+                            align: 'center',
+                            valign: 'middle',
+                            sortable:true,
+                        },
+                        {
+                            field: "times",
+                            title: "Times",
+                            sortable:true,                    
+                        },
+                        ]
+                    }
+                    $('#sortTable').bootstrapTable({
+                        columns: columnsOfTable,
+                        data:response.data
+                    })                    
+                    $('.loading-text').hide();
+                    ////console.log("res : ", res);
+                },
+            });            
+            return res;
+
+        }
+    }
+
+    //確認名稱合法與否
+    function checkName(Name){
+        var res;
+        $.ajax({
+            async: false, 
+            type: 'GET',
+            url: '{% url 'mark:checkName' %}',
+            data:{
+                'Name[]': Name,
+            },
+            success:function (response){
+                res = response.tokenType;
+                const feedbackElement = document.querySelector('.warning-feedback');
+                if (response.status == '0'){                     
+                    //有找到，報錯
+                    feedbackElement.textContent = "Same Name detected, extract will append a new regex to it.";
+                    $("#regexName").attr('class', 'form-control is-warning');
+                }
+                else{
+                    feedbackElement.textContent = "";
+                    //沒找到，正確
+                    $("#validText").text("Name is valid!");
+                    $("#regexName").attr('class', 'form-control is-valid');
+                    $("#regexName").attr('class', 'form-control is-valid');
+                }
+            },
+        })
+        return res;
+    }
+
+    //計算字串(含中文)長度
+    function getLength(str){ 
+        return str.toString().replace(/[^\x00-\xff]/g,"OO").length;
+    }
+
+    //存檔到後端資料庫
+    function BtnClicked_1(itemName){
+        ////console.log("execute in")
+        ////console.log(itemName)
+
+        token = document.getElementById('regexName').value
+        tokenType = document.getElementById('dropdownbutton').value
+        //console.log("tokenType : " + tokenType)
+        count = getLength(token);
+        ////console.log(input,regex)
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'mark:insertVocabulary' %}',
+            data:{
+                'token': token,
+                'nWord': token.length,
+                'tokenType': tokenType,                
+            },
+            success:function (response){
+                //console.log("result : " + response.status)
+                if (response.status === '0' || response.status === 'already_exist'){
+                }else{
+                    //console.log("data not saved");
+                    display_data_not_saved();
+                }
+                if (tokenType == 'E'){
+                    BtnClicked_2(response,itemName);
+                }
+                if (tokenType == 'T'){
+                    BtnClicked_2(response);
+                }
+                if (tokenType == 'U'){
+                    BtnClicked_2(response);
+                }
+            },
+        });
+    }
+    //存檔到後端資料庫
+    function BtnClicked_2(response,itemName){
+        //console.log("btnclicked_2 : " + response.data[0].tokenID)
+        tokenID = response.data[0].tokenID;        
+        regex = document.getElementById('regexText').value
+        //console.log("tokenID : " + tokenID);
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'mark:inserttokenRE' %}',
+            data:{
+                'tokenID': tokenID,
+                'RE': regex,               
+            },
+            success:function (response){  
+                //console.log("BtnClicked_2 : ", response)  
+                if (tokenType === 'E' && response.status === '0'){
+                    //console.log("btnclicked3")
+                    BtnClicked_3(response,itemName);
+                }
+                else if (response.status === 'already_exist'){
+                    //console.log("already_exist activate");
+                    display_regexExsist();
+                }
+            },
+            fail:function (){              
+            },
+        });
+    }
+    //存檔到後端資料庫
+    function BtnClicked_3(response,itemName){   
+        //console.log("btnclicked3_itemName " + itemName)  
+        tokenREID = response.data[0].tokenREID;        
+        //console.log("btnclicked")
+        for (var i=0 ; i< itemName.length ; i++){
+            //console.log("btnclicked :" + (i+1) + "times")
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'mark:inserttokenREItem' %}',
+                data:{
+                    'tokenREID': tokenREID,
+                    'serialNo': i+1,
+                    'itemName': itemName[i],               
+                },
+                success:function (response){
+                    //BtnClicked_2(response);
+                    if (response.status === '0'){                        
+                        display_data_saved();
+                    }
+                },
+                fail:function (){              
+                },
+            });
+        }
+        
+    }
+
+    //將輸出變成輸入
+    function output_to_input(){
+        result_value = document.getElementById("result").innerHTML;
+        if (result_value != "" && result_value != "Your output will show up here"){
+            document.getElementById("inputText").value = document.getElementById("result").innerHTML;
+        } else {
+            diaplay_output_nothing();
+        }
+    }
+
+    //改變文字顏色
+    function Highlight_Extract() {
+        highLight = document.getElementById('flexRadioDefault1')
+        if (highLight.checked == true) {
+            //定義輸入的regex值存進變數
+            let textToSearch = document.getElementById("regexText").value; 
+
+            //定義輸入的文本存進變數
+            let text = document.getElementById("inputText");
+            if (textToSearch == ""){
+                diaplay_please_input_something();
+            }
+            else{
+                //放到結果欄內
+                document.getElementById("result").innerHTML = text.value
+
+                //取出輸出的文本
+                let paragraph = document.getElementById("result").innerHTML;
+                //將輸入文本丟到輸出欄位變數
+                paragraph = text.value
+                //處理輸入的regex文本
+                textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+                ////console.log(textToSearch)
+                ////console.log(paragraph)
+                //將處理好的regex文本定義為新的regex物件
+                let pattern = new RegExp(`${textToSearch}`,"gi");
+                ////console.log(pattern)
+                
+                
+                //將輸出文本與regex物件有符合的地方加上<mark>標籤，然後丟到輸出欄位       
+                document.getElementById("result").innerHTML = paragraph.replace(pattern, match => `<mark>${match}</mark>`);
+            }
+        }
+
+        //萃取模式
+        exTract = document.getElementById('flexRadioDefault2')
+        if (exTract.checked == true) {
+            //定義輸入的regex值存進變數
+            let textToSearch = document.getElementById("regexText").value; 
+            let table_regex = document.getElementById("regexText").value;
+
+            //定義輸入的文本存進變數
+            let text = document.getElementById("inputText");
+            //放到結果欄內
+            document.getElementById("result").innerHTML = text.value
+
+            //取出輸出的文本
+            let paragraph = document.getElementById("result").innerHTML;
+            //將輸入文本丟到輸出欄位變數
+            paragraph = text.value
+            //處理輸入的regex文本
+            textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+            ////console.log(textToSearch)
+            ////console.log(paragraph)
+            //將處理好的regex文本定義為新的regex物件
+            let pattern = new RegExp(`${textToSearch}`,"gi");
+            ////console.log(pattern)
+            
+            
+            //將輸出文本與regex物件有符合的地方取代為空白      
+            document.getElementById("result").innerHTML = paragraph.replace(pattern, " ");
+            ////console.log(text.value.match(pattern))
+            //抓出被取代的資料 + 排版
+            extractedArray = text.value.match(pattern);
+
+
+            var ex = "";
+            var count = 0;
+            for(var i=0 ; i<extractedArray.length ; i++){
+                ex = ex.concat((i+1).toString(), ". ", extractedArray[i], "\n")
+                count += 1;
+            }
+            if (textToSearch == ""){
+                diaplay_please_input_something();
+            }
+            else{
+                
+                //排完丟到畫面顯示
+                document.getElementById("ExtractOutput").innerHTML = ex;
+                //計算抓取資料數量            
+                document.getElementById("Total").innerHTML = "Total : " + count.toString();
+                //開始建立表格
+                //解析輸入的regex
+                let dateFormat = new RegExp(`${textToSearch}`,"gi");
+                ////console.log("dateFormat: "+ dateFormat);          
+                result_array = []
+                //迴圈執行exec()取得回傳的groups 原本exec只會找一筆所以要回圈 match回傳值沒有groups所以不能用
+                while(null != (g = dateFormat.exec(paragraph))) {
+                    ////console.log("groups: " + g.groups);  // ouput: "a"
+                    ////console.log("pattern: " + g);
+                    result_array.push(g.groups);
+                }
+                //如果有用named capture groups
+                if (result_array[0] != null){
+                    ////console.log(result_array);
+                    //創建表格元素
+                    let myTable = document.querySelector('#table');
+                    ////console.log(Object.keys(result_array[0]));
+                    let headers = Object.keys(result_array[0]);
+                    let table = document.createElement('table');
+                    let headerRow = document.createElement('tr');
+                    headers.forEach(headerText => {
+                        let header = document.createElement('th');
+                        let textNode = document.createTextNode(headerText);
+                        header.appendChild(textNode);
+                        headerRow.appendChild(header);
+                    });
+                    table.appendChild(headerRow);
+                    result_array.forEach(emp => {
+                        let row = document.createElement('tr');
+                        Object.values(emp).forEach(text => {
+                            let cell = document.createElement('td');
+                            let textNode = document.createTextNode(text);
+                            cell.appendChild(textNode);
+                            row.appendChild(cell);
+                        })
+                        table.appendChild(row);
+                    });
+                    myTable.appendChild(table);
+                }
+                var tokenType = document.getElementById('dropdownbutton').value;
+                if (tokenType === "E"){
+                    //console.log("result_array :" + Object.keys(result_array[0]));
+                    //console.log("save pressed E");
+                    //資料到後端儲存
+                    BtnClicked_1(Object.keys(result_array[0]));
+                    document.getElementById("returnbtn").style.visibility = 'visible';
+                }
+                if (tokenType === "T"){
+                    ////console.log("result_array :" + Object.keys(result_array[0]));
+                    //console.log("save pressed T " + extractedArray.length);
+                    BtnClicked_1();
+                    //document.getElementById("returnbtn").style.visibility = 'visible';
+                }
+                if (tokenType === "U"){
+                    ////console.log("result_array :" + Object.keys(result_array[0]));
+                    BtnClicked_1();
+                    //document.getElementById("returnbtn").style.visibility = 'visible';
+                }
+                
+            }
+        }
+      }
+
+    //顯示請輸入文字
+      function diaplay_please_input_something() {
+        var x = document.getElementById("inuptNothing");        
+        ////console.log(x.style.visibility)
+        if (document.getElementById("inuptNothing").style.visibility != 'visible') {
+            document.getElementById("inuptNothing").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("inuptNothing").style.visibility = 'hidden';
+            }, 1200);
+        }
+      }
+
+    //顯示無輸出文字
+    function diaplay_output_nothing() {
+    var x = document.getElementById("outputNothing");
+    ////console.log(x.style.visibility)
+    if (document.getElementById("outputNothing").style.visibility != 'visible') {
+        document.getElementById("outputNothing").style.visibility = 'visible';
+        setTimeout(function() {
+            //your code to be executed after 1 second                    
+            document.getElementById("outputNothing").style.visibility = 'hidden';
+        }, 1200);
+    }
+    }
+
+    
+    //刪除選項
+    function removeOptions(selectElement) {
+        var i, L = selectElement.options.length - 1;
+        for(i = L; i >= 0; i--) {
+           selectElement.remove(i);
+        }
+     }
+
+    //顯示已儲存
+    function display_data_saved(){
+       var x = document.getElementById("alertBlock");
+       ////console.log(x.style.visibility)
+       if (document.getElementById("alertBlock").style.visibility != 'visible') {
+           document.getElementById("alertBlock").style.visibility = 'visible';
+           setTimeout(function() {
+               //your code to be executed after 1 second                    
+               document.getElementById("alertBlock").style.visibility = 'hidden';
+           }, 1200);
+       }
+    }
+
+    //顯示儲存失敗
+    function display_data_not_saved(){
+        var x = document.getElementById("fail");
+        ////console.log(x.style.visibility)
+        if (document.getElementById("fail").style.visibility != 'visible') {
+            document.getElementById("fail").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("fail").style.visibility = 'hidden';
+            }, 1200);
+        }
+     }
+
+    //顯示儲存失敗
+    function display_regexExsist(){
+        var x = document.getElementById("regexExist");
+        ////console.log(x.style.visibility)
+        if (document.getElementById("regexExist").style.visibility != 'visible') {
+            document.getElementById("regexExist").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("regexExist").style.visibility = 'hidden';
+            }, 1200);
+        }
+     }
+
+</script>

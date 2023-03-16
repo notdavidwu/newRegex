@@ -1,0 +1,107 @@
+{% load static%}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Regex</title>
+    <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    {% include 'static/p2.js.html' %}
+    {% include 'static/p2.css' %}
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+      <symbol id="check-circle-fill" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+      </symbol>
+    </svg>    
+    <script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="{% url 'home' %}" id="title" >RegexBuilder</a>
+          <a class="navbar-brand" href="{% url 'Page2' %}" id="title1">Batch Process</a>
+          <a class="navbar-brand" href="{% url 'Merge' %}" id="title2">Merge</a>
+        </div>
+    </nav>
+  </br>
+    <div class="container" id="excelSelector">
+        <div class="card" >
+            <div class="card-header"><b>
+                Select Excel File
+            </b></div>
+            <div class="card-body">                
+                <input type="file" id="excel_file" />
+            </div>
+        </div>
+        <div id="excel_data" class="mt-5">
+        </div>
+    </div>
+    <div>
+      <div id="result_data" class="table table-bordered" ></div>
+    </div>    
+    <div>
+      <div id="reportText" class="mt-5" ></div>
+    </div>
+
+    <div id="loadingAnimation" >
+        <p class="placeholder-glow1" >
+            <span class="placeholder col-12"></span>
+        </p>
+        <p class="placeholder-glow2" >
+            <span class="placeholder col-12"></span>
+        </p>
+        <p class="placeholder-glow3" >
+            <span class="placeholder col-12"></span>
+        </p>
+        <p class="placeholder-glow4" >
+            <span class="placeholder col-12"></span>
+        </p>
+        <p class="placeholder-glow5" >
+            <span class="placeholder col-12"></span>
+        </p>
+    </div>
+
+    <div class="container" id="select" >
+        <div class="p-3 mb-2 bg-primary-subtle text-emphasis-primary" id="selectRegex">Select Regex you want to use.</div>
+        <div class="p-3 mb-2 bg-success-subtle text-emphasis-success" id="tokenContainer" ></div>
+    </div>
+    <div>
+      <div id="table" class="tabletable-bordered" ></div>
+    </div> 
+    <button type="button" class="btn btn-secondary" id="page2ExecuteAll" >ExecuteALL</button>
+    <select class="form-select form-select-sm" aria-label=".form-select-sm example" id="selectRegexType">
+      <option  >Select Type</option>
+      <option value="T">Tag</option>
+      <option value="E">Extraction</option>
+      <option value="P">ProperNoun</option>
+      <option selected value="U">Undefined</option>
+    </select>
+    <div class="alert alert-danger" role="alert" id="noRegex">
+      Please select a Regex !!
+    </div>
+    <div class="alert alert-danger" role="alert" id="noInput">
+      Please select a Report !!
+    </div>
+    <div class="alert alert-warning" role="alert" id="noMatch">
+      No match !!
+    </div>
+    <div class="alert alert-success" role="alert" id="dataSaved">
+      Extracted Data Saved !!
+    </div>
+
+
+    <div class="input-group" id="reportIDinput">
+      <span class="input-group-text">ReportID from </span>
+      <input type="text" aria-label="First name" class="form-control" id="reportIDfrom" value="1">
+      <span class="input-group-text">to</span>
+      <input type="text" aria-label="Last name" class="form-control" id="reportIDto" value="100">
+    </div>
+
+    <p id="Total" >Execute Time: </p>
+    <div class="spinner"></div>
+  </body>
+</html>
+    

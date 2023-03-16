@@ -1,0 +1,841 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/highlight-within-textarea@2.0.5/jquery.highlight-within-textarea.min.css" rel="stylesheet">
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>    
+    $(document).ready(function () {
+        //取得token + 顯示(RE名字)
+        getTokenByTypeP2();
+
+        //根據select顯示token
+        $("#selectRegexType").on('change', function() {
+            value = document.getElementById('selectRegexType').value;
+            if (value === "T" || value ==="E" || value === "U" || value === "P"){
+                getTokenByTypeP2();
+            }else{
+                getTokenP2();
+            }
+        });
+        ////console.log("start : ",start);
+        //按下執行全部按鈕
+        $("#page2ExecuteAll").click(function(){
+            document.querySelector('.spinner').style.display = 'block';
+            start = new Date().getTime();
+            //取得已選取的regex
+            var selected = getAllSelectedRegex();
+            if (selected.length === 0){
+                display_noRegex();
+                return;
+            }
+            ////console.log("selected : " + selected);
+            
+
+            //取得報告剩餘文字
+            var reportIDfrom = document.getElementById('reportIDfrom').value;
+            var reportIDto = document.getElementById('reportIDto').value;
+            report = createReportButton(reportIDfrom, reportIDto);
+            //console.log("report : ", report);
+
+            var Value = [];
+            //console.log("Value : ", Value);
+            var lengthOfArray = 0;
+            //for (var i=0 ; i<Object.keys(report[0]).length ; i++){
+            //    //取得所有已選擇的textarea
+            //    var valueText 
+            //    ////console.log("valueText : " + valueText.innerHTML);    
+            //    var currentReportID = activeButton[i].innerHTML;
+            //    
+            //    lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID);
+            //    ////console.log("lengthOfArray : ", lengthOfArray);
+            //}
+            
+
+            //取得RE
+            resultTokenType = getRegularExpression(selected);
+            ////console.log("result : ", result);
+            var TokenID = resultTokenType[0];
+            var REGEX = resultTokenType[1];
+            var TokenType = resultTokenType[2];
+            var ItemName = resultTokenType[3];
+
+            for (const [key, value] of Object.entries(report[0])) {
+                var valueText = value;
+                var currentReportID = key;
+                lengthOfArray += BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report[0], TokenID, REGEX, TokenType, ItemName, resultTokenType);
+                //console.log("currentReportID : ", currentReportID);
+                //console.log("valueText : ", valueText);
+            }
+            
+            end = new Date().getTime();
+            document.getElementById("Total").innerHTML = "Execute Time : " + ((end - start) / 1000).toString() + " seconds";            
+            document.querySelector('.spinner').style.display = 'none';
+        });
+        //產生報告按鈕.監聽
+        //var reportIDfrom = document.getElementById('reportIDfrom').value;
+        //var reportIDto = document.getElementById('reportIDto').value;
+        //report = createReportButton(reportIDfrom, reportIDto);
+        ////console.log("report : ", Object.keys(report[0]).length);
+    });
+
+    //傳入id選擇選項以及顯示文章
+    function changePrint(id){        
+        //選擇option
+        document.getElementById(id + "option").selected = true;
+        //隱藏所有textarea
+        var textArea = document.getElementsByClassName('text');
+        for (var i=0 ; i<textArea.length ; i++){
+            if(textArea[i].style.display != "none"){
+                textArea[i].style.display = "none";
+                break;
+            }
+        }
+        //被選取的textarea顯示
+        document.getElementById("id"+id).style.display = "block";
+    }
+    
+    //抓regexName(token)
+    function getTokenP2(){
+        document.getElementById('tokenContainer').innerHTML = "";
+        ////console.log("get token p2 " + selectValue);
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getVocabulary' %}',
+            data:{
+            },
+            success:function (response){
+                ////console.log(response.data);
+                var count = Object.keys(response.data).length;
+                ////console.log(count);
+                var topdis = 0;
+                var id = 0;
+                for(var i=0 ; i<count ; i++){
+                    topdis += 30;
+                    id += 1;
+                    var typeOfRegex = document.getElementById('selectRegexType').value;
+                    if (typeOfRegex != 'U'){
+                        var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    }
+                    else{
+                        var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; " checked><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                        
+                    }
+                    //var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    document.getElementById('tokenContainer').innerHTML += checkBox;
+                }
+            },
+        })
+    }
+
+    //抓regexName(token)
+    function getTokenByTypeP2(){
+        document.getElementById('tokenContainer').innerHTML = "";
+        selectValue = document.getElementById('selectRegexType').value;
+        ////console.log("get token p2 " + selectValue);
+        $.ajax({
+            async: 'false',
+            type: 'GET',
+            url: '{% url 'getVocabularyByType' %}',
+            data:{
+                'tokenType':selectValue,
+            },
+            success:function (response){
+                ////console.log(response.data);
+                var count = Object.keys(response.data).length;
+                ////console.log(count);
+                var topdis = 0;
+                var id = 0;
+                
+                var typeOfRegex = document.getElementById('selectRegexType').value;
+                for(var i=0 ; i<count ; i++){
+                    ////console.log("token : " + response.dict[i].token)
+                    topdis += 30;
+                    id += 1;
+                    var checkBox = '<input class="form-check-input" type="checkbox" value="'+response.data[i].token+'" id="flexCheckDefault'+ id +'" name="checkBoxes" style="position:absolute; top:'+ topdis +'px; "><label class="form-check-label" for="flexCheckDefault'+ id +'" style="position:absolute; top:'+ topdis +'px; left:45px; width:200px; user-select:none;">'+ response.data[i].token +'</label>'                    
+                    document.getElementById('tokenContainer').innerHTML += checkBox;
+                }                
+                //如果是U就全選
+                if (typeOfRegex === 'U'){
+                    var checkboxes = document.getElementsByClassName('form-check-input');
+                    //console.log("len: ", checkboxes.length)
+                    for (var i=0 ; i<checkboxes.length ; i++ ){
+                        checkboxes[i].checked = true;
+                    }
+                }
+            },
+        })
+    }
+
+    //取得被選取的regex
+    function getAllSelectedRegex(){
+        var array = [];
+        $("input:checkbox[name=checkBoxes]:checked").each(function() {
+            array.push($(this).val());
+        });
+        ////console.log("selected regex : ", array);
+        return array;
+    }
+
+    //萃取全部(需要iter的是文章id 取得文章內容)
+    function BatchProcessingExtract(lengthOfArray, selected, valueText, currentReportID, report, TokenID, REGEX, TokenType, ItemName, resultTokenType){
+        //console.log("report Batch :", report);
+        //console.log("valueText", valueText);
+        //console.log("currentReportID", currentReportID);
+        ////console.log("selected : " + selected);
+        var Value = [];
+        //萃取模式
+        if ((selected.length != 0) && (valueText != "")) {
+
+            ////console.log("tokenID: " + TokenID);
+            ////console.log("tokenType: " + TokenType);
+
+            //處理textArea並且回傳找到值的陣列
+            result = getMatchData(REGEX, valueText, TokenID, currentReportID, selected, resultTokenType, report);
+            var array = result[0];
+            var matchArray = result[1];
+            var tokenIDForU = result[2];
+            var tokenType = result[3];
+
+            ////console.log(array);
+            
+            ////console.log(matchArray);
+            //console.log("tokenIDForU", tokenIDForU);
+
+            //顯示結果表格
+            if (selected.length != 0 && array[0]){
+                let headers = ['ReportID','Start','End','RegexName'];
+                //showTable(headers, array);                
+            }
+
+            //update analyseText
+            //將二維陣列拆開放到後端
+            var reportID = [];
+            var posStart = [];
+            var posEnd = [];
+            var tokenID = [];
+            for (var i=0 ; i<array.length ; i++){
+                reportID[i] = array[i][0];
+                posStart[i] = array[i][1]+1;
+                posEnd[i] = array[i][2];
+                tokenID[i] = array[i][3];
+            }
+            
+            //紀錄上一篇文章的長度給下一篇文章用
+            lengthOfArray = array.length;
+            
+            //console.log("matchArray : " , matchArray);
+            if (matchArray.length != 0){
+                response = updateAnalyseText(currentReportID, report[currentReportID]);
+                if (response && response.status === '0' ){
+                    //取得select 值
+                    var selectVal = document.getElementById("selectRegexType").value;
+                    //如果有存成功且為U
+                    if (tokenIDForU.length != 0 && selectVal === 'U'){
+                        //console.log("現在是U");
+                        responseU = insertTextTokenForU(reportID, posStart, posEnd, tokenIDForU);
+                        if (responseU && responseU.status === '0'){
+                            swal("Extracted!", "Data saved!", "success");
+                            display_dataSaved();
+                        }                       
+                        return lengthOfArray;
+                    }
+                    else{
+                        //console.log("response", response);
+                        response1 = selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID);
+                        if (response1 && response1.status === '0'){
+                            ////console.log("response1 : " , response1);
+                            response2 = selecttokenREItem(matchArray);
+                            //console.log("response2 : ", response2);
+                            if (response2 && response2.status === '0'){
+                                //取得value.posStart
+                                for (var i=0 ; i<matchArray.length ; i++){
+                                    Value.push(Object.values(matchArray[i]));
+                                }
+                                ////console.log("values : ", Value);
+                                ////console.log("posStart : ", posStart);
+                                response3 = insertExtractedvaluefromtoken(reportID, posStart, response2, Value);
+                                ////console.log("response3 : ", response3);
+                                if (response3 && response3 && response3.status === '0'){
+                                    swal("Extracted!", "Data saved!", "success");
+                                    display_dataSaved();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            var arrayIndex = 0;            
+            var extractArray = [];
+        }
+        return lengthOfArray;
+    }
+
+
+    //取得TokenID.tokenType.RE
+    function getRegularExpression(selected){
+        var TokenID = [];
+        var REGEX = [];
+        var TokenType = [];
+        var ItemName = [];
+        var TokenREID = [];
+        response = getTokenIDTokenType(selected);
+        if (response.status === '0'){
+            ////console.log("response : " + response);
+            TokenID = response.tokenID;
+            TokenType = response.tokenType;
+            ////console.log("TokenID : " + TokenID);
+            ////console.log("TokenType : " + TokenType);
+
+            //取得RE.REID
+            response1 = getRE(TokenID);
+            if (response1.status === '0'){
+                ////console.log("response1 : ", response1);
+                REGEX = response1.RE;
+                TokenREID = response1.tokenREID;
+                ////console.log("REGEX : ", REGEX);
+                ////console.log("TokenREID : ", TokenREID);
+            }
+        }
+        return [TokenID, REGEX, TokenType, ItemName]
+    }
+
+    //取得TokenID.tokenType
+    function getTokenIDTokenType(selected){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'checkName' %}',
+            data:{
+                'Name[]': selected,
+            },
+            //成功找RE
+            success:function (response){
+                res = response;
+                //console.log("response : " , response);      
+            },
+        });
+        return res;
+    }
+
+    //取得RE
+    function getRE(tokenID){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'GET',
+            url: '{% url 'checkRE' %}',
+            data:{
+                'tokenID[]': tokenID,
+            },
+            success:function (response){
+                if (response.status === '0'){
+                    //console.log(response);
+                    res = response;
+                }
+            },
+        });
+        return res;
+    }
+
+    //處理textArea以及產生要儲存的陣列(看能不能拆)
+    function getMatchData(REGEX, valueText, TokenID, currentReportID, selected, TokenType, report){
+        //console.log("get match data report", report);
+        //取出的資料總數
+        var start_end_count = 0;
+        //用來決定第i個selected從哪開始填入陣列(不然會被洗掉)
+        var origin = 0;
+        var start = [];
+        var end = [];
+        var array = [];
+        var patternArray = [];
+        var matchArray = [];
+        var token = [];
+        var nword = [];
+        var tokentype = [];
+        //找tokenType
+        resOftokenType = TokenType[2];
+        //console.log("resOftokenType : ", resOftokenType);
+        for(var i=0 ; i<REGEX.length ; i++){
+            ////console.log("i : " + i);
+            ////console.log("regex: " + REGEX.length);
+            //定義輸入的regex值存進變數
+            let textToSearch = "(?<wholeString>(" + REGEX[i] + "))";
+            //console.log(textToSearch);
+            //處理輸入的regex文本
+            if (textToSearch){
+                textToSearch = textToSearch.replace(/[ .*+?^${}()| [\ ]\\ ]/g,"\\$&");
+            }
+            //將處理好的regex文本定義為新的regex物件
+            let pattern = new RegExp(`${textToSearch}`,"g");
+            paragraph = valueText;
+            //無符合配對20230213之後修
+            //if (valueText.innerHTML == paragraph){                            
+            //    display_noMatch(textToSearch);
+            //    return;
+            //}
+            patternArray[i] = pattern;
+            ////console.log("paragraph : " + paragraph.length);
+            var length = 0;
+            while (match = pattern.exec(paragraph)) {
+                ////console.log(match.index + ' ' + pattern.lastIndex);
+                start[start_end_count] = match.index;
+                end[start_end_count] = pattern.lastIndex;
+                start_end_count += 1;
+                ////console.log("match : " + match);
+                if (match.groups){
+                    match.groups['tokenID'] = TokenID[i];
+                    matchArray.push(match.groups);
+                    ////console.log("wholeString : ", getLength(match.groups['wholeString']));
+                    //含中文的長度
+                    length = getLength(match.groups['wholeString']);
+                    //字串內長度
+                    origin_length = match.groups['wholeString'].length;
+                    token.push(match.groups['wholeString']);
+                    nword.push(match.groups['wholeString'].length);
+                    tokentype.push(resOftokenType[i]);
+                    var blank = "";
+                    for (var b=0 ; b<(origin_length) ; b++){
+                        blank += " ";
+                    }
+                    ////console.log("length", length);
+                    ////console.log("origin_length", origin_length);
+                    //將輸出文本與regex物件有符合的地方取代為空白
+                    ////console.log("match.index", match.index);
+                    //console.log("report['currentReportID'] : ", report[currentReportID]);
+                    report[currentReportID] = replaceCharacter(report[currentReportID], match.index, pattern.lastIndex, blank);
+                }
+                //else{
+                //    //console.log("push!!!");
+                //    var nomatch = {};
+                //    nomatch['tokenID'] = TokenID[i];
+                //    matchArray.push(nomatch);
+                //}
+                ////console.log("match : ", match[0]);
+                ////console.log("length : ", length);
+            }
+            ////console.log("matchArray : " , matchArray);
+            for(var j=origin ; j<start_end_count ; j++){
+                ////console.log("j : " + j);
+                array[j] = [currentReportID,start[j], end[j], selected[i]];
+            }
+            origin = start_end_count;
+            ////console.log(pattern);
+        }
+        
+        ////console.log("token : ", token);
+        ////console.log("nword : ", nword);
+        //console.log("tokentype : ", tokentype);
+
+        //寫入Vocabulary
+        tokenIDForU = insertVocabulary_U(token, nword, tokentype);
+        return [array, matchArray, tokenIDForU, tokentype]
+    }
+
+    //儲存字典(array) for U
+    function insertVocabulary_U(token, nWord, tokenType){
+        var res;
+        $.ajax({            
+            async: false,
+            type: 'POST',
+            url: '{% url 'insertVocabulary_U' %}',
+            data:{
+                'token[]': token,
+                'nWord[]': nWord,
+                'tokenType[]': tokenType,                
+                'csrfmiddlewaretoken': window.CSRF_TOKEN
+            },
+            success:function (response){
+                //console.log("result : " + response.data)
+                res = response.data;
+                //if (response.status == '0'){                    
+                //    display_data_saved();
+                //}else{
+                //    //console.log("data not saved");
+                //    display_data_not_saved();
+                //}
+                //if (tokenType == 'E'){
+                //    BtnClicked_2(response,itemName);
+                //}
+                //if (tokenType == 'T'){
+                //    BtnClicked_2(response);
+                //}                
+                //if (tokenType == 'U'){
+                //    BtnClicked_2(response);
+                //}
+            },
+            fail:function (){         
+            },
+        });
+        return res;
+    }
+
+    //insert textToken for U
+    function insertTextTokenForU(reportID, posStart, posEnd, tokenID){
+        var res;
+        //console.log("tokenID :", tokenID);
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'getTextToken' %}',
+            data:{
+                'reportID[]' : reportID,
+                'posStart[]' : posStart,
+                'posEnd[]' : posEnd,
+                'tokenID[]' : tokenID,
+            },
+            success:function (response){
+                res = response;
+            },
+        });
+        return res;
+    }
+
+    //計算字串(含中文)長度
+    function getLength(str){ 
+        return str.toString().replace(/[^\x00-\xff]/g,"OO").length;
+    }
+
+    //替換字串(原字串, 起始index, 結束index, 要代替的字串)
+    function replaceCharacter(string, index, length, replacement) {
+        return (
+          string.slice(0, index) +
+          replacement +
+          string.slice(length, string.length)
+        );
+    }
+
+    //update analyseText
+    function updateAnalyseText(reportID, residualText){
+        var res;
+        $.ajax({
+            async: false,
+            type: 'PATCH',
+            url: '{% url 'getReportText' %}',                
+            data:JSON.stringify({
+                'reportID' : reportID,
+                'residualText': residualText,
+            }),
+            success:function (response){
+                res = response;
+                ////console.log(response.status);
+            },
+        });
+        return res;
+    }
+
+    //找vocabulary + insert textToken
+    function selectVocabulary_insertTextToken(reportID, posStart, posEnd, tokenID){
+        var res;
+        ////console.log("reportID :", reportID);
+        $.ajax({
+            async: false,
+            type: 'POST',
+            url: '{% url 'getReportText' %}',                
+            data:{
+                'reportID[]' : reportID,
+                'posStart[]' : posStart,
+                'posEnd[]' : posEnd,
+                'tokenID[]' : tokenID,
+            },
+            //成功存第三章表(每個array值會有一個tokenID.一次的match)
+            success:function (response){
+                res = response;
+            },
+        });
+        return res;
+    }
+
+    //查詢每個match的每個RE的每個變數的編號(25~31)
+    function selecttokenREItem(matchArray){
+        ////console.log("matchArray : " , matchArray);
+        if (matchArray.length != 0){
+            var res;
+            $.ajax({
+                async: false,
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                url: '{% url 'getTokenREItemID' %}',
+                data: JSON.stringify(matchArray),
+                //成功存第三章表(每個array值會有一個tokenID.一次的match)
+                success:function (response){
+                    res = response;
+                },
+            });
+            return res;
+        }
+    }
+
+    //新增extractedvaluefromtoken
+    function insertExtractedvaluefromtoken(reportID, posStart, response2, Value){
+        ////console.log(response2.data[0]);
+        if (response2.status === "0"){
+            var res;
+            var tokenREItemID = response2.data[0].tokenREItemID;
+            var tokenType = response2.data[0].tokenType;
+            ////console.log("Value : ", Value);
+            // ordinary for loop
+            for (var i=0 ; i<Value.length ; i++) {
+                for (var j=0 ; j<Value[i].length ; j++){
+                        ////console.log(Value[i][j].toString());
+                    if (Value[i][j].toString().indexOf(",") != -1){
+                        index = Value[i][j].toString().indexOf(",");
+                        ////console.log("逗號");
+                        ////console.log(Value[i][j][x]);
+                        Value[i][j] = Value[i][j].replace(/,/gi, "|");
+                        ////console.log(Value[i][j]);
+                    }
+                }
+            }
+            ////console.log("tokenREItemID : ", tokenREItemID);
+            ////console.log("tokenType : ", tokenType);
+
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: '{% url 'insertExtractedValueFromToken' %}',
+                data: {
+                    'reportID[]' : reportID,
+                    'posStart[]' : posStart,
+                    'tokenREItemID[]' : tokenREItemID,
+                    'Value[]' : Value,
+                    'tokenType[]' : tokenType,
+                },
+                success:function (response3){
+                    res = response3;
+                    //if (response3.status === "0"){
+                    //    //console.log("extractedValueFromToken save Success !!!");
+                    //}
+                },
+            });
+            return res;
+        }
+    }
+
+    //顯示結果表格
+    function showTable(headers,array){
+        ////console.log("array : ",array);
+        //創建表格元素
+        let myTable = document.querySelector('#result_data');
+        ////console.log(Object.keys(result_array[0]));
+        let table = document.createElement('table');
+        let headerRow = document.createElement('tr');
+        headers.forEach(headerText => {
+            let header = document.createElement('th');
+            let textNode = document.createTextNode(headerText);
+            header.appendChild(textNode);
+            headerRow.appendChild(header);
+        });
+        table.appendChild(headerRow);
+        array.forEach(emp => {
+            let row = document.createElement('tr');
+            Object.values(emp).forEach(text => {
+                let cell = document.createElement('td');
+                let textNode = document.createTextNode(text);
+                cell.appendChild(textNode);
+                row.appendChild(cell);
+            })
+            table.appendChild(row);
+        });
+        myTable.appendChild(table);
+    }
+
+    
+    //顯示未選regex
+    function display_noRegex(){
+        var x = document.getElementById("noRegex");
+        ////console.log(x.style.visibility)
+        if (document.getElementById("noRegex").style.visibility != 'visible') {
+            document.getElementById("noRegex").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("noRegex").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+    
+    //顯示未輸入
+    function display_noInput(){
+        var x = document.getElementById("noInput");
+        ////console.log(x.style.visibility)
+        if (document.getElementById("noInput").style.visibility != 'visible') {
+            document.getElementById("noInput").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("noInput").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+
+    //顯示儲存成功
+    function display_dataSaved(){
+        var x = document.getElementById("dataSaved");
+        ////console.log(x.style.visibility)
+        if (document.getElementById("dataSaved").style.visibility != 'visible') {
+            document.getElementById("dataSaved").style.visibility = 'visible';
+            setTimeout(function() {
+                //your code to be executed after 1 second                    
+                document.getElementById("dataSaved").style.visibility = 'hidden';
+            }, 1200);
+        }
+    }
+
+    //產生表格.按鈕 + 監聽按鈕
+    function createReportButton(reportIDfrom, reportIDto){
+        var res;
+        $.ajax({
+            async:false,
+            type: 'GET',
+            url: '{% url 'getReportID' %}',
+            data:{
+                "reportID1": reportIDfrom,
+                "reportID2": reportIDto,
+            },
+            success:async function (response){
+                res = response.data;
+                //console.log("reportID : ", response.data);
+            },
+        })
+        return res;
+    }
+
+    //用按鈕value丟到後端取得reportText
+    function getReport(reportID){
+        $.ajax({
+            type: 'GET',
+            url: '{% url 'getReportText' %}',
+            data:{
+                'reportID': reportID,
+            },
+            success:async function (response){
+                //產生
+
+                //Button toggle
+                var btn = document.getElementById(reportID);
+                if (btn.className === "btn btn-light active"){
+                    //新增選項
+                    var option = document.createElement("option");
+                    option.id = reportID + "option";
+                    option.class = "selectOption";
+                    option.text = reportID;
+                    option.value = reportID;
+                    //取消選取所有option
+                    var OP = document.getElementsByClassName('selectOption');
+                    for (var i=0 ; i<OP.length ; i++){
+                        if (OP[i].selected != false){
+                            OP[i].selected = false;
+                            break;
+                        }
+                    }
+                    //選擇剛生成的option
+                    document.getElementById(reportID + "option").selected = true;
+
+                    //隱藏所有textarea
+                    var textArea = document.getElementsByClassName('text');
+                    for (var i=0 ; i<textArea.length ; i++){
+                        if (textArea[i].style.display != "none"){
+                            textArea[i].style.display = "none";
+                            break;
+                        }
+                    }
+                    //新增textarea
+                    document.getElementById("textAreaDiv").innerHTML += '<textarea class="text" id="id'+ reportID +'" value="'+ response.reportText +'" style="width:600px; height:300px; display:block; overflow:auto;">'+ response.reportText +'</textarea>';
+                    //新增的textarea顯示
+                    $("#"+reportID+"").attr("display","block");
+
+                    
+                    //選中的文章按鈕加邊框 前任刪邊框
+                    selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
+                    ////console.log("selected BUTTON :" + selectedButton);
+                    if (selectedButton[0]){
+                        selectedButton[0].classList.remove('border','border-primary');
+                    }               
+                    document.getElementById(reportID).className += " " + "border border-primary"; 
+                }
+                else if (btn.className === "btn btn-light"){
+                    ////console.log("selected :" + selectobject.value);
+                    //隱藏所有textarea
+                    var textArea = document.getElementsByClassName('text');
+                    for (var i=0 ; i<textArea.length ; i++){
+                        if(textArea[i].style.display != "none"){
+                            textArea[i].style.display = "none";
+                            break;
+                        }
+                    }
+                    //被選取的textarea顯示
+                    if (selectobject.value){
+                        document.getElementById("id"+selectobject.value).style.display = "block";
+                    }
+                    //刪除被取消選取的textArea
+                    var element = document.getElementById("id" + reportID);
+                    element.parentNode.removeChild(element);
+
+                }
+                else if (btn.className === "btn btn-light active border border-primary") {
+                    ////console.log("selected button touched !!!");
+                    
+                    
+
+                    //取消邊框.active
+                    selectedButton = document.getElementsByClassName("btn btn-light active border border-primary");
+                    ////console.log("selected BUTTON :" + selectedButton);
+                    if (selectedButton[0]){
+                        selectedButton[0].classList.remove('border', 'border-primary', 'active');
+                    }
+
+                    //刪除被取消選取的textArea
+                    var element = document.getElementById("id" + reportID);
+                    element.parentNode.removeChild(element);
+                    
+                    //刪除被取消選取的option
+                    var deleteOption = document.getElementById(reportID + "option");
+                    deleteOption.parentNode.removeChild(deleteOption);
+
+                    //選擇第一筆已選取按鈕
+                    leftButton = document.getElementsByClassName("btn btn-light active");
+                    if (leftButton[0]){
+                        ////console.log("there's button left!!!");
+                        ////console.log("leftbutton : " + leftButton[0].id);
+
+                        //顯示已選取按鈕邊框
+                        document.getElementById(leftButton[0].id).className = "btn btn-light active border border-primary";
+                        
+                        //顯示第一筆已選取文章
+                        //leftTextArea = document.getElementById("id"+leftButton[0].id);
+                        ////console.log("leftTextArea :" + leftTextArea.id);
+                        //leftTextArea.style.display = "block";
+//
+                        ////選擇剩下的第一筆選項
+                        //document.getElementById(leftButton[0].id + "option").selected = true;
+                        changePrint(leftButton[0].id);
+                        //傳入button.id調整table位置
+                        trigger(leftButton[0].id);
+                    }
+
+                }         
+            },
+        })
+    }
+
+    //調整table位置
+    function trigger(buttonId){
+        //往父級找 找到第一個tr(返回陣列值)
+        var $objTr = $(`#${buttonId}`).parents('tr');
+        //取得返回值的第一個
+        var objTr = $objTr[0];
+        //捲動動畫
+        $('#reportTable').animate({scrollTop:(objTr.offsetTop-250)},'fast');
+    }
+
+    //取得目前已選取的按鈕
+    function getActiveButtons(){
+        //已選取的按鈕
+        activeButton = document.getElementsByClassName("btn btn-light active");
+        //for (var i=0 ; i<activeButton.length ; i++){            
+        //    //console.log("activeButton : " + activeButton[i].innerHTML);
+        //}
+    }
+
+    
+
+    
+    </script>

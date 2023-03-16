@@ -4,15 +4,46 @@ from django.shortcuts import render,HttpResponse,redirect
 from django.http import JsonResponse
 from django.db import connections
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.core import serializers
+from eventDefinition.models import Patientinfo
+from eventDefinition.models import Visitrecord
 import numpy as np
+import pyodbc
+import datetime
+import pytz
+from django.utils import timezone
 
+def connsql(request):
+    server = '172.31.6.22' 
+    database = 'miniDB' 
+    username = 'newcomer' 
+    password = 'test81218' 
+    conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+    cursor = conn.cursor()
+    cursor.execute("select * from patientInfo where aicNo < 10021")
+    data = cursor.fetchall()
+    a = Patientinfo.objects.all()
+    #return render(request, 'index.html', { 'Patientinfo':result })
+
+
+    #---------------------------
+    result = {'status' : '0'}
+    result['human_record'] = []
+    for item in data:
+        record = {}
+        record['aicNo'] = item.aicNo
+        record['birthDay'] = item.birthDay
+        record['sex'] = item.sex
+        result['human_record'].append(record)
+    
+    return JsonResponse(result)
 @csrf_exempt
 def confirm(request):
     au = request.session.get('au')
     de_identification = request.session.get('de_identification')
     eventDefinition_edit = request.session.get('eventDefinition_edit')
-    if not request.user.is_authenticated : 
-        return redirect('/')
+    # if not request.user.is_authenticated : 
+    #     return redirect('/')
     return render(request, 'eventDefinition/confirm.html',{'au':au,'de_identification':de_identification,'eventDefinition_edit':eventDefinition_edit})
 
 def replaceCapitalAndLowCase(statusfilter):
@@ -37,65 +68,166 @@ def replaceCapitalAndLowCase(statusfilter):
 import re
 @csrf_exempt
 def confirmpat(request):
-    scrollTop = request.session.get('eventDefinition_scrollTop')
-    filter = request.POST.get('filter')
-    Disease = request.POST.get('Disease')
+    if request.method == 'GET':
+        
+        
+        # server = '172.31.6.22' 
+        # database = 'miniDB' 
+        # username = 'newcomer' 
+        # password = 'test81218' 
+        # conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+        # cursor = conn.cursor()
+        # cursor.execute("select * from patientInfo where aicNo < 10021")
 
-    diagChecked = request.POST.get('diagChecked')
-    treatChecked = request.POST.get('treatChecked')
-    fuChecked = request.POST.get('fuChecked')
-    ambiguousChecked = request.POST.get('ambiguousChecked')
-    pdConfirmed = request.POST.get('pdConfirmed')
-    statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
+        #測試創造物件
+        #create成功
+        # newman = Patientinfo(aicno = '12345',birthday = '2022-01-10', sex = '1')
+        # newman.save()
 
-    cursor = connections['practiceDB'].cursor()
+        # data = cursor.fetchall()
 
-    query = 'EXEC EventDefinition_getPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
-    cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
-    result = cursor.fetchall()
+        
+        # result = {'status' : '0'}
+        # result['human_record'] = []
+        # for item in data:
+        #     record = {}
+        #     record['aicNo'] = item.aicNo
+        #     record['birthDay'] = item.birthDay
+        #     record['sex'] = item.sex
+        #     result['human_record'].append(record)
+    # return JsonResponse(result)     
+        scrollTop = request.session.get('eventDefinition_scrollTop')
+    # filter = request.POST.get('filter')
+    # Disease = request.POST.get('Disease')
+
+        
+
+        diagChecked = request.GET.get('diagChecked')
+        treatChecked = request.GET.get('treatChecked')
+        # allpatient = Patientinfo.objects.all()
+        # result = {}
+        # result['human_record'] = []
+        # for item in allpatient:
+        #     record = {}
+        #     record['aicNo'] = item.aicno
+        #     record['birthDay'] = item.birthday
+        #     record['sex'] = item.sex
+        #     result['human_record'].append(record)
+        if diagChecked == '1':
+            result = {}
+            #測試queryset
+            #human = human.queryset.filter(sex='diaChecked')
+            # human = human.objects.filter(sex='diaChecked')
+            # result['human_record'] = []
+            # for item in human:
+            #         record = {}
+            #         record['aicNo'] = item.aicno
+            #         record['birthDay'] = item.birthday
+            #         record['sex'] = item.sex
+            #         result['human_record'].append(record)
+
+            
+
+            
+            #可以執行
+            result['human_record'] = []
+            #male = Patientinfo.objects.filter(aicno__gte = '11111')
+            male = Patientinfo.objects.filter(sex = '2')
+            for item in male:
+                record = {}
+                record['aicNo'] = item.aicno
+                record['birthDay'] = item.birthday
+                record['sex'] = item.sex
+                result['human_record'].append(record)
+        elif treatChecked == '1':
+            result = {}
+            result['human_record'] = []
+            female = Patientinfo.objects.filter(sex = '1')
+            for item in female:
+                record = {}
+                record['aicNo'] = item.aicno
+                record['birthDay'] = item.birthday
+                record['sex'] = item.sex
+                result['human_record'].append(record)
+        else:
+            allpatient = Patientinfo.objects.all()
+            result = {}
+            result['human_record'] = []
+            for item in allpatient:
+                record = {}
+                record['aicNo'] = item.aicno
+                record['birthDay'] = item.birthday
+                record['sex'] = item.sex
+                result['human_record'].append(record)
+
+    return JsonResponse({'data': result['human_record'],'scrollTop':scrollTop})
+            # record = {}
+            # record['aicNo'] = male.aicno
+            # record['birthDay'] = male.birthday
+            # record['sex'] = male.sex
+            # result['human_record'].append(record)
 
     
-    chartNo=list(map(lambda row:row[1],result))
-    chartNoString=''
-    if len(chartNo)==0:
-        chartNoString=''
-    else:
-        chartNoString = ','.join(map(str, chartNo))
-    eventUnChecked_query = '''
-        EXEC [EventDefinition_eventUnChecked] @chartNo=%s
-    '''
-    cursor = connections['practiceDB'].cursor()
-    cursor.execute(eventUnChecked_query,[chartNoString])
-    eventUnChecked_num = []
-    res = cursor.fetchall()
-    for row in res:
-        eventUnChecked_num.append(row[1])
+    # treatChecked = request.POST.get('treatChecked')
+    # fuChecked = request.POST.get('fuChecked')
+    # ambiguousChecked = request.POST.get('ambiguousChecked')
+    # pdConfirmed = request.POST.get('pdConfirmed')
+    # statusfilterValueSum = int(np.sum(np.array([diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed]).astype(int)))
 
-    i=0
-    examID=''
-    #examID = list(cursor.fetchall())
-    for row in result:
 
-        examID += f'''
-        <tr><td>
-        '''
-        if filter=='0':
-            examID += f'''
-                <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
-            '''
-            if row[2] is True:
-                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
-            else:
-                examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
-        else:    
-            examID += f'''
-                <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
-            '''
-            examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
-        examID += f'''</td></tr>'''    
-        i+=1
-    cursor.close()
-    return JsonResponse({'examID': examID,'scrollTop':scrollTop})
+    # cursor = connections['miniDB'].cursor()
+
+    # query = 'EXEC EventDefinition_getPatient @filter=%s,@diseaseID=%s,@diagChecked=%s,@treatChecked=%s,@fuChecked=%s,@ambiguousChecked=%s,@pdConfirmed=%s,@statusfilterValueSum=%s'
+    # cursor.execute(query,[filter,Disease,diagChecked,treatChecked,fuChecked,ambiguousChecked,pdConfirmed,statusfilterValueSum])
+    # query = 'EXEC connsql'
+    # cursor.execute(query)
+    # result = cursor.fetchall()
+
+    
+    # chartNo=list(map(lambda row:row[1],result))
+    # chartNoString=''
+    # if len(chartNo)==0:
+    #     chartNoString=''
+    # else:
+    #     chartNoString = ','.join(map(str, chartNo))
+    # eventUnChecked_query = '''
+    #     EXEC [EventDefinition_eventUnChecked] @chartNo=%s
+    # '''
+    # cursor = connections['practiceDB'].cursor()
+    # cursor.execute(eventUnChecked_query,[chartNoString])
+    # eventUnChecked_num = []
+    # res = cursor.fetchall()
+    # for row in res:
+    #     eventUnChecked_num.append(row[1])
+
+    # i=0
+    # examID=''
+    # examID = list(cursor.fetchall())
+
+    #上面的data
+    # for row in result:
+
+    #     data += f'''
+    #     <tr><td>
+    #     '''
+        # if filter=='0':
+        #     examID += f'''
+        #         <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone={int(row[4])}>
+        #     '''
+        #     if row[2] is True:
+        #         examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID exclude">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
+        #     else:
+        #         examID += f'''<label for={row[0]}><p data-checked={row[3]} class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
+        # else:    
+        #     examID += f'''
+        #         <input type="radio" onclick="getMedtype();GetTime()" data-chartNo="{row[1]}" name="confirmPID" id={row[0]} data-isDone=1>
+        #     '''
+        #     examID += f'''<label for={row[0]}><p class="PatientListID ">{str(row[1])} ({eventUnChecked_num[i]})</p><p class="ID">{row[0]}</p></label>'''
+        # examID += f'''</td></tr>'''    
+        # i+=1
+        # cursor.close()
+    
+
 
 @csrf_exempt
 def Disease(request):
@@ -510,16 +642,43 @@ def deleteEvent_F(request):
 
 @csrf_exempt
 def getClinicalProcedures(request):
-    query = '''
-        EXEC EventDefinition_getClinicalProcedures_2
-    '''
-    cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[])
-    result = cursor.fetchall()
+    # query = '''
+    #     EXEC eventDefinition_getClinicalProcedures_2
+    # '''
+    # cursor = connections['miniDB'].cursor()
+    # cursor.execute(query,[])
+    # result = cursor.fetchall()
+    #取得65 up or below
+    age = request.GET.get('age')
+    #65以上
+    if age == '1':
+        #現在日期
+        now = timezone.now()
+
+        #取得現在年月日
+        year = now.year
+        month = now.month
+        day = now.day
+
+        #計算65年前
+        years_65_ago = datetime.datetime((year - 65), month, day, 0, 0, 0, 0, pytz.UTC)
+
+        old = Patientinfo.objects.filter(birthday__range=[years_65_ago,now])
+        
+        result = []
+        for item in old:
+            record = {}
+            record['aicNo'] = item.aicno
+            record['birthDay'] = item.birthday
+            record['sex'] = item.sex
+            result['human_record'].append(record)
+    #65以下
+    elif age == '0':
+        age= '0'
     selection = ''
-    for row in result:
-        selection += f'<option data-medtype="{row[0]}" value={row[1]}>{row[2]}</option>'
-    return JsonResponse({'selection':selection})
+    # for row in result:
+    #     selection += f'<option data-medtype="{row[0]}" value={row[1]}>{row[2]}</option>'
+    return JsonResponse({'result':result['human_record']})
 
 @csrf_exempt
 def getNum(request):
@@ -949,17 +1108,43 @@ def getNewEventFactorID(request):
 
 @csrf_exempt
 def getSeqNoOption(request):
-    chartNo=request.POST.get('chartNo')
-    query = '''
-        select caSeqNo from PatientDisease where chartNo=%s order by caSeqNo
-    '''
-    cursor = connections['practiceDB'].cursor()
-    cursor.execute(query,[chartNo])
-    result = cursor.fetchall()
-    seqNo=''
-    for row in result:
-        seqNo += f'<option value={row[0]}>{row[0]}</option>'
-    return JsonResponse({'seqNo':seqNo})
+    #取病患編號
+    paitentnum = request.POST.get('patientNum')
+
+    # #找資料表
+    # patient = Visitrecord.objects.filter(aicno=paitentnum)
+    # result = []
+    # for item in patient:
+    #         record = {}
+    #         record['visitdate'] = item.visitdate
+    #         result['human_record'].append(record)
+    # query = '''
+    # SELECT * FROM miniDB.dbo.fVisitRecord(patientnum)
+    # '''
+    # cursor = connections['miniDB'].cursor()
+    # cursor.execute(query,[VisitNo])
+    # result = cursor.fetchall()
+    # seqNo=''
+    # for row in result:
+    #     seqNo += f'<option value={row[0]}>{row[0]}</option>'
+    # return JsonResponse({'seqNo':seqNo})
+    server = '172.31.6.22' 
+    database = 'miniDB' 
+    username = 'newcomer' 
+    password = 'test81218' 
+    conn = pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server}; SERVER='+server+'; DATABASE='+database+'; ENCRYPT=yes; UID='+username+'; PWD='+ password +'; TrustServerCertificate=yes;')
+    cursor = conn.cursor()
+    result = cursor.execute("select * from miniDB.dbo.fVisitRecord(98862)")
+    patient = cursor.fetchall()
+    result = {}
+    result['human_record'] = [] 
+    
+    
+    for item in patient:
+        record = {}
+        record['visitNo'] = item.VisitNo
+        result['human_record'].append(record)
+    return JsonResponse({'data': result['human_record']})
 
 @csrf_exempt
 def addPatientDiease(request):

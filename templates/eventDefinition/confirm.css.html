@@ -1,0 +1,334 @@
+{% load static%}
+
+<style>
+    /* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+body{background:url("{% static 'image/texture.png' %}");-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;overflow: hidden}
+textarea {resize: none}
+.ChartNo{display: none}
+.OrderNo{display: none}
+.eventID{display: none}
+.pdID{display: none}
+.loader{display:none;position:absolute;top:40%;left:50%}
+.ball-grid-pulse div{background-color:#000000}
+@media (min-width: 0px) {
+    body{overflow-x: hidden}
+    .loader2{display:none;position:absolute;top:30%;left:55%;transform: scale(2)}
+    #Report td{color: whitesmoke;font-size: 16pt}
+    #Report tr{padding: 0;margin: 0}
+    #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;min-width:150px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+    #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;}
+    input[name='confirmPID']{display: none}
+    input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px}
+
+
+    input[name='timePID']{display: none}/*radio  消失*/
+    input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
+    input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
+    
+    #time td{color: black;font-family: 微軟正黑體;font-weight:bold;font-size: 12pt;color: #33333a;height: 100%}
+    
+    .header{font-size: 16pt;color: white;padding: 0;text-align: center}
+    .edate{font-size:12pt;float: left;width: 15%;padding-left: 20px;height: auto}
+    .type2{font-size:12pt;float: left;width: 15%;margin-left: 20px;height: auto}
+    .note{font-size:12pt;float: left;width: 40%;padding-left: 20px;height: auto;word-break:break-all;}
+    .menu{width: 20%;right:0;position:absolute;padding-top:5px}
+    .add{width:calc(95%);height:20px;line-height:14px;padding:0;margin-left:0px;border-style:dashed;border-width:2px;border-radius:0}
+    
+
+    .report2{display: none}
+    .Ignore{margin-left:20px;width: calc(18% + 20px);height: 100%;padding: 0}
+    #text{font-size:12pt;outline:#000000 solid 1px;background:url("{% static 'image/texture.png' %}");background-color:#FFFFFF;bottom:0px;height: calc(50% - 105px);width:calc( 50% - 124px);position: absolute;left:199px ;font-size: 12pt;padding:20px}/*Report 放的框框*/
+    p{height: 100%;align-items: center;vertical-align: center}
+    #Disease{position: absolute;top: 55px;height: 145px;;min-width:200px;width: 200px;background-color: #11171a}
+    #Disease select{width:92%;height: 40px;margin: 5px;font-size: 11pt}
+    #header_date{width:18%}
+    #header_note{width:60%}
+    #header_confirm{}
+    #extractedFactor{
+        background:url("{% static 'image/texture.png' %}");
+        position: absolute;
+        bottom:0px;
+        top:auto;
+        height: calc(50% - 104px);
+        width:calc( 50% - 75px);
+        margin-left: 0px;
+        left:calc(50% + 75px) ;
+        border-radius:0px;
+        font-size: 10pt;
+        border:1px solid #000;
+        display:inline;
+        overflow-x:hidden;
+    }
+
+}
+@media (min-width: 0px) {
+    body{overflow-x: hidden}
+    .loader2{display:none;position:absolute;top:50%;left:36%;transform: scale(2)}
+    #Report td{color: whitesmoke;font-size: 16pt}
+    #Report tr{padding: 0;margin: 0}
+    #patient{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;z-index: 1;position: absolute;top: 200px;min-width:150px;width: 200px;height:calc(100% - 200px);overflow-x: hidden;overflow-y: auto;background-color: #32435F}
+    #patient table{background:url("{% static 'image/texture.png' %}");padding: 0px;margin: 0px;color:white;width: 100%;}
+    input[name='confirmPID']{display: none}
+    input[name='confirmPID'] +label{background:url("{% static 'image/texture.png' %}");width: calc(100% + 30px);height: 55px;padding-top: 10px;margin-bottom: -12px;margin-top: -12px;margin-left: -15px;margin-right: -15px;padding-left:25%}
+    input[name='confirmPID']:checked ~label{background-color: #e78632;}
+    input[name='timePID']{display: none}/*radio  消失*/
+    input[name='timePID'] +label{background:url("{% static 'image/texture.png' %}");width: 110%;padding-left: 12px;margin-bottom: -16px;margin-top: -8px;margin-left: -15px}/*點擊顏色變長*/
+    input[name='timePID']:checked ~label{background-color: #ffdf7e;color:black;}
+    #timetable{position: absolute;top:125px;width: 54.5% ;left: 200px;position: absolute;height:calc(100% - 110px);overflow-y: scroll;overflow-x: hidden}
+    #time td{background:url("{% static 'image/texture.png' %}");color: black;height: auto;font-family: 微軟正黑體;;font-weight:bold;font-size: 16pt;color: #33333a;vertical-align: center;align-items: center}
+    #title{top:55px;height:40px;width: 54.5%;left:200px;position: absolute;background-color: #11171a;font-weight: bolder;padding-top: 10px}
+    #title table{width: 100%}
+    
+    .header{font-size: 16pt;color: white;padding: 0;text-align: center}
+    .edate{position:flex;width: 15%;padding-left: 20px;padding-top:5px;height: auto}
+    .type2{position:flex;width: 25%;padding-left: 20px;padding-top:5px;height: auto}
+    .note{width: 25%;margin:0px;padding-left: 20px;height: auto;font-size: 12pt;padding-top:5px}
+    .eventNote{height:100%}
+    .menu{width: 25%;right:0;position:absolute;padding-top:5px}
+    .add{width:95%;height:20px;line-height:14px;padding:0;border-style:dashed;border-width:2px;border-radius:0}
+    .menublock{width:100%}
+    .phase{margin: 0;width: calc(65%);height: auto;padding-top: 0;display:inline-block;min-width:0px;padding-left:2px;padding-right:10px}
+    .IntervalNo{margin: 0;top:0;width: calc(30%);padding-top: 0;display:inline-block;min-width:0px;padding-right:2px}
+    .report2{display: none}
+    .Ignore{margin-left:  20px;width: calc(12% + 68px);height: 100%;padding: 0}
+    #text{background:url("{% static 'image/texture.png' %}");padding-left:5px;top:50%;height: calc(50%);width: calc(45.5% - 200px);position: absolute;margin-left: 0px;left:calc(54.5% + 201px) ;font-size: 12pt}/*Report 放的框框*/
+
+    p{height: 100%;align-items: center;vertical-align: center}
+    #Disease{position: absolute;top: 55px;height: 145px;width: 200px;background-color: #11171a}
+    #Disease select{width: 190px;height: 40px;margin: 5px;font-size: 11pt;}
+    #header_date{width:18%}
+    #header_note{width:45%}
+    #header_confirm{}
+    #extractedFactor{
+        background:url("{% static 'image/texture.png' %}");
+        top:55px;
+        height: calc(50% - 55px);
+        width: calc(45.5% - 200px);
+        position: absolute;
+        margin-left: 0px;
+        left:calc(54.5% + 200px) ;
+        border-radius:0px;
+        font-size: 10pt;
+        border:1px solid #000;
+        overflow-x:hidden;
+        display:inline;
+    }
+    #extractedFactor2{
+        position:absolute;
+        background:url("{% static 'image/texture.png' %}");
+        top:55px;
+        height: calc(50% - 55px);
+        width: calc(22.75% - 100px);
+        position: absolute;
+        margin-left: 0px;
+        left:calc(77.25% + 100px) ;
+        border-radius:0px;
+        font-size: 10pt;
+        border:1px solid #000;
+        overflow-x:hidden;
+        display:inline;
+    }
+}
+.checkPannel{
+    position:absolute;
+    display:none;
+    border-radius:10px;
+    z-index:10;
+    height:555px;
+    width:400px;
+    left:30%;
+    top:calc(50% - 200px);
+    background-color:#FFFFFF;
+    border:1px solid #AAAAAA;
+}
+#processing{width:100%;height:250px;border-bottom:1px solid #AAAAAA}
+#destination{width:100%;height:250px;border-top:1px solid #AAAAAA}
+.customMenu{
+    padding-bottom:5px;
+    padding-left:5px;
+    padding-right:5px;
+    position: fixed;
+    z-index: 5;
+    max-height: 85vh;
+    display: none;
+    margin: 0;
+    width: 100px;
+    background-color: #FFFFFF; 
+    border-radius: 5px 5px 5px 5px;
+    border:1px solid #CCCCCC;
+}
+.resetbtn {
+    font-size:10pt;
+    margin:0;
+    margin-top: 5px;
+    width: 100%;
+    max-height: 85vh; 
+    border-radius: 5px 5px 5px 5px
+}
+.row{margin:0px}
+.col-md-6{padding:2px}
+.col-md-12{padding:2px}
+.ascriptionContentHeader{
+    width:100%;
+    text-align:center;
+    border-bottom:1px solid #AAAAAA;
+    z-index:500;
+}
+.ascriptionHeader{
+    border-radius:10px 10px 0px 0px;
+    width:100%;
+    height:30px;
+    background:url("{% static 'image/texture.png' %}");
+    background-color:#000;
+    text-align:center;
+    line-height:30px;
+    font-weight:900;
+    color:#FFFFFF;
+    z-index:500;
+}
+.close{position:absolute;right:5px;margin-top:3px;filter: invert(1)}
+.item{margin:2px;width:calc(100% - 4px);border:1px solid #AAAAAA;border-radius:5px;}
+.content{height:50px;text-align:center;padding-top:5px}
+#ascriptionPhase , #desPhase{height:150px;width:100%}
+#ascription select{pointer-events:none}
+.inductionEventID{display:none}
+.submit{height:20px;line-height:8px;width:calc(100% - 8px);position:absolute;bottom:5px;margin-left:4px}
+#cancerRegistCheck{width:500px}
+input[name='test']{display: none}/*radio  消失*/
+input[name='test'] +label{background:url("{% static 'image/texture.png' %}");width: 100%;}/*點擊顏色變長*/
+input[name='test']:checked ~label{background-color: #ffdf7e;color:black;}
+.accordion{left:-8px;position:absolute;width:5px;height:100%;z-index:5}
+.collapseItem{padding-left:20px;}
+
+
+:root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px; --formwidth: 600px; --form-mob-width: 500px; }
+#mycheckbox { position: absolute; left: -9999px; }
+.feedback-label,.form { position: fixed; top: 50%; right: 0; }
+.feedback-label { transform-origin: top right; transform:  translate(0%, -100%); z-index: 10; }
+.form {height:500px;background:url("{% static 'image/texture.png' %}");border:solid 2px #44444a; width: var(--formwidth); max-height: 85vh;margin-top: 2%; transform: translate(100%, -50%); padding: 0px; overflow: auto; background-color: var(--form); z-index: 10; border-radius:10px}
+.feedback-label { border-radius: var(--border-radius); }
+.feedback-label { padding: 5px 10px; border-radius: var(--border-radius)  0 0 var(--border-radius) ; }
+.feedback-label { writing-mode: vertical-rl;background: brown; color: white; }
+.feedback-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+#mycheckbox:checked + .feedback-label { background: #e78632; transform:  translate(calc((var(--formwidth) ) * -1),-100%)}
+#mycheckbox:checked ~ .form { transform: translate(0, -50%);z-index: 10;}
+.feedback-label, .form { transition: all 0.35s ease-in-out; }
+.form{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+td{padding:0px;margin:0px;font-size:10pt}
+.status{padding:0px;padding-top:5px;padding-bottom:5px}
+#statusMenu{width:150px}
+.noted{color:#FFFF00}
+.customCol{margin:0px;padding:0px;height:50px}
+
+.medType{display:none}
+
+#extractedFactor .ascriptionHeader{border-radius:0px;}
+#extractedFactor li{font-size:10pt}
+.factorGroupArea{height:calc(100% - 80px);overflow-y:auto;overflow-x:hidden}
+
+#extractedFactor label{padding-left:5px}
+#extractedFactor ul{margin-left: 0; padding-left: 20px;}
+.mainBlock{
+    border-bottom:3px black solid;
+}
+#patientStatusCheck{width:650px}
+#statusArea table{text-align:center}
+#statusArea table th{font-size:10pt}
+#statusArea input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+.statusFilter{color:#333;padding:0px;padding-left:2px;padding-right:2px;width:60px;height:20px;font-size:12px;background-color:#FFF}
+#statusFilterPannel{padding-left:5px}
+.exclude{color:red}
+#header_disabled{width:50px;font-size:10pt}
+#formVersion{position:absolute;top:2px;left:40%;height:26px}
+#formDisease{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
+#procedureOfForm{position:absolute;top:2px;left:20%;height:26px}
+.changeSeq{position:absolute;top:2px;left:60%;height:26px}
+#formVersion2{position:absolute;top:2px;left:40%;height:26px}
+#formDisease2{position:absolute;top:2px;left:0px;height:26px;font-size:5pt;padding-top:0px;padding-bottom:0px;padding-left:0px}
+#procedureOfForm2{position:absolute;top:2px;left:20%;height:26px}
+
+#formDesignPannel{display:none;width:1400px;background:url("{% static 'image/texture.png' %}") #08192D;left:10%;}
+.formFilter{width:calc(20% - 3.2px);display:inline;border-radius:0}
+#designArea{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFFFFF;position:absolute;left:0px;overflow-y:scroll;overflow-x:hidden;border-right:1px solid}
+#preview{width:50%;height:calc(100% - 100px);background:url("{% static 'image/texture.png' %}") #FFF;position:absolute;right:0px;overflow-y:scroll;overflow-x:hidden}
+.designFactor{width:100%;display:inline;font-size:10pt;;margin:0px;border-radius:0}
+#designArea table{text-align:center;font-size:8pt;padding:0px;margin:0px;height:0px}
+#designArea table td{font-size:8pt;padding:0px;padding-bottom:2px;width:20px}
+#designArea table th{font-size:8pt;padding:0px;}
+.formTitle{width:calc(20% - 3.2px);text-align:center;margin:0px;background:url("{% static 'image/texture.png' %}") #ECB88A}
+.delete{margin-top:10px}
+input[name="deleteFactorRow"]{display:none}
+input[name="deletePatientDisease"]{display:none}
+.deletePatientDisease{width:20px}
+.form-control{font-size:10pt}
+#topicArea{position:absolute;top:40px;left:10px;height:500px;overflow-y:auto;display:inline}
+.hiddenRow {
+    padding: 0 !important;
+}
+.hiddenRow div{
+    margin-left:10px !important;
+}
+.hiddenRow div .edate{
+    width:18% !important;
+}
+.hiddenRow div .note{
+    width:45% !important;
+}
+.customSelect{background-image:none;width:20%;font-size:5pt;padding:0px;padding-left:5px}
+#extractedFactor2{display:none;}
+#extractedFactor2 .ascriptionHeader{border-radius:0px}
+#batchDefinite {
+    display: none;
+}
+.buttonAtBottom{position:absolute;height:30px;line-height:15px;width:calc(100% - 20px);margin-left:10px;margin-top:calc(32%)}
+.event_content{height:calc(30% - 50px)}
+input[name='confirmPID']:disabled ~label{pointer-events: none;}
+.eventChecked{position:absolute;display:none;color:yellow;left:0px;z-index:10}
+
+#title{z-index:12}
+:root { --white: white; --gradient: linear-gradient(-45deg, #FFA600 0%, #FF5E03 50%); --form: #FFFFFF; --border-radius: 10px;  --form-mob-width: 500px; }
+#medtypeFilterCheckbox { position: absolute; left: -9999px; }
+#medtypeFilterForm { position: fixed;top:calc(95px - 100px);height:30px;width: 100%;left:200px;}
+#medtypeFilter-label { position: fixed; top:95px;height:30px;width: 54.5%;left:200px;}
+#medtypeFilter-label { transform-origin: top right;  z-index: 11; }
+#medtypeFilterForm {height:100px;background:url("{% static 'image/texture.png' %}");
+                    border:solid 2px #44444a; 
+                    width: 54.5%; 
+                    max-height: 85vh;
+                    padding: 0px; 
+                    overflow: auto; 
+                    background-color: var(--form); 
+                    z-index: 11;
+                    background-color:#000
+                }
+#medtypeFilter-label { padding: 5px 10px; border-radius: 0 0 var(--border-radius)  var(--border-radius) }
+#medtypeFilter-label { text-align: center;background: brown; color: white; }
+#medtypeFilter-label { -webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+#medtypeFilterCheckbox:checked + #medtypeFilter-label { background: #e78632; transform:  translate(0,100px)}
+#medtypeFilterCheckbox:checked ~ #medtypeFilterForm { transform: translate(0%, 100px);z-index: 11;}
+#medtypeFilter-label, #medtypeFilterForm { transition: all 0.35s ease-in-out; }
+#medtypeFilterForm{-webkit-user-select:none; -moz-user-select:none;   -o-user-select:none; user-select:none;}
+#medtypeFilter{padding-left:5px;padding-right:5px}
+</style>
